@@ -1,0 +1,50 @@
+[workspace]
+resolver = "2"
+members = [
+  "clients/cli",
+  "interface",
+  "program",
+]
+
+
+[workspace.package]
+authors = ["TBD"]
+repository = "TBD"
+homepage = "TBD"
+license = "Apache-2.0"
+edition = "2021"
+
+[workspace.lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = [
+    'cfg(target_os, values("solana"))',
+    'cfg(feature, values("frozen-abi", "no-entrypoint", "custom-heap", "custom-panic"))',
+]
+
+[workspace.metadata.cli]
+solana = "2.2.0"
+
+
+[workspace.metadata.spellcheck]
+config = "scripts/spellcheck.toml"
+
+[workspace.metadata.release]
+pre-release-commit-message = "Publish {{crate_name}} v{{version}}"
+tag-message = "Publish {{crate_name}} v{{version}}"
+consolidate-commits = false
+
+[workspace.dependencies]
+solana-account-info = "2.2.1"
+solana-cpi = "2.2.1"
+solana-decode-error = "2.2.1"
+solana-instruction = { version = "2.2.1", features = ["std"] }
+solana-msg = "2.2.1"
+solana-program-error = "2.2.1"
+solana-pubkey = { version = "2.2.1", features = ["curve25519"] }
+solana-program = "2.2.1"
+spl-discriminator = "0.4.0"
+spl-program-error = "0.7.0"
+spl-tlv-account-resolution = "0.10.0"
+spl-type-length-value = "0.8.0"
+spl-pod = "0.5.0"
+spl-token-2022 = { version = "9.0.0", features = ["no-entrypoint"] }
