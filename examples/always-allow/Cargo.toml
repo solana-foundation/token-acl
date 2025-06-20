@@ -1,5 +1,5 @@
 [package]
-name = "ebalts"
+name = "always-allow-gate-program"
 version = "0.1.0"
 description = "tbd"
 documentation = "tbd"
@@ -23,10 +23,11 @@ solana-cpi = { workspace = true }
 solana-system-interface = { workspace = true }
 solana-sysvar = { workspace = true }
 solana-program-error = { workspace = true }
+spl-discriminator = { workspace = true }
 spl-pod = { workspace = true }
 spl-tlv-account-resolution = { workspace = true }
 spl-token-2022 = { workspace = true }
-ebalts-interface = { version = "0.1.0", path = "../interface" }
+ebalts-interface = { version = "0.1.0", path = "../../interface" }
 spl-type-length-value = { workspace = true }
 bytemuck = { version = "1.21.0", features = ["derive"] }
 

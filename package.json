@@ -1,6 +1,7 @@
 {
     "private": true,
     "scripts": {
+      "example:always-allow:build": "zx ./scripts/rust/build-sbf.mjs examples/always-allow",
       "programs:build": "zx ./scripts/rust/build-sbf.mjs program",
       "programs:test": "zx ./scripts/rust/test-sbf.mjs program",
       "programs:format": "zx ./scripts/rust/format.mjs program",
