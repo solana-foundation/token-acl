@@ -3,12 +3,10 @@ use std::future::Future;
 
 pub use generated::*;
 
-
 use solana_instruction::Instruction;
 use solana_program_error::ProgramError;
 use solana_pubkey::Pubkey;
 pub use spl_tlv_account_resolution::state::{AccountDataResult, AccountFetchError};
-
 
 #[allow(clippy::too_many_arguments)]
 pub async fn create_thaw_permissionless_instruction_with_extra_metas<F, Fut>(
@@ -24,7 +22,7 @@ where
     F: Fn(Pubkey) -> Fut,
     Fut: Future<Output = AccountDataResult>,
 {
-    let mint_config  = fetch_account_data_fn(*mint_config_pubkey)
+    let mint_config = fetch_account_data_fn(*mint_config_pubkey)
         .await?
         .and_then(|data| crate::accounts::MintConfig::from_bytes(&data).ok())
         .ok_or(ProgramError::InvalidAccountData)?;
@@ -69,7 +67,7 @@ where
     F: Fn(Pubkey) -> Fut,
     Fut: Future<Output = AccountDataResult>,
 {
-    let mint_config  = fetch_account_data_fn(*mint_config_pubkey)
+    let mint_config = fetch_account_data_fn(*mint_config_pubkey)
         .await?
         .and_then(|data| crate::accounts::MintConfig::from_bytes(&data).ok())
         .ok_or(ProgramError::InvalidAccountData)?;

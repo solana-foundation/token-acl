@@ -1,10 +1,12 @@
 use ebalts_interface::onchain::invoke_can_freeze_permissionless;
 use solana_cpi::invoke_signed;
-use solana_program_error::{ProgramError, ProgramResult};
 use solana_program::account_info::AccountInfo;
+use solana_program_error::{ProgramError, ProgramResult};
 
-use crate::{error::EbaltsError, state::{load_mint_config, MintConfig}};
-
+use crate::{
+    error::EbaltsError,
+    state::{load_mint_config, MintConfig},
+};
 
 pub struct FreezePermissionless<'a> {
     pub authority: &'a AccountInfo<'a>,
@@ -17,7 +19,7 @@ pub struct FreezePermissionless<'a> {
     pub remaining_accounts: &'a [AccountInfo<'a>],
 }
 
-impl<'a> FreezePermissionless<'a> {
+impl FreezePermissionless<'_> {
     pub const DISCRIMINATOR: u8 = 7;
 
     pub fn process(&self) -> ProgramResult {
@@ -48,19 +50,34 @@ impl<'a> FreezePermissionless<'a> {
         let bump_seed = [config.bump];
         let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
 
-        let ix = spl_token_2022::instruction::freeze_account(self.token_program.key, self.token_account.key, self.mint.key, self.mint_config.key, &[])?;
-        invoke_signed(&ix, &[self.token_account.clone(), self.mint.clone(), self.mint_config.clone()], &[&seeds])?;
+        let ix = spl_token_2022::instruction::freeze_account(
+            self.token_program.key,
+            self.token_account.key,
+            self.mint.key,
+            self.mint_config.key,
+            &[],
+        )?;
+        invoke_signed(
+            &ix,
+            &[
+                self.token_account.clone(),
+                self.mint.clone(),
+                self.mint_config.clone(),
+            ],
+            &[&seeds],
+        )?;
 
         Ok(())
     }
-
 }
 
 impl<'a> TryFrom<&'a [AccountInfo<'a>]> for FreezePermissionless<'a> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'a [AccountInfo<'a>]) -> Result<Self, Self::Error> {
-        let [authority, mint, token_account, token_account_owner, mint_config, token_program, gating_program, remaining_accounts @ ..] = &accounts else {
+        let [authority, mint, token_account, token_account_owner, mint_config, token_program, gating_program, remaining_accounts @ ..] =
+            &accounts
+        else {
             return Err(ProgramError::NotEnoughAccountKeys);
         };
 
@@ -71,7 +88,7 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for FreezePermissionless<'a> {
         if !spl_token_2022::check_id(token_program.key) {
             return Err(EbaltsError::InvalidTokenProgram.into());
         }
-        
+
         Ok(Self {
             authority,
             mint,

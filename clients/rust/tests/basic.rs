@@ -83,8 +83,8 @@ fn test_toggle_permissionless_instructions() {
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
-    assert_eq!(mint_config.enable_permissionless_freeze, false);
-    assert_eq!(mint_config.enable_permissionless_thaw, false);
+    assert!(!mint_config.enable_permissionless_freeze);
+    assert!(!mint_config.enable_permissionless_thaw);
 
     let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
@@ -106,8 +106,8 @@ fn test_toggle_permissionless_instructions() {
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
-    assert_eq!(mint_config.enable_permissionless_freeze, true);
-    assert_eq!(mint_config.enable_permissionless_thaw, false);
+    assert!(mint_config.enable_permissionless_freeze);
+    assert!(!mint_config.enable_permissionless_thaw);
 
     let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
@@ -129,8 +129,8 @@ fn test_toggle_permissionless_instructions() {
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
-    assert_eq!(mint_config.enable_permissionless_freeze, false);
-    assert_eq!(mint_config.enable_permissionless_thaw, true);
+    assert!(!mint_config.enable_permissionless_freeze);
+    assert!(mint_config.enable_permissionless_thaw);
 
     let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
@@ -152,8 +152,8 @@ fn test_toggle_permissionless_instructions() {
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
-    assert_eq!(mint_config.enable_permissionless_freeze, true);
-    assert_eq!(mint_config.enable_permissionless_thaw, true);
+    assert!(mint_config.enable_permissionless_freeze);
+    assert!(mint_config.enable_permissionless_thaw);
 }
 
 #[test]
@@ -170,7 +170,7 @@ fn test_thaw_permissioned() {
 
     let ix = ebalts_client::instructions::ThawBuilder::new()
         .authority(tc.token.auth.pubkey())
-        .mint(tc.token.mint.clone())
+        .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
         .token_account(user_ata)
         .token_program(TOKEN_PROGRAM_ID)
@@ -200,7 +200,7 @@ fn test_freeze_permissioned() {
 
     let ix = ebalts_client::instructions::ThawBuilder::new()
         .authority(tc.token.auth.pubkey())
-        .mint(tc.token.mint.clone())
+        .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
         .token_account(user_ata)
         .token_program(TOKEN_PROGRAM_ID)
@@ -221,7 +221,7 @@ fn test_freeze_permissioned() {
 
     let ix = ebalts_client::instructions::FreezeBuilder::new()
         .authority(tc.token.auth.pubkey())
-        .mint(tc.token.mint.clone())
+        .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
         .token_account(user_ata)
         .token_program(TOKEN_PROGRAM_ID)

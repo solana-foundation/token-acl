@@ -26,6 +26,12 @@ pub struct TokenContext {
     pub auth: Keypair,
 }
 
+impl Default for TestContext {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TestContext {
     pub fn new() -> Self {
         let mut vm = LiteSVM::new();
@@ -90,7 +96,7 @@ impl TestContext {
         );
 
         let ix2 =
-            initialize_default_account_state(&token_program_id, &mint_pk, &AccountState::Frozen)
+            initialize_default_account_state(token_program_id, &mint_pk, &AccountState::Frozen)
                 .unwrap();
 
         let ix3 = initialize_mint2(
@@ -130,9 +136,9 @@ impl TestContext {
         assert!(res.is_ok());
 
         let token_account =
-            get_associated_token_address_with_program_id(&owner.pubkey(), mint, &token_program_id);
+            get_associated_token_address_with_program_id(&owner.pubkey(), mint, token_program_id);
 
-        let ix = create_associated_token_account(&payer_pk, &payer_pk, mint, &token_program_id);
+        let ix = create_associated_token_account(&payer_pk, &payer_pk, mint, token_program_id);
 
         let block_hash = vm.latest_blockhash();
         let tx = Transaction::new_signed_with_payer(
@@ -162,14 +168,14 @@ impl TestContext {
                 AccountMeta::new(
                     ebalts_interface::get_thaw_extra_account_metas_address(
                         &self.token.mint,
-                        &gating_program,
+                        gating_program,
                     ),
                     false,
                 ),
                 AccountMeta::new(
                     ebalts_interface::get_freeze_extra_account_metas_address(
                         &self.token.mint,
-                        &gating_program,
+                        gating_program,
                     ),
                     false,
                 ),
@@ -184,7 +190,7 @@ impl TestContext {
         let ix = ebalts_client::instructions::CreateConfigBuilder::new()
             .authority(self.token.auth.pubkey())
             .gating_program(*gating_program)
-            .mint(self.token.mint.clone())
+            .mint(self.token.mint)
             .mint_config(mint_cfg_pk)
             .payer(self.token.auth.pubkey())
             .system_program(ID)
@@ -229,7 +235,8 @@ impl TestContext {
     }
 
     pub fn setup_aa_wd_gate_extra_metas(&mut self) {
-        let setup_extra_metas_ix = self.get_setup_extra_metas_ix(&self.token.auth.pubkey(), &AA_WD_ID);
+        let setup_extra_metas_ix =
+            self.get_setup_extra_metas_ix(&self.token.auth.pubkey(), &AA_WD_ID);
         let tx = Transaction::new_signed_with_payer(
             &[setup_extra_metas_ix],
             Some(&self.token.auth.pubkey()),
@@ -244,7 +251,7 @@ impl TestContext {
     pub fn thaw(&mut self, token_account: &Pubkey) {
         let ix = ebalts_client::instructions::ThawBuilder::new()
             .authority(self.token.auth.pubkey())
-            .mint(self.token.mint.clone())
+            .mint(self.token.mint)
             .mint_config(ebalts_client::accounts::MintConfig::find_pda(&self.token.mint).0)
             .token_account(*token_account)
             .token_program(spl_token_2022::ID)
@@ -263,7 +270,7 @@ impl TestContext {
     pub fn freeze(&mut self, token_account: &Pubkey) {
         let ix = ebalts_client::instructions::FreezeBuilder::new()
             .authority(self.token.auth.pubkey())
-            .mint(self.token.mint.clone())
+            .mint(self.token.mint)
             .mint_config(ebalts_client::accounts::MintConfig::find_pda(&self.token.mint).0)
             .token_account(*token_account)
             .token_program(spl_token_2022::ID)

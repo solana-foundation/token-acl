@@ -1,9 +1,5 @@
-use solana_program::
-    account_info::AccountInfo
-;
+use solana_program::account_info::AccountInfo;
 use solana_program_error::{ProgramError, ProgramResult};
-
-
 
 pub struct CanThawFreezePermissionless<'a> {
     pub authority: &'a AccountInfo<'a>,
@@ -18,10 +14,8 @@ pub struct CanThawFreezePermissionless<'a> {
     pub extra_metas_again: &'a AccountInfo<'a>,
 }
 
-impl<'a> CanThawFreezePermissionless<'a> {
-
+impl CanThawFreezePermissionless<'_> {
     pub fn process(&self) -> ProgramResult {
-
         if self.ata.key != self.token_account.key {
             return Err(ProgramError::InvalidArgument);
         }
@@ -37,8 +31,7 @@ impl<'a> CanThawFreezePermissionless<'a> {
         if self.associated_token_program.key != &spl_associated_token_account_client::program::ID {
             return Err(ProgramError::IncorrectProgramId);
         }
-        
-        
+
         Ok(())
     }
 }
@@ -47,7 +40,9 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for CanThawFreezePermissionless<'a> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'a [AccountInfo<'a>]) -> Result<Self, Self::Error> {
-        let [authority, token_account, mint, token_account_owner, extra_metas, associated_token_program, token_program, token_account_owner_again, ata, extra_metas_again] = accounts else {
+        let [authority, token_account, mint, token_account_owner, extra_metas, associated_token_program, token_program, token_account_owner_again, ata, extra_metas_again] =
+            accounts
+        else {
             return Err(ProgramError::NotEnoughAccountKeys);
         };
 

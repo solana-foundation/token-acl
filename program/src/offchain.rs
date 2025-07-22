@@ -1,5 +1,5 @@
-pub use spl_tlv_account_resolution::state::{AccountDataResult, AccountFetchError};
 use crate::state::load_mint_config;
+pub use spl_tlv_account_resolution::state::{AccountDataResult, AccountFetchError};
 
 use {
     solana_program::{instruction::Instruction, program_error::ProgramError, pubkey::Pubkey},

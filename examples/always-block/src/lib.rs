@@ -1,10 +1,8 @@
-use ebalts_interface::instruction::{CanThawPermissionlessInstruction, CanFreezePermissionlessInstruction};
+use ebalts_interface::instruction::{
+    CanFreezePermissionlessInstruction, CanThawPermissionlessInstruction,
+};
 use solana_program::{
-    account_info::AccountInfo,
-    entrypoint::ProgramResult,
-    pubkey::Pubkey,
-    declare_id,
-    entrypoint
+    account_info::AccountInfo, declare_id, entrypoint, entrypoint::ProgramResult, pubkey::Pubkey,
 };
 use solana_program_error::ProgramError;
 use spl_discriminator::{ArrayDiscriminator, SplDiscriminate};
@@ -23,21 +21,24 @@ fn process_instruction<'a>(
     let (discriminator, _remaining) = instruction_data.split_at(ArrayDiscriminator::LENGTH);
 
     match discriminator {
-        InitializeExtraMetas::DISCRIMINATOR_SLICE => InitializeExtraMetas::try_from(accounts)?.process(),
-        CanThawPermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => Err(CustomErrors::UnsupportedInstruction.into()),
-        CanFreezePermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => Err(CustomErrors::UnsupportedInstruction.into()),
+        InitializeExtraMetas::DISCRIMINATOR_SLICE => {
+            InitializeExtraMetas::try_from(accounts)?.process()
+        }
+        CanThawPermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => {
+            Err(CustomErrors::UnsupportedInstruction.into())
+        }
+        CanFreezePermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => {
+            Err(CustomErrors::UnsupportedInstruction.into())
+        }
         _ => Err(CustomErrors::InvalidInstruction.into()),
     }
 }
-
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CustomErrors {
     InvalidInstruction,
     UnsupportedInstruction = 999999999,
 }
-
-
 
 impl From<CustomErrors> for ProgramError {
     fn from(e: CustomErrors) -> Self {

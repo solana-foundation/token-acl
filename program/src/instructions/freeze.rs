@@ -1,9 +1,11 @@
 use solana_cpi::invoke_signed;
-use solana_program_error::{ProgramError, ProgramResult};
 use solana_program::account_info::AccountInfo;
+use solana_program_error::{ProgramError, ProgramResult};
 
-use crate::{error::EbaltsError, state::{load_mint_config, MintConfig}};
-
+use crate::{
+    error::EbaltsError,
+    state::{load_mint_config, MintConfig},
+};
 
 pub struct Freeze<'a> {
     pub authority: &'a AccountInfo<'a>,
@@ -13,7 +15,7 @@ pub struct Freeze<'a> {
     pub token_program: &'a AccountInfo<'a>,
 }
 
-impl<'a> Freeze<'a> {
+impl Freeze<'_> {
     pub const DISCRIMINATOR: u8 = 5;
 
     pub fn process(&self) -> ProgramResult {
@@ -31,12 +33,25 @@ impl<'a> Freeze<'a> {
         let bump_seed = [config.bump];
         let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
 
-        let ix = spl_token_2022::instruction::freeze_account(self.token_program.key, self.token_account.key, self.mint.key, self.mint_config.key, &[])?;
-        invoke_signed(&ix, &[self.token_account.clone(), self.mint.clone(), self.mint_config.clone()], &[&seeds])?;
+        let ix = spl_token_2022::instruction::freeze_account(
+            self.token_program.key,
+            self.token_account.key,
+            self.mint.key,
+            self.mint_config.key,
+            &[],
+        )?;
+        invoke_signed(
+            &ix,
+            &[
+                self.token_account.clone(),
+                self.mint.clone(),
+                self.mint_config.clone(),
+            ],
+            &[&seeds],
+        )?;
 
         Ok(())
     }
-
 }
 
 impl<'a> TryFrom<&'a [AccountInfo<'a>]> for Freeze<'a> {
@@ -50,7 +65,6 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for Freeze<'a> {
         if !authority.is_signer {
             return Err(EbaltsError::InvalidAuthority.into());
         }
-
 
         if !spl_token_2022::check_id(token_program.key) {
             return Err(EbaltsError::InvalidTokenProgram.into());

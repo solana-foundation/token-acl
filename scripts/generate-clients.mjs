@@ -2,7 +2,7 @@
 import 'zx/globals';
 import { createFromRoot } from 'codama';
 import { renderVisitor as renderJavaScriptVisitor } from '@codama/renderers-js';
-// import { renderVisitor as renderRustVisitor } from "@codama/renderers-rust";
+import { renderVisitor as renderRustVisitor } from "@codama/renderers-rust";
 import { workingDirectory } from './utils.mjs';
 
 // Instanciate Codama.
@@ -19,10 +19,10 @@ codama.accept(
 );
 
 // Render Rust.
-// const rustClient = path.join(__dirname, "..", "clients", "rust");
-// codama.accept(
-//   renderRustVisitor(path.join(rustClient, "src", "generated"), {
-//     formatCode: true,
-//     crateFolder: rustClient,
-//   })
-// );
+ const rustClient = path.join(__dirname, "..", "clients", "rust");
+ codama.accept(
+   renderRustVisitor(path.join(rustClient, "src", "generated"), {
+     formatCode: true,
+     crateFolder: rustClient,
+   })
+ );

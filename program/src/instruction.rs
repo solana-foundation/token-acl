@@ -1,8 +1,13 @@
-use solana_program::{instruction::{AccountMeta, Instruction}, pubkey::Pubkey};
+use solana_program::{
+    instruction::{AccountMeta, Instruction},
+    pubkey::Pubkey,
+};
 
-use crate::instructions::{CreateConfig, ForfeitFreezeAuthority, Freeze, FreezePermissionless, SetAuthority, SetGatingProgram, Thaw, ThawPermissionless, TogglePermissionlessInstructions};
+use crate::instructions::{
+    CreateConfig, ForfeitFreezeAuthority, Freeze, FreezePermissionless, SetAuthority,
+    SetGatingProgram, Thaw, ThawPermissionless, TogglePermissionlessInstructions,
+};
 use std::mem::size_of;
-
 
 #[repr(C)]
 pub enum EbaltsInstruction {
@@ -10,9 +15,9 @@ pub enum EbaltsInstruction {
     /// Initializes a new mint config.
     /// If the authority is the same as the mint freeze authority it will
     /// CPI into token22 program to set the mint config account as the freeze authority.
-    /// 
+    ///
     /// Accounts:
-    /// 
+    ///
     ///   0. `[writable]` - payer
     ///   1. `[signer]` - authority
     ///   2. `[writable]` - mint
@@ -25,9 +30,9 @@ pub enum EbaltsInstruction {
     },
     // 1
     /// Sets the freeze authority for a given mint config.
-    /// 
+    ///
     /// Accounts:
-    /// 
+    ///
     ///   0. `[signer]` - authority
     ///   1. `[writable]` - mint config
     SetAuthority {
@@ -36,9 +41,9 @@ pub enum EbaltsInstruction {
     },
     // 2
     /// Sets the gating program for a given mint config.
-    /// 
+    ///
     /// Accounts:
-    /// 
+    ///
     ///   0. `[signer]` - authority
     ///   1. `[writable]` - mint config
     SetGatingProgram {
@@ -47,9 +52,9 @@ pub enum EbaltsInstruction {
     },
     // 3
     /// Forfeits the freeze authority from the program back to the one provided by the `MintConfig.freeze_authority`.
-    /// 
+    ///
     /// Accounts:
-    /// 
+    ///
     ///   0. `[signer]` - authority
     ///   1. `[writable]` - mint
     ///   2. `[writable]` - mint config
@@ -60,9 +65,9 @@ pub enum EbaltsInstruction {
     },
     // 4
     /// Thaws a given token account.
-    /// 
+    ///
     /// Accounts:
-    /// 
+    ///
     ///   0. `[signer]` - authority
     ///   1. `[]` - mint
     ///   2. `[writable]` - token account
@@ -71,9 +76,9 @@ pub enum EbaltsInstruction {
     Thaw,
     // 5
     /// Freezes a given token account.
-    /// 
+    ///
     /// Accounts:
-    /// 
+    ///
     ///   0. `[signer]` - authority
     ///   1. `[]` - mint
     ///   2. `[writable]` - token account
@@ -82,9 +87,9 @@ pub enum EbaltsInstruction {
     Freeze,
     // 6
     /// Thaws a given token account permissionlessly.
-    /// 
+    ///
     /// Accounts:
-    /// 
+    ///
     ///   0. `[signer]` - authority
     ///   1. `[]` - mint
     ///   2. `[writable]` - token account
@@ -94,9 +99,9 @@ pub enum EbaltsInstruction {
     ThawPermissionless,
     // 7
     /// Freezes a given token account permissionlessly.
-    /// 
+    ///
     /// Accounts:
-    /// 
+    ///
     ///   0. `[signer]` - authority
     ///   1. `[]` - mint
     ///   2. `[writable]` - token account
@@ -106,9 +111,9 @@ pub enum EbaltsInstruction {
     FreezePermissionless,
     // 8
     /// Toggles permissionless freeze and thaw instructions.
-    /// 
+    ///
     /// Accounts:
-    /// 
+    ///
     ///   0. `[signer]` - authority
     ///   1. `[]` - mint config
     TogglePermissionlessInstructions {
@@ -124,28 +129,33 @@ impl EbaltsInstruction {
             Self::CreateConfig { gating_program } => {
                 data.push(CreateConfig::DISCRIMINATOR);
                 data.extend_from_slice(&gating_program.to_bytes());
-            },
+            }
             Self::SetAuthority { new_authority } => {
                 data.push(SetAuthority::DISCRIMINATOR);
                 data.extend_from_slice(&new_authority.to_bytes());
-            },
+            }
             Self::SetGatingProgram { new_gating_program } => {
                 data.push(SetGatingProgram::DISCRIMINATOR);
                 data.extend_from_slice(&new_gating_program.to_bytes());
-            },
-            Self::ForfeitFreezeAuthority { new_freeze_authority } => {
+            }
+            Self::ForfeitFreezeAuthority {
+                new_freeze_authority,
+            } => {
                 data.push(ForfeitFreezeAuthority::DISCRIMINATOR);
                 data.extend_from_slice(&new_freeze_authority.to_bytes());
-            },
+            }
             Self::Thaw => data.push(Thaw::DISCRIMINATOR),
             Self::Freeze => data.push(Freeze::DISCRIMINATOR),
             Self::ThawPermissionless => data.push(ThawPermissionless::DISCRIMINATOR),
             Self::FreezePermissionless => data.push(FreezePermissionless::DISCRIMINATOR),
-            Self::TogglePermissionlessInstructions { freeze_enabled, thaw_enabled } => {
+            Self::TogglePermissionlessInstructions {
+                freeze_enabled,
+                thaw_enabled,
+            } => {
                 data.push(TogglePermissionlessInstructions::DISCRIMINATOR);
                 data.push(*freeze_enabled as u8);
                 data.push(*thaw_enabled as u8);
-            },
+            }
         }
         data
     }
@@ -160,7 +170,10 @@ pub fn create_config(
     mint_config: &Pubkey,
     token_program: &Pubkey,
 ) -> Instruction {
-    let data = EbaltsInstruction::CreateConfig { gating_program: *gating_program }.pack();
+    let data = EbaltsInstruction::CreateConfig {
+        gating_program: *gating_program,
+    }
+    .pack();
 
     let accounts = vec![
         AccountMeta::new(*payer, false),
@@ -180,7 +193,10 @@ pub fn set_authority(
     new_authority: &Pubkey,
     mint_config: &Pubkey,
 ) -> Instruction {
-    let data = EbaltsInstruction::SetAuthority { new_authority: *new_authority }.pack();
+    let data = EbaltsInstruction::SetAuthority {
+        new_authority: *new_authority,
+    }
+    .pack();
 
     let accounts = vec![
         AccountMeta::new_readonly(*authority, true),
@@ -196,7 +212,10 @@ pub fn set_gating_program(
     new_gating_program: &Pubkey,
     mint_config: &Pubkey,
 ) -> Instruction {
-    let data = EbaltsInstruction::SetGatingProgram { new_gating_program: *new_gating_program }.pack();
+    let data = EbaltsInstruction::SetGatingProgram {
+        new_gating_program: *new_gating_program,
+    }
+    .pack();
 
     let accounts = vec![
         AccountMeta::new_readonly(*authority, true),
@@ -214,7 +233,10 @@ pub fn forfeit_freeze_authority(
     mint_config: &Pubkey,
     token_program: &Pubkey,
 ) -> Instruction {
-    let data = EbaltsInstruction::ForfeitFreezeAuthority { new_freeze_authority: *new_freeze_authority }.pack();
+    let data = EbaltsInstruction::ForfeitFreezeAuthority {
+        new_freeze_authority: *new_freeze_authority,
+    }
+    .pack();
 
     let accounts = vec![
         AccountMeta::new_readonly(*authority, true),
@@ -268,7 +290,6 @@ pub fn freeze(
     Instruction::new_with_bytes(*program_id, &data, accounts)
 }
 
-
 pub fn thaw_permissionless(
     program_id: &Pubkey,
     signer: &Pubkey,
@@ -281,7 +302,7 @@ pub fn thaw_permissionless(
     let data = EbaltsInstruction::ThawPermissionless.pack();
 
     let accounts = vec![
-        AccountMeta::new_readonly(*signer,true),
+        AccountMeta::new_readonly(*signer, true),
         AccountMeta::new_readonly(*mint, false),
         AccountMeta::new(*token_account, true),
         AccountMeta::new_readonly(*mint_config, false),
@@ -304,7 +325,7 @@ pub fn freeze_permissionless(
     let data = EbaltsInstruction::FreezePermissionless.pack();
 
     let accounts = vec![
-        AccountMeta::new_readonly(*signer,true),
+        AccountMeta::new_readonly(*signer, true),
         AccountMeta::new_readonly(*mint, false),
         AccountMeta::new(*token_account, true),
         AccountMeta::new_readonly(*mint_config, false),
@@ -322,7 +343,11 @@ pub fn toggle_permissionless_instructions(
     freeze_enabled: bool,
     thaw_enabled: bool,
 ) -> Instruction {
-    let data = EbaltsInstruction::TogglePermissionlessInstructions { freeze_enabled, thaw_enabled }.pack();
+    let data = EbaltsInstruction::TogglePermissionlessInstructions {
+        freeze_enabled,
+        thaw_enabled,
+    }
+    .pack();
 
     let accounts = vec![
         AccountMeta::new_readonly(*authority, true),

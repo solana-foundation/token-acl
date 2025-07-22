@@ -3,13 +3,10 @@ use solana_program_error::ProgramError;
 use solana_pubkey::Pubkey;
 use spl_discriminator::{ArrayDiscriminator, SplDiscriminate};
 
-
-
 pub enum EfficientBlockAllowInstruction {
     CanThawPermissionless,
     CanFreezePermissionless,
 }
-
 
 #[derive(SplDiscriminate)]
 #[discriminator_hash_input("efficient-allow-block-list-standard:can-thaw-permissionless")]
@@ -19,7 +16,6 @@ pub struct CanThawPermissionlessInstruction;
 #[discriminator_hash_input("efficient-allow-block-list-standard:can-freeze-permissionless")]
 pub struct CanFreezePermissionlessInstruction;
 
-
 impl EfficientBlockAllowInstruction {
     pub fn unpack(data: &[u8]) -> Result<Self, ProgramError> {
         if data.len() < ArrayDiscriminator::LENGTH {
@@ -27,22 +23,27 @@ impl EfficientBlockAllowInstruction {
         }
         let (discriminator, _) = data.split_at(ArrayDiscriminator::LENGTH);
         match discriminator {
-            CanThawPermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => Ok(Self::CanThawPermissionless),
-            CanFreezePermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => Ok(Self::CanFreezePermissionless),
+            CanThawPermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => {
+                Ok(Self::CanThawPermissionless)
+            }
+            CanFreezePermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => {
+                Ok(Self::CanFreezePermissionless)
+            }
             _ => Err(ProgramError::InvalidInstructionData),
         }
     }
 
     pub fn pack(&self) -> Vec<u8> {
         match self {
-            Self::CanThawPermissionless => CanThawPermissionlessInstruction::SPL_DISCRIMINATOR_SLICE.to_vec(),
-            Self::CanFreezePermissionless => CanFreezePermissionlessInstruction::SPL_DISCRIMINATOR_SLICE.to_vec(),
+            Self::CanThawPermissionless => {
+                CanThawPermissionlessInstruction::SPL_DISCRIMINATOR_SLICE.to_vec()
+            }
+            Self::CanFreezePermissionless => {
+                CanFreezePermissionlessInstruction::SPL_DISCRIMINATOR_SLICE.to_vec()
+            }
         }
     }
 }
-
-
-
 
 pub fn can_thaw_permissionless(
     program_id: &Pubkey,
@@ -62,7 +63,7 @@ pub fn can_thaw_permissionless(
     Instruction {
         program_id: *program_id,
         accounts,
-        data
+        data,
     }
 }
 
@@ -84,6 +85,6 @@ pub fn can_freeze_permissionless(
     Instruction {
         program_id: *program_id,
         accounts,
-        data
+        data,
     }
 }

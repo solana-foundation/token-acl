@@ -1,8 +1,10 @@
-
 use spl_discriminator::SplDiscriminate;
 pub use spl_tlv_account_resolution::state::{AccountDataResult, AccountFetchError};
 
-use crate::{get_freeze_extra_account_metas_address, instruction::{can_freeze_permissionless, CanFreezePermissionlessInstruction}};
+use crate::{
+    get_freeze_extra_account_metas_address,
+    instruction::{can_freeze_permissionless, CanFreezePermissionlessInstruction},
+};
 
 use {
     crate::{
@@ -47,7 +49,7 @@ use {
 //         Err(ThawFreezeGateError::IncorrectAccount)?;
 //     }
 
-//     let mut can_thaw_instruction = can_thaw_permissionless(  
+//     let mut can_thaw_instruction = can_thaw_permissionless(
 //         program_id,
 //         signer_pubkey,
 //         token_account_pubkey,
@@ -96,7 +98,7 @@ where
 {
     let extra_metas_pubkey = get_freeze_extra_account_metas_address(mint_pubkey, program_id);
 
-    add_extra_account_metas_for_permissionless_ix::<_, _, CanFreezePermissionlessInstruction, _>(	
+    add_extra_account_metas_for_permissionless_ix::<_, _, CanFreezePermissionlessInstruction, _>(
         instruction,
         program_id,
         signer_pubkey,
@@ -106,9 +108,16 @@ where
         &extra_metas_pubkey,
         fetch_account_data_fn,
         |program_id, signer_pubkey, token_account_pubkey, mint_pubkey, token_account_owner| {
-            can_freeze_permissionless(program_id, signer_pubkey, token_account_pubkey, mint_pubkey, token_account_owner)
-        }
-    ).await
+            can_freeze_permissionless(
+                program_id,
+                signer_pubkey,
+                token_account_pubkey,
+                mint_pubkey,
+                token_account_owner,
+            )
+        },
+    )
+    .await
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -127,7 +136,7 @@ where
 {
     let extra_metas_pubkey = get_thaw_extra_account_metas_address(mint_pubkey, program_id);
 
-    add_extra_account_metas_for_permissionless_ix::<_, _, CanThawPermissionlessInstruction, _>(	
+    add_extra_account_metas_for_permissionless_ix::<_, _, CanThawPermissionlessInstruction, _>(
         instruction,
         program_id,
         signer_pubkey,
@@ -137,9 +146,16 @@ where
         &extra_metas_pubkey,
         fetch_account_data_fn,
         |program_id, signer_pubkey, token_account_pubkey, mint_pubkey, token_account_owner| {
-            can_thaw_permissionless(program_id, signer_pubkey, token_account_pubkey, mint_pubkey, token_account_owner)
-        }
-    ).await
+            can_thaw_permissionless(
+                program_id,
+                signer_pubkey,
+                token_account_pubkey,
+                mint_pubkey,
+                token_account_owner,
+            )
+        },
+    )
+    .await
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -158,7 +174,7 @@ where
     F: Fn(Pubkey) -> Fut,
     F2: Fn(&Pubkey, &Pubkey, &Pubkey, &Pubkey, &Pubkey) -> Instruction,
     Fut: Future<Output = AccountDataResult>,
-    T: SplDiscriminate,	
+    T: SplDiscriminate,
 {
     //let validate_state_pubkey = get_thaw_extra_account_metas_address(mint_pubkey, program_id);
     let validate_state_data = fetch_account_data_fn(*extra_metas_pubkey)
@@ -178,7 +194,7 @@ where
         Err(ThawFreezeGateError::IncorrectAccount)?;
     }
 
-    let mut cpi_ix = cpi_ix_builder_fn(  
+    let mut cpi_ix = cpi_ix_builder_fn(
         program_id,
         signer_pubkey,
         token_account_pubkey,

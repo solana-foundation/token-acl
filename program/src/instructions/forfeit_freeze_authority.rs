@@ -1,11 +1,12 @@
 use solana_cpi::invoke_signed;
-use solana_program_error::{ProgramError, ProgramResult};
 use solana_program::{account_info::AccountInfo, pubkey::Pubkey};
+use solana_program_error::{ProgramError, ProgramResult};
 use spl_token_2022::instruction::AuthorityType;
 
-use crate::{error::EbaltsError, state::{load_mint_config, MintConfig}};
-
-
+use crate::{
+    error::EbaltsError,
+    state::{load_mint_config, MintConfig},
+};
 
 pub struct ForfeitFreezeAuthority<'a> {
     pub authority: &'a AccountInfo<'a>,
@@ -14,14 +15,15 @@ pub struct ForfeitFreezeAuthority<'a> {
     pub token_program: &'a AccountInfo<'a>,
 }
 
-impl<'a> ForfeitFreezeAuthority<'a> {
+impl ForfeitFreezeAuthority<'_> {
     pub const DISCRIMINATOR: u8 = 3;
 
     pub fn process(&self, remaining_data: &[u8]) -> ProgramResult {
         if remaining_data.len() != 32 {
             return Err(ProgramError::InvalidInstructionData);
         }
-        let new_freeze_authority = Pubkey::try_from(remaining_data).map_err(|_| ProgramError::InvalidInstructionData)?;
+        let new_freeze_authority =
+            Pubkey::try_from(remaining_data).map_err(|_| ProgramError::InvalidInstructionData)?;
 
         let data = &mut self.mint_config.data.borrow_mut();
         let config = load_mint_config(data)?;
@@ -34,17 +36,21 @@ impl<'a> ForfeitFreezeAuthority<'a> {
             return Err(EbaltsError::InvalidTokenMint.into());
         }
 
-        
         let bump_seed = [config.bump];
         let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
 
-        let ix = spl_token_2022::instruction::set_authority(self.token_program.key, self.mint.key, Some(&new_freeze_authority), AuthorityType::FreezeAccount, self.mint_config.key, &[])?;
+        let ix = spl_token_2022::instruction::set_authority(
+            self.token_program.key,
+            self.mint.key,
+            Some(&new_freeze_authority),
+            AuthorityType::FreezeAccount,
+            self.mint_config.key,
+            &[],
+        )?;
         invoke_signed(&ix, &[self.mint.clone(), self.authority.clone()], &[&seeds])?;
-
 
         Ok(())
     }
-
 }
 
 impl<'a> TryFrom<&'a [AccountInfo<'a>]> for ForfeitFreezeAuthority<'a> {

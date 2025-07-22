@@ -1,17 +1,15 @@
-use solana_program_error::{ProgramError, ProgramResult};
 use solana_program::account_info::AccountInfo;
+use solana_program_error::{ProgramError, ProgramResult};
 use spl_pod::primitives::PodBool;
 
 use crate::{error::EbaltsError, state::load_mint_config_mut};
-
-
 
 pub struct TogglePermissionlessInstructions<'a> {
     pub authority: &'a AccountInfo<'a>,
     pub mint_config: &'a AccountInfo<'a>,
 }
 
-impl<'a> TogglePermissionlessInstructions<'a> {
+impl TogglePermissionlessInstructions<'_> {
     pub const DISCRIMINATOR: u8 = 8;
 
     pub fn process(&self, remaining_data: &[u8]) -> ProgramResult {
@@ -25,13 +23,12 @@ impl<'a> TogglePermissionlessInstructions<'a> {
         if config.freeze_authority != *self.authority.key {
             return Err(EbaltsError::InvalidAuthority.into());
         }
-        
+
         config.enable_permissionless_freeze = PodBool::from_bool(*freeze_enabled != 0);
         config.enable_permissionless_thaw = PodBool::from_bool(*thaw_enabled != 0);
 
         Ok(())
     }
-
 }
 
 impl<'a> TryFrom<&'a [AccountInfo<'a>]> for TogglePermissionlessInstructions<'a> {
