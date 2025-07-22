@@ -22,6 +22,8 @@ solana-rent = { workspace = true }
 solana-cpi = { workspace = true }
 solana-system-interface = { workspace = true }
 solana-sysvar = { workspace = true }
+solana-msg = { workspace = true }
+solana-pubkey = { workspace = true }
 solana-program-error = { workspace = true }
 spl-pod = { workspace = true }
 spl-tlv-account-resolution = { workspace = true }
@@ -31,7 +33,7 @@ spl-type-length-value = { workspace = true }
 bytemuck = { version = "1.21.0", features = ["derive"] }
 
 [dev-dependencies]
-solana-sdk = "2.3.0"
+solana-sdk = "2.2.1"
 
 [lib]
 crate-type = ["cdylib", "lib"]

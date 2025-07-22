@@ -14,6 +14,7 @@ pub async fn create_thaw_permissionless_instruction_with_extra_metas<F, Fut>(
     mint_pubkey: &Pubkey,
     mint_config_pubkey: &Pubkey,
     token_program_pubkey: &Pubkey,
+    token_account_owner_pubkey: &Pubkey,
     fetch_account_data_fn: F,
 ) -> Result<Instruction, AccountFetchError>
 where
@@ -26,6 +27,7 @@ where
         mint_pubkey,
         mint_config_pubkey,
         token_account_pubkey,
+        token_account_owner_pubkey,
         token_program_pubkey,
     );
 
@@ -34,6 +36,7 @@ where
         signer_pubkey,
         token_account_pubkey,
         mint_pubkey,
+        token_account_owner_pubkey,
         mint_config_pubkey,
         fetch_account_data_fn,
     )
@@ -50,6 +53,7 @@ pub async fn create_freeze_permissionless_instruction_with_extra_metas<F, Fut>(
     mint_pubkey: &Pubkey,
     mint_config_pubkey: &Pubkey,
     token_program_pubkey: &Pubkey,
+    token_account_owner_pubkey: &Pubkey,
     fetch_account_data_fn: F,
 ) -> Result<Instruction, AccountFetchError>
 where
@@ -62,6 +66,7 @@ where
         mint_pubkey,
         mint_config_pubkey,
         token_account_pubkey,
+        token_account_owner_pubkey,
         token_program_pubkey,
     );
 
@@ -70,6 +75,7 @@ where
         signer_pubkey,
         token_account_pubkey,
         mint_pubkey,
+        token_account_owner_pubkey,
         mint_config_pubkey,
         fetch_account_data_fn,
     )
@@ -83,6 +89,7 @@ pub async fn add_extra_account_metas_for_thaw<F, Fut>(
     signer_pubkey: &Pubkey,
     token_account_pubkey: &Pubkey,
     mint_pubkey: &Pubkey,
+    token_account_owner_pubkey: &Pubkey,
     mint_config_pubkey: &Pubkey,
     fetch_account_data_fn: F,
 ) -> Result<(), AccountFetchError>
@@ -102,6 +109,7 @@ where
             signer_pubkey,
             token_account_pubkey,
             mint_pubkey,
+            token_account_owner_pubkey,
             fetch_account_data_fn,
         )
         .await?;
@@ -115,6 +123,7 @@ pub async fn add_extra_account_metas_for_freeze<F, Fut>(
     signer_pubkey: &Pubkey,
     token_account_pubkey: &Pubkey,
     mint_pubkey: &Pubkey,
+    token_account_owner_pubkey: &Pubkey,
     mint_config_pubkey: &Pubkey,
     fetch_account_data_fn: F,
 ) -> Result<(), AccountFetchError>
@@ -134,6 +143,7 @@ where
             signer_pubkey,
             token_account_pubkey,
             mint_pubkey,
+            token_account_owner_pubkey,
             fetch_account_data_fn,
         )
         .await?;

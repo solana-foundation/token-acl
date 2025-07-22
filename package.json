@@ -2,6 +2,8 @@
     "private": true,
     "scripts": {
       "example:always-allow:build": "zx ./scripts/rust/build-sbf.mjs examples/always-allow",
+      "example:always-block:build": "zx ./scripts/rust/build-sbf.mjs examples/always-block",
+      "example:always-allow-with-deps:build": "zx ./scripts/rust/build-sbf.mjs examples/always-allow-with-deps",
       "programs:build": "zx ./scripts/rust/build-sbf.mjs program",
       "programs:test": "zx ./scripts/rust/test-sbf.mjs program",
       "programs:format": "zx ./scripts/rust/format.mjs program",
@@ -14,6 +16,9 @@
       "clients:cli:format": "zx ./scripts/rust/format.mjs clients/cli",
       "clients:cli:lint": "zx ./scripts/rust/lint.mjs clients/cli",
       "clients:cli:test": "zx ./scripts/rust/test.mjs clients/cli",
+      "clients:rust:format": "zx ./scripts/rust/format.mjs clients/rust",
+      "clients:rust:lint": "zx ./scripts/rust/lint.mjs clients/rust",
+      "clients:rust:test": "zx ./scripts/rust/test.mjs clients/rust",
       "template:upgrade": "zx ./scripts/upgrade-template.mjs",
       "rust:spellcheck": "cargo spellcheck --code 1",
       "rust:audit": "zx ./scripts/rust/audit.mjs",
@@ -21,12 +26,18 @@
       "rust:publish": "zx ./scripts/rust/publish.mjs",
       "interface:format": "zx ./scripts/rust/format.mjs interface",
       "interface:lint": "zx ./scripts/rust/lint.mjs interface",
-      "interface:test": "zx ./scripts/rust/test.mjs interface"
+      "interface:test": "zx ./scripts/rust/test.mjs interface",
+      "generate": "pnpm generate:clients",
+      "generate:clients": "zx ./scripts/generate-clients.mjs",
+      "copy:test:fixtures": "cp target/deploy/*.so clients/rust/tests/fixtures/"
     },
     "devDependencies": {
       "@iarna/toml": "^2.2.5",
       "typescript": "^5.5.2",
-      "zx": "^8.3.2"
+      "zx": "^8.3.2",
+      "@codama/renderers-js": "^1.2.4",
+      "@codama/renderers-rust": "^1.0.13",
+      "codama": "^1.2.5"
     },
     "engines": {
       "node": ">=v20.0.0"

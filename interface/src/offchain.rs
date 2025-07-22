@@ -87,6 +87,7 @@ pub async fn add_extra_account_metas_for_freeze<F, Fut>(
     signer_pubkey: &Pubkey,
     token_account_pubkey: &Pubkey,
     mint_pubkey: &Pubkey,
+    token_account_owner: &Pubkey,
     fetch_account_data_fn: F,
 ) -> Result<(), AccountFetchError>
 where
@@ -101,10 +102,11 @@ where
         signer_pubkey,
         token_account_pubkey,
         mint_pubkey,
+        token_account_owner,
         &extra_metas_pubkey,
         fetch_account_data_fn,
-        |program_id, signer_pubkey, token_account_pubkey, mint_pubkey| {
-            can_freeze_permissionless(program_id, signer_pubkey, token_account_pubkey, mint_pubkey)
+        |program_id, signer_pubkey, token_account_pubkey, mint_pubkey, token_account_owner| {
+            can_freeze_permissionless(program_id, signer_pubkey, token_account_pubkey, mint_pubkey, token_account_owner)
         }
     ).await
 }
@@ -116,6 +118,7 @@ pub async fn add_extra_account_metas_for_thaw<F, Fut>(
     signer_pubkey: &Pubkey,
     token_account_pubkey: &Pubkey,
     mint_pubkey: &Pubkey,
+    token_account_owner: &Pubkey,
     fetch_account_data_fn: F,
 ) -> Result<(), AccountFetchError>
 where
@@ -130,10 +133,11 @@ where
         signer_pubkey,
         token_account_pubkey,
         mint_pubkey,
+        token_account_owner,
         &extra_metas_pubkey,
         fetch_account_data_fn,
-        |program_id, signer_pubkey, token_account_pubkey, mint_pubkey| {
-            can_thaw_permissionless(program_id, signer_pubkey, token_account_pubkey, mint_pubkey)
+        |program_id, signer_pubkey, token_account_pubkey, mint_pubkey, token_account_owner| {
+            can_thaw_permissionless(program_id, signer_pubkey, token_account_pubkey, mint_pubkey, token_account_owner)
         }
     ).await
 }
@@ -145,13 +149,14 @@ pub async fn add_extra_account_metas_for_permissionless_ix<F, Fut, T, F2>(
     signer_pubkey: &Pubkey,
     token_account_pubkey: &Pubkey,
     mint_pubkey: &Pubkey,
+    token_account_owner: &Pubkey,
     extra_metas_pubkey: &Pubkey,
     fetch_account_data_fn: F,
     cpi_ix_builder_fn: F2,
 ) -> Result<(), AccountFetchError>
 where
     F: Fn(Pubkey) -> Fut,
-    F2: Fn(&Pubkey, &Pubkey, &Pubkey, &Pubkey) -> Instruction,
+    F2: Fn(&Pubkey, &Pubkey, &Pubkey, &Pubkey, &Pubkey) -> Instruction,
     Fut: Future<Output = AccountDataResult>,
     T: SplDiscriminate,	
 {
@@ -165,6 +170,7 @@ where
         signer_pubkey,
         token_account_pubkey,
         mint_pubkey,
+        token_account_owner,
     ]
     .iter()
     .any(|&key| !instruction.accounts.iter().any(|meta| meta.pubkey == *key))
@@ -177,6 +183,7 @@ where
         signer_pubkey,
         token_account_pubkey,
         mint_pubkey,
+        token_account_owner,
     );
     cpi_ix
         .accounts

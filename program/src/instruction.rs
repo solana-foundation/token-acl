@@ -275,6 +275,7 @@ pub fn thaw_permissionless(
     mint: &Pubkey,
     mint_config: &Pubkey,
     token_account: &Pubkey,
+    token_account_owner: &Pubkey,
     token_program: &Pubkey,
 ) -> Instruction {
     let data = EbaltsInstruction::ThawPermissionless.pack();
@@ -284,6 +285,7 @@ pub fn thaw_permissionless(
         AccountMeta::new_readonly(*mint, false),
         AccountMeta::new(*token_account, true),
         AccountMeta::new_readonly(*mint_config, false),
+        AccountMeta::new_readonly(*token_account_owner, false),
         AccountMeta::new_readonly(*token_program, false),
     ];
 
@@ -296,6 +298,7 @@ pub fn freeze_permissionless(
     mint: &Pubkey,
     mint_config: &Pubkey,
     token_account: &Pubkey,
+    token_account_owner: &Pubkey,
     token_program: &Pubkey,
 ) -> Instruction {
     let data = EbaltsInstruction::FreezePermissionless.pack();
@@ -305,6 +308,7 @@ pub fn freeze_permissionless(
         AccountMeta::new_readonly(*mint, false),
         AccountMeta::new(*token_account, true),
         AccountMeta::new_readonly(*mint_config, false),
+        AccountMeta::new_readonly(*token_account_owner, false),
         AccountMeta::new_readonly(*token_program, false),
     ];
 

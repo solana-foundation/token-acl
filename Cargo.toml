@@ -2,8 +2,9 @@
 resolver = "2"
 members = [
   "clients/cli",
+  "clients/rust",
   "interface",
-  "examples/always-allow",
+  "examples/*",
   "program",
 ]
 
@@ -35,22 +36,25 @@ tag-message = "Publish {{crate_name}} v{{version}}"
 consolidate-commits = false
 
 [workspace.dependencies]
-solana-account-info = "2.3.0"
+solana-account-info = "2.2.1"
 solana-cpi = "2.2.1"
 solana-decode-error = "2.2.1"
-solana-instruction = { version = "2.3.0", features = ["std"] }
-solana-msg = "2.2.1"
+solana-instruction = { version = "=2.2.1", features = ["std"] }
 solana-program-error = "2.2.1"
-solana-pubkey = { version = "2.4.0", features = ["curve25519"] }
-solana-program = "2.3.0"
+solana-pubkey = { version = "2.2.1", features = ["curve25519", "borsh"] }
+solana-program = "2.2.0"
 solana-rent = "2.2.1"
 solana-system-interface = "1.0.0"
-solana-sysvar = "2.2.2"
-solana-program-test = "2.2.7"
+solana-sysvar = "2.2.1"
+solana-msg = "2.2.1"
+solana-program-test = "2.2.1"
+solana-program-entrypoint = "2.2.1"
+solana-program-runtime = "2.2.1"
 spl-discriminator = "0.4.0"
 spl-program-error = "0.7.0"
 spl-tlv-account-resolution = "0.10.0"
 spl-type-length-value = "0.8.0"
 spl-pod = "0.5.1"
 spl-token-2022 = { version = "9.0.0", features = ["no-entrypoint"] }
-
+solana-sdk = "2.2.1"
+spl-associated-token-account-client = "2.0.0"

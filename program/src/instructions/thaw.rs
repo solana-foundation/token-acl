@@ -31,8 +31,8 @@ impl<'a> Thaw<'a> {
         let bump_seed = [config.bump];
         let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
 
-        let ix = spl_token_2022::instruction::thaw_account(self.token_program.key, self.token_account.key, self.mint.key, self.authority.key, &[])?;
-        invoke_signed(&ix, &[self.token_account.clone(), self.mint.clone(), self.authority.clone()], &[&seeds])?;
+        let ix = spl_token_2022::instruction::thaw_account(self.token_program.key, self.token_account.key, self.mint.key, self.mint_config.key, &[])?;
+        invoke_signed(&ix, &[self.token_account.clone(), self.mint.clone(), self.mint_config.clone()], &[&seeds])?;
 
         Ok(())
     }
@@ -44,7 +44,7 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for Thaw<'a> {
 
     fn try_from(accounts: &'a [AccountInfo<'a>]) -> Result<Self, Self::Error> {
         let [authority, mint, token_account, mint_config, token_program] = &accounts else {
-            return Err(ProgramError::InvalidInstructionData);
+            return Err(ProgramError::NotEnoughAccountKeys);
         };
 
         if !authority.is_signer {

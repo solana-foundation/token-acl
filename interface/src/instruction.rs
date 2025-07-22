@@ -49,12 +49,14 @@ pub fn can_thaw_permissionless(
     signer: &Pubkey,
     token_account: &Pubkey,
     mint: &Pubkey,
+    token_account_owner: &Pubkey,
 ) -> Instruction {
     let data = EfficientBlockAllowInstruction::CanThawPermissionless.pack();
     let accounts = vec![
         AccountMeta::new_readonly(*signer, false),
         AccountMeta::new_readonly(*token_account, false),
         AccountMeta::new_readonly(*mint, false),
+        AccountMeta::new_readonly(*token_account_owner, false),
     ];
 
     Instruction {
@@ -69,12 +71,14 @@ pub fn can_freeze_permissionless(
     signer: &Pubkey,
     token_account: &Pubkey,
     mint: &Pubkey,
+    token_account_owner: &Pubkey,
 ) -> Instruction {
     let data = EfficientBlockAllowInstruction::CanFreezePermissionless.pack();
     let accounts = vec![
         AccountMeta::new_readonly(*signer, false),
         AccountMeta::new_readonly(*token_account, false),
         AccountMeta::new_readonly(*mint, false),
+        AccountMeta::new_readonly(*token_account_owner, false),
     ];
 
     Instruction {

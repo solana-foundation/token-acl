@@ -25,7 +25,7 @@ fn process_instruction<'a>(
     match discriminator {
         InitializeExtraMetas::DISCRIMINATOR_SLICE => InitializeExtraMetas::try_from(accounts)?.process(),
         CanThawPermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => Ok(()),
-        CanFreezePermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => Err(CustomErrors::UnsupportedInstruction.into()),
+        CanFreezePermissionlessInstruction::SPL_DISCRIMINATOR_SLICE => Ok(()),
         _ => Err(CustomErrors::InvalidInstruction.into()),
     }
 }

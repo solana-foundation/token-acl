@@ -38,10 +38,10 @@ impl<'a> CreateConfig<'a> {
         let ix = solana_system_interface::instruction::create_account(self.authority.key, self.mint_config.key, lamports, MintConfig::LEN as u64, &crate::ID);
 
         invoke_signed(&ix,  &[self.authority.clone(), self.mint_config.clone()], &[&seeds])?;
-
+        
         let data = &mut self.mint_config.data.borrow_mut();
         let config = pod_from_bytes_mut::<MintConfig>(data)?;
-
+        
         config.discriminator = MintConfig::DISCRIMINATOR;
         config.mint = *self.mint.key;
         config.freeze_authority = *self.authority.key;
@@ -49,21 +49,22 @@ impl<'a> CreateConfig<'a> {
         config.bump = self.config_bump;
         config.enable_permissionless_freeze = PodBool::from_bool(false);
         config.enable_permissionless_thaw = PodBool::from_bool(false);
-
+        
         let mint_data = self.mint.data.borrow_mut();
         let mint = PodStateWithExtensions::<PodMint>::unpack(&mint_data)?;
-
+        
         // if no freeze authority, or DSA extension is not present,
         // this is an invalid mint for this standard
         // these can't also be changed or activated later for existing mints
-
+        
         mint.get_extension::<DefaultAccountState>().map_err(|_| Into::<ProgramError>::into(EbaltsError::InvalidTokenMint))?;
-
+        
         let freeze_authority = mint
-                        .base
-                        .freeze_authority
-                        .ok_or(Into::<ProgramError>::into(EbaltsError::InvalidTokenMint))?;
+            .base
+            .freeze_authority
+            .ok_or(Into::<ProgramError>::into(EbaltsError::InvalidTokenMint))?;
 
+        drop(mint_data);
         if freeze_authority == *self.authority.key {
             // we can cpi to change freeze authority right away
             let ix = spl_token_2022::instruction::set_authority(self.token_program.key, self.mint.key, Some(self.mint_config.key), AuthorityType::FreezeAccount, self.authority.key, &[])?;

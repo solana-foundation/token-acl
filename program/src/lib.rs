@@ -9,7 +9,6 @@ use solana_program_error::ProgramError;
 
 use crate::{instructions::{CreateConfig, ForfeitFreezeAuthority, Freeze, FreezePermissionless, SetAuthority, SetGatingProgram, Thaw, ThawPermissionless, TogglePermissionlessInstructions}};
 
-
 pub mod instruction;
 pub mod instructions;
 pub mod error;
@@ -25,6 +24,7 @@ fn process_instruction<'a>(
     instruction_data: &'a [u8],
 ) -> ProgramResult {
     let [discriminator, remaining_data @ ..] = instruction_data else {
+        println!("Invalid instruction data: {:?}", instruction_data);
         return Err(ProgramError::InvalidInstructionData);
     };
 
@@ -38,7 +38,10 @@ fn process_instruction<'a>(
         SetGatingProgram::DISCRIMINATOR => SetGatingProgram::try_from(accounts)?.process(remaining_data),
         ForfeitFreezeAuthority::DISCRIMINATOR => ForfeitFreezeAuthority::try_from(accounts)?.process(remaining_data),
         TogglePermissionlessInstructions::DISCRIMINATOR => TogglePermissionlessInstructions::try_from(accounts)?.process(remaining_data),
-        _ => Err(ProgramError::InvalidInstructionData),
+        _ => {
+            println!("Invalid instruction discriminator: {:?}", discriminator);
+            Err(ProgramError::InvalidInstructionData)
+        },
     }
 
 }
