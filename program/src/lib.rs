@@ -16,6 +16,7 @@ pub mod state;
 
 declare_id!("Eba1ts11111111111111111111111111111111111111");
 
+#[cfg(not(feature = "no-entrypoint"))]
 entrypoint!(process_instruction);
 fn process_instruction<'a>(
     _program_id: &'a Pubkey,
