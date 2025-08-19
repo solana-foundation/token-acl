@@ -725,6 +725,190 @@
                 }
             ]
         },
+        
+        {
+            "kind": "instructionNode",
+            "name": "thawPermissionlessIdempotent",
+            "docs": [],
+            "accounts": [
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "authority",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": true,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "mint",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "tokenAccount",
+                    "docs": [],
+                    "isWritable": true,
+                    "isSigner": false,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "tokenAccountOwner",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "mintConfig",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "tokenProgram",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "publicKeyValueNode",
+                      "publicKey": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+                    }
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "gatingProgram",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false
+                }
+            ],
+            "arguments": [
+                {
+                    "kind": "instructionArgumentNode",
+                    "name": "discriminator",
+                    "defaultValueStrategy": "omitted",
+                    "docs": [],
+                    "type": {
+                        "kind": "numberTypeNode",
+                        "format": "u8",
+                        "endian": "le"
+                    },
+                    "defaultValue": {
+                    "kind": "numberValueNode",
+                    "number": 9
+                    }
+                }
+            ],
+            "discriminators": [
+                {
+                  "kind": "fieldDiscriminatorNode",
+                  "name": "discriminator",
+                  "offset": 0
+                }
+            ]
+        }, 
+        {
+            "kind": "instructionNode",
+            "name": "freezePermissionlessIdempotent",
+            "docs": [],
+            "accounts": [
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "authority",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": true,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "mint",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "tokenAccount",
+                    "docs": [],
+                    "isWritable": true,
+                    "isSigner": false,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "tokenAccountOwner",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "mintConfig",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "tokenProgram",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "publicKeyValueNode",
+                      "publicKey": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+                    }
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "gatingProgram",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false
+                }
+                
+            ],
+            "arguments": [
+                {
+                    "kind": "instructionArgumentNode",
+                    "name": "discriminator",
+                    "defaultValueStrategy": "omitted",
+                    "docs": [],
+                    "type": {
+                        "kind": "numberTypeNode",
+                        "format": "u8",
+                        "endian": "le"
+                    },
+                    "defaultValue": {
+                    "kind": "numberValueNode",
+                    "number": 10
+                    }
+                }
+            ],
+            "discriminators": [
+                {
+                  "kind": "fieldDiscriminatorNode",
+                  "name": "discriminator",
+                  "offset": 0
+                }
+            ]
+        },
         {
             "kind": "instructionNode",
             "name": "togglePermissionlessInstructions",
@@ -816,6 +1000,56 @@
                     "value": {
                         "kind": "stringValueNode",
                         "string": "MINT_CONFIG"
+                    }
+                },
+                {
+                    "kind": "variablePdaSeedNode",
+                    "name": "mint",
+                    "type": {
+                      "kind": "publicKeyTypeNode"
+                    }
+                }
+            ]
+        },
+        {
+            "kind": "pdaNode",
+            "name": "thawExtraMetasAccount",
+            "docs": [],
+            "seeds": [
+                {
+                    "kind": "constantPdaSeedNode",
+                    "type": {
+                        "kind": "stringTypeNode",
+                        "encoding": "utf8"
+                    },
+                    "value": {
+                        "kind": "stringValueNode",
+                        "string": "thaw_extra_account_metas"
+                    }
+                },
+                {
+                    "kind": "variablePdaSeedNode",
+                    "name": "mint",
+                    "type": {
+                      "kind": "publicKeyTypeNode"
+                    }
+                }
+            ]
+        },
+        {
+            "kind": "pdaNode",
+            "name": "freezeExtraMetasAccount",
+            "docs": [],
+            "seeds": [
+                {
+                    "kind": "constantPdaSeedNode",
+                    "type": {
+                        "kind": "stringTypeNode",
+                        "encoding": "utf8"
+                    },
+                    "value": {
+                        "kind": "stringValueNode",
+                        "string": "freeze_extra_account_metas"
                     }
                 },
                 {

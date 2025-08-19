@@ -9,12 +9,12 @@ use solana_program::pubkey::Pubkey;
 #[derive(Clone, Copy, Debug, Default, PartialEq, Pod, Zeroable)]
 pub struct MintConfig {
     pub discriminator: u8,
-    pub mint: Pubkey,
-    pub freeze_authority: Pubkey,
-    pub gating_program: Pubkey,
     pub bump: u8,
     pub enable_permissionless_thaw: PodBool,
     pub enable_permissionless_freeze: PodBool,
+    pub mint: Pubkey,
+    pub freeze_authority: Pubkey,
+    pub gating_program: Pubkey,
 }
 
 impl MintConfig {

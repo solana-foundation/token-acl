@@ -46,8 +46,16 @@ export function getProgramFolders() {
     programs = getAllProgramFolders();
   }
 
+  console.log(programs);
+
   const filteredPrograms = programs.filter((program) =>
-    fs.existsSync(path.join(workingDirectory, program))
+    {
+      console.log(program);
+      return !program.includes('interface') 
+      && !program.includes('clients') 
+      && !program.includes('examples') 
+      && fs.existsSync(path.join(workingDirectory, program))
+    }
   );
 
   if (

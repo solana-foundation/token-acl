@@ -25,6 +25,7 @@ solana-sysvar = { workspace = true }
 solana-msg = { workspace = true }
 solana-pubkey = { workspace = true }
 solana-program-error = { workspace = true }
+solana-program-pack = { workspace = true }
 spl-pod = { workspace = true }
 spl-tlv-account-resolution = { workspace = true }
 spl-token-2022 = { workspace = true }
@@ -43,3 +44,6 @@ workspace = true
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
+
+[package.metadata.solana]
+program-id = "81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc"

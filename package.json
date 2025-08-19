@@ -8,6 +8,7 @@
       "programs:test": "zx ./scripts/rust/test-sbf.mjs program",
       "programs:format": "zx ./scripts/rust/format.mjs program",
       "programs:lint": "zx ./scripts/rust/lint.mjs program",
+      "programs:dump": "zx ./scripts/program/dump.mjs",
       "solana:check": "zx ./scripts/check-solana-version.mjs",
       "solana:link": "zx ./scripts/link-solana-version.mjs",
       "validator:start": "zx ./scripts/start-validator.mjs",

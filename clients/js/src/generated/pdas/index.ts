@@ -6,4 +6,6 @@
  * @see https://github.com/codama-idl/codama
  */
 
+export * from './freezeExtraMetasAccount';
 export * from './mintConfig';
+export * from './thawExtraMetasAccount';

@@ -30,7 +30,7 @@ await $`pnpm programs:dump`;
 const verb = isValidatorRunning ? 'Restarting' : 'Starting';
 
 // Get programs and accounts.
-const programs = [...getPrograms(), ...getExternalPrograms(), ...getFixturePrograms()];
+const programs = [...getPrograms()];
 const programPluralized = programs.length === 1 ? 'program' : 'programs';
 const accounts = [...getExternalAccounts()];
 const accountsPluralized = accounts.length === 1 ? 'account' : 'accounts';
@@ -53,6 +53,7 @@ const args = [/* Reset ledger */ '-r'];
 
 // Load programs.
 programs.forEach(({ programId, deployPath }) => {
+  console.log(programId, deployPath);
   args.push(/* Load BPF program */ '--bpf-program', programId, deployPath);
 });
 
@@ -104,6 +105,8 @@ function getPrograms() {
   return getProgramFolders().map((folder) => {
     const cargo = getCargo(folder);
     const name = cargo.package.name.replace(/-/g, '_');
+    console.log(name);
+    console.log(binaryDir);
     return {
       programId: cargo.package.metadata.solana['program-id'],
       deployPath: path.join(binaryDir, `${name}.so`),

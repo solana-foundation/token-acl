@@ -4,7 +4,9 @@ members = [
   "clients/cli",
   "clients/rust",
   "interface",
-  "examples/*",
+  "examples/always-allow",
+  "examples/always-block",
+  "examples/always-allow-with-deps",
   "program",
 ]
 
@@ -50,6 +52,7 @@ solana-msg = "2.2.1"
 solana-program-test = "2.2.1"
 solana-program-entrypoint = "2.2.1"
 solana-program-runtime = "2.2.1"
+solana-program-pack = "2.2.1"
 spl-discriminator = "0.4.0"
 spl-program-error = "0.7.0"
 spl-tlv-account-resolution = "0.10.0"

@@ -4,8 +4,7 @@ use solana_program::{
 use solana_program_error::ProgramError;
 
 use crate::instructions::{
-    CreateConfig, ForfeitFreezeAuthority, Freeze, FreezePermissionless, SetAuthority,
-    SetGatingProgram, Thaw, ThawPermissionless, TogglePermissionlessInstructions,
+    CreateConfig, ForfeitFreezeAuthority, Freeze, FreezePermissionless, FreezePermissionlessIdempotent, SetAuthority, SetGatingProgram, Thaw, ThawPermissionless, ThawPermissionlessIdempotent, TogglePermissionlessInstructions
 };
 
 pub mod error;
@@ -14,7 +13,7 @@ pub mod instructions;
 pub mod offchain;
 pub mod state;
 
-declare_id!("Eba1ts11111111111111111111111111111111111111");
+declare_id!("81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc");
 
 #[cfg(not(feature = "no-entrypoint"))]
 entrypoint!(process_instruction);
@@ -33,7 +32,13 @@ fn process_instruction<'a>(
         Freeze::DISCRIMINATOR => Freeze::try_from(accounts)?.process(),
         Thaw::DISCRIMINATOR => Thaw::try_from(accounts)?.process(),
         ThawPermissionless::DISCRIMINATOR => ThawPermissionless::try_from(accounts)?.process(),
+        ThawPermissionlessIdempotent::DISCRIMINATOR => {
+            ThawPermissionlessIdempotent::try_from(accounts)?.process()
+        }
         FreezePermissionless::DISCRIMINATOR => FreezePermissionless::try_from(accounts)?.process(),
+        FreezePermissionlessIdempotent::DISCRIMINATOR => {
+            FreezePermissionlessIdempotent::try_from(accounts)?.process()
+        }
         SetAuthority::DISCRIMINATOR => SetAuthority::try_from(accounts)?.process(remaining_data),
         SetGatingProgram::DISCRIMINATOR => {
             SetGatingProgram::try_from(accounts)?.process(remaining_data)

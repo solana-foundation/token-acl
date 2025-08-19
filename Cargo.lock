@@ -907,6 +907,7 @@ dependencies = [
  "solana-msg",
  "solana-program",
  "solana-program-error",
+ "solana-program-pack",
  "solana-pubkey",
  "solana-rent",
  "solana-sdk",

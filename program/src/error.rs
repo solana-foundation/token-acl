@@ -8,6 +8,7 @@ pub enum EbaltsError {
     InvalidTokenMint,
     InvalidMintConfig,
     InvalidGatingProgram,
+    InvalidTokenAccountOwner,
     PermissionlessThawNotEnabled,
     PermissionlessFreezeNotEnabled,
 }

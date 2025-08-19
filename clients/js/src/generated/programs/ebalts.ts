@@ -16,10 +16,12 @@ import {
   type ParsedCreateConfigInstruction,
   type ParsedForfeitFreezeAuthorityInstruction,
   type ParsedFreezeInstruction,
+  type ParsedFreezePermissionlessIdempotentInstruction,
   type ParsedFreezePermissionlessInstruction,
   type ParsedSetAuthorityInstruction,
   type ParsedSetGatingProgramInstruction,
   type ParsedThawInstruction,
+  type ParsedThawPermissionlessIdempotentInstruction,
   type ParsedThawPermissionlessInstruction,
   type ParsedTogglePermissionlessInstructionsInstruction,
 } from '../instructions';
@@ -52,6 +54,8 @@ export enum EbaltsInstruction {
   Freeze,
   ThawPermissionless,
   FreezePermissionless,
+  ThawPermissionlessIdempotent,
+  FreezePermissionlessIdempotent,
   TogglePermissionlessInstructions,
 }
 
@@ -82,6 +86,12 @@ export function identifyEbaltsInstruction(
   }
   if (containsBytes(data, getU8Encoder().encode(7), 0)) {
     return EbaltsInstruction.FreezePermissionless;
+  }
+  if (containsBytes(data, getU8Encoder().encode(9), 0)) {
+    return EbaltsInstruction.ThawPermissionlessIdempotent;
+  }
+  if (containsBytes(data, getU8Encoder().encode(10), 0)) {
+    return EbaltsInstruction.FreezePermissionlessIdempotent;
   }
   if (containsBytes(data, getU8Encoder().encode(8), 0)) {
     return EbaltsInstruction.TogglePermissionlessInstructions;
@@ -118,6 +128,12 @@ export type ParsedEbaltsInstruction<
   | ({
       instructionType: EbaltsInstruction.FreezePermissionless;
     } & ParsedFreezePermissionlessInstruction<TProgram>)
+  | ({
+      instructionType: EbaltsInstruction.ThawPermissionlessIdempotent;
+    } & ParsedThawPermissionlessIdempotentInstruction<TProgram>)
+  | ({
+      instructionType: EbaltsInstruction.FreezePermissionlessIdempotent;
+    } & ParsedFreezePermissionlessIdempotentInstruction<TProgram>)
   | ({
       instructionType: EbaltsInstruction.TogglePermissionlessInstructions;
     } & ParsedTogglePermissionlessInstructionsInstruction<TProgram>);
