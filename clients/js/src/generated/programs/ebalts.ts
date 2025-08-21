@@ -27,7 +27,7 @@ import {
 } from '../instructions';
 
 export const EBALTS_PROGRAM_ADDRESS =
-  'Eba1ts11111111111111111111111111111111111111' as Address<'Eba1ts11111111111111111111111111111111111111'>;
+  '81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc' as Address<'81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc'>;
 
 export enum EbaltsAccount {
   MintConfig,
@@ -102,7 +102,7 @@ export function identifyEbaltsInstruction(
 }
 
 export type ParsedEbaltsInstruction<
-  TProgram extends string = 'Eba1ts11111111111111111111111111111111111111',
+  TProgram extends string = '81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc',
 > =
   | ({
       instructionType: EbaltsInstruction.CreateConfig;

@@ -5,7 +5,7 @@
     "program": {
       "kind": "programNode",
       "name": "ebalts",
-      "publicKey": "Eba1ts11111111111111111111111111111111111111",
+      "publicKey": "81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc",
       "version": "0.1.0",
       "origin": "shank",
       "docs": [],
@@ -35,32 +35,6 @@
                         "defaultValue": {
                           "kind": "numberValueNode",
                           "number": 1
-                        }
-                    },
-                    {
-                        "kind": "structFieldTypeNode",
-                        "name": "mint",
-                        "docs": [],
-                        "type": {
-                            "kind": "publicKeyTypeNode"
-                        }
-                    },
-                    {
-                        "kind": "structFieldTypeNode",
-                        "name": "freezeAuthority",
-                        "docs": [],
-                        "type": {
-                            "kind": "publicKeyTypeNode"
-
-                        }
-                    },
-                    {
-                        "kind": "structFieldTypeNode",
-                        "name": "gatingProgram",
-                        "docs": [],
-                        "type": {
-                            "kind": "publicKeyTypeNode"
-
                         }
                     },
                     {
@@ -97,6 +71,32 @@
                             "format": "u8",
                             "endian": "le"
                           }
+                        }
+                    },
+                    {
+                        "kind": "structFieldTypeNode",
+                        "name": "mint",
+                        "docs": [],
+                        "type": {
+                            "kind": "publicKeyTypeNode"
+                        }
+                    },
+                    {
+                        "kind": "structFieldTypeNode",
+                        "name": "freezeAuthority",
+                        "docs": [],
+                        "type": {
+                            "kind": "publicKeyTypeNode"
+
+                        }
+                    },
+                    {
+                        "kind": "structFieldTypeNode",
+                        "name": "gatingProgram",
+                        "docs": [],
+                        "type": {
+                            "kind": "publicKeyTypeNode"
+
                         }
                     }
                 ]

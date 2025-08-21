@@ -23,7 +23,7 @@ export async function findFreezeExtraMetasAccountPda(
   config: { programAddress?: Address | undefined } = {}
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = 'Eba1ts11111111111111111111111111111111111111' as Address<'Eba1ts11111111111111111111111111111111111111'>,
+    programAddress = '81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc' as Address<'81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc'>,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,

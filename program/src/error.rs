@@ -8,9 +8,9 @@ pub enum EbaltsError {
     InvalidTokenMint,
     InvalidMintConfig,
     InvalidGatingProgram,
-    InvalidTokenAccountOwner,
     PermissionlessThawNotEnabled,
     PermissionlessFreezeNotEnabled,
+    InvalidTokenAccountOwner,
 }
 
 impl From<EbaltsError> for ProgramError {

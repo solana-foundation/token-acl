@@ -43,33 +43,33 @@ export function getMintConfigDiscriminatorBytes() {
 
 export type MintConfig = {
   discriminator: number;
-  mint: Address;
-  freezeAuthority: Address;
-  gatingProgram: Address;
   bump: number;
   enablePermissionlessThaw: boolean;
   enablePermissionlessFreeze: boolean;
+  mint: Address;
+  freezeAuthority: Address;
+  gatingProgram: Address;
 };
 
 export type MintConfigArgs = {
-  mint: Address;
-  freezeAuthority: Address;
-  gatingProgram: Address;
   bump: number;
   enablePermissionlessThaw: boolean;
   enablePermissionlessFreeze: boolean;
+  mint: Address;
+  freezeAuthority: Address;
+  gatingProgram: Address;
 };
 
 export function getMintConfigEncoder(): Encoder<MintConfigArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', getU8Encoder()],
-      ['mint', getAddressEncoder()],
-      ['freezeAuthority', getAddressEncoder()],
-      ['gatingProgram', getAddressEncoder()],
       ['bump', getU8Encoder()],
       ['enablePermissionlessThaw', getBooleanEncoder()],
       ['enablePermissionlessFreeze', getBooleanEncoder()],
+      ['mint', getAddressEncoder()],
+      ['freezeAuthority', getAddressEncoder()],
+      ['gatingProgram', getAddressEncoder()],
     ]),
     (value) => ({ ...value, discriminator: MINT_CONFIG_DISCRIMINATOR })
   );
@@ -78,12 +78,12 @@ export function getMintConfigEncoder(): Encoder<MintConfigArgs> {
 export function getMintConfigDecoder(): Decoder<MintConfig> {
   return getStructDecoder([
     ['discriminator', getU8Decoder()],
-    ['mint', getAddressDecoder()],
-    ['freezeAuthority', getAddressDecoder()],
-    ['gatingProgram', getAddressDecoder()],
     ['bump', getU8Decoder()],
     ['enablePermissionlessThaw', getBooleanDecoder()],
     ['enablePermissionlessFreeze', getBooleanDecoder()],
+    ['mint', getAddressDecoder()],
+    ['freezeAuthority', getAddressDecoder()],
+    ['gatingProgram', getAddressDecoder()],
   ]);
 }
 

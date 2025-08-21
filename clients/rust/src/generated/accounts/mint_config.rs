@@ -13,6 +13,9 @@ use solana_pubkey::Pubkey;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MintConfig {
     pub discriminator: u8,
+    pub bump: u8,
+    pub enable_permissionless_thaw: bool,
+    pub enable_permissionless_freeze: bool,
     #[cfg_attr(
         feature = "serde",
         serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
@@ -28,9 +31,6 @@ pub struct MintConfig {
         serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
     )]
     pub gating_program: Pubkey,
-    pub bump: u8,
-    pub enable_permissionless_thaw: bool,
-    pub enable_permissionless_freeze: bool,
 }
 
 impl MintConfig {
