@@ -8,14 +8,15 @@ use crate::{
     state::{load_mint_config, MintConfig},
 };
 
-pub struct ForfeitFreezeAuthority<'a> {
+pub struct DeleteConfig<'a> {
     pub authority: &'a AccountInfo<'a>,
+    pub receiver: &'a AccountInfo<'a>,
     pub mint: &'a AccountInfo<'a>,
     pub mint_config: &'a AccountInfo<'a>,
     pub token_program: &'a AccountInfo<'a>,
 }
 
-impl ForfeitFreezeAuthority<'_> {
+impl DeleteConfig<'_> {
     pub const DISCRIMINATOR: u8 = 3;
 
     pub fn process(&self, remaining_data: &[u8]) -> ProgramResult {
@@ -25,18 +26,21 @@ impl ForfeitFreezeAuthority<'_> {
         let new_freeze_authority =
             Pubkey::try_from(remaining_data).map_err(|_| ProgramError::InvalidInstructionData)?;
 
-        let data = &mut self.mint_config.data.borrow_mut();
-        let config = load_mint_config(data)?;
+        let bump_seed = {
+            let data = &mut self.mint_config.data.borrow_mut();
+            let config = load_mint_config(data)?;
 
-        if config.freeze_authority != *self.authority.key {
-            return Err(EbaltsError::InvalidAuthority.into());
-        }
+            if config.freeze_authority != *self.authority.key {
+                return Err(EbaltsError::InvalidAuthority.into());
+            }
 
-        if config.mint != *self.mint.key {
-            return Err(EbaltsError::InvalidTokenMint.into());
-        }
+            if config.mint != *self.mint.key {
+                return Err(EbaltsError::InvalidTokenMint.into());
+            }
 
-        let bump_seed = [config.bump];
+            [config.bump]
+        };
+
         let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
 
         let ix = spl_token_2022::instruction::set_authority(
@@ -47,17 +51,25 @@ impl ForfeitFreezeAuthority<'_> {
             self.mint_config.key,
             &[],
         )?;
-        invoke_signed(&ix, &[self.mint.clone(), self.authority.clone()], &[&seeds])?;
+        invoke_signed(
+            &ix,
+            &[self.mint.clone(), self.mint_config.clone()],
+            &[&seeds],
+        )?;
+
+        **self.receiver.try_borrow_mut_lamports()? += self.mint_config.lamports();
+        **self.mint_config.try_borrow_mut_lamports()? = 0;
+        self.mint_config.realloc(0, false)?;
 
         Ok(())
     }
 }
 
-impl<'a> TryFrom<&'a [AccountInfo<'a>]> for ForfeitFreezeAuthority<'a> {
+impl<'a> TryFrom<&'a [AccountInfo<'a>]> for DeleteConfig<'a> {
     type Error = ProgramError;
 
     fn try_from(accounts: &'a [AccountInfo<'a>]) -> Result<Self, Self::Error> {
-        let [authority, mint, mint_config, token_program] = &accounts else {
+        let [authority, receiver, mint, mint_config, token_program] = &accounts else {
             return Err(ProgramError::InvalidInstructionData);
         };
 
@@ -71,6 +83,7 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for ForfeitFreezeAuthority<'a> {
 
         Ok(Self {
             authority,
+            receiver,
             mint,
             mint_config,
             token_program,

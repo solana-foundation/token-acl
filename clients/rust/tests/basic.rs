@@ -1,8 +1,10 @@
 pub mod program_test;
-use solana_sdk::{signature::Keypair, signer::Signer, transaction::Transaction};
+use solana_sdk::{
+    program_option::COption, signature::Keypair, signer::Signer, transaction::Transaction,
+};
 use spl_token_2022::{
     extension::StateWithExtensions,
-    state::{Account, AccountState},
+    state::{Account, AccountState, Mint},
     ID as TOKEN_PROGRAM_ID,
 };
 
@@ -239,4 +241,42 @@ fn test_freeze_permissioned() {
     let user_ta = tc.vm.get_account(&user_ata).unwrap();
     let account = StateWithExtensions::<Account>::unpack(user_ta.data.as_ref()).unwrap();
     assert_eq!(account.base.state, AccountState::Frozen);
+}
+
+#[test]
+fn test_delete_config() {
+    let mut tc = TestContext::new();
+    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_ID);
+
+    let mint = tc.vm.get_account(&tc.token.mint).unwrap();
+    let mint = StateWithExtensions::<Mint>::unpack(mint.data.as_ref()).unwrap();
+    assert_eq!(mint.base.freeze_authority, COption::Some(mint_cfg_pk));
+
+    let new_freeze_authority = Keypair::new();
+    let new_freeze_authority_pubkey = new_freeze_authority.pubkey();
+
+    let ix = ebalts_client::instructions::DeleteConfigBuilder::new()
+        .authority(tc.token.auth.pubkey())
+        .receiver(tc.token.auth.pubkey())
+        .mint(tc.token.mint)
+        .mint_config(mint_cfg_pk)
+        .new_freeze_authority(new_freeze_authority_pubkey)
+        .instruction();
+
+    let tx = Transaction::new_signed_with_payer(
+        &[ix],
+        Some(&tc.token.auth.pubkey()),
+        &[tc.token.auth.insecure_clone()],
+        tc.vm.latest_blockhash(),
+    );
+    let res = tc.vm.send_transaction(tx);
+    println!("res: {:?}", res);
+    assert!(res.is_ok());
+
+    let mint = tc.vm.get_account(&tc.token.mint).unwrap();
+    let mint = StateWithExtensions::<Mint>::unpack(mint.data.as_ref()).unwrap();
+    assert_eq!(
+        mint.base.freeze_authority,
+        COption::Some(new_freeze_authority_pubkey)
+    );
 }

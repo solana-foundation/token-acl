@@ -3,12 +3,16 @@ use solana_instruction::AccountMeta;
 use solana_sdk::{
     instruction::InstructionError,
     program_option::COption,
+    program_pack::Pack,
     signature::Keypair,
     signer::Signer,
     transaction::{Transaction, TransactionError},
 };
 use solana_system_interface::program::ID as SYSTEM_PROGRAM_ID;
-use spl_associated_token_account_client::address::get_associated_token_address_with_program_id;
+use spl_associated_token_account_client::{
+    address::get_associated_token_address_with_program_id,
+    instruction::create_associated_token_account_idempotent,
+};
 use spl_token_2022::{
     extension::StateWithExtensions,
     state::{Account, AccountState, Mint},
@@ -141,6 +145,158 @@ fn test_thaw_permissionless() {
 }
 
 #[tokio::test]
+async fn test_create_ata_and_thaw_permissionless() {
+    let mut tc = TestContext::new();
+
+    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_WD_ID);
+
+    tc.setup_aa_wd_gate_extra_metas();
+
+    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+        .authority(tc.token.auth.pubkey())
+        .freeze_enabled(false)
+        .thaw_enabled(true)
+        .mint_config(mint_cfg_pk)
+        .instruction();
+
+    let tx = Transaction::new_signed_with_payer(
+        &[ix],
+        Some(&tc.token.auth.pubkey()),
+        &[tc.token.auth.insecure_clone()],
+        tc.vm.latest_blockhash(),
+    );
+    let res = tc.vm.send_transaction(tx);
+    //println!("res: {:?}", res);
+    assert!(res.is_ok());
+
+    let user = Keypair::new();
+    let user_pubkey = user.pubkey();
+
+    let mut instructions = Vec::new();
+
+    let res = tc.vm.airdrop(&user.pubkey(), 1_000_000_000);
+    assert!(res.is_ok());
+
+    let token_account = get_associated_token_address_with_program_id(
+        &user_pubkey,
+        &tc.token.mint,
+        &spl_token_2022::ID,
+    );
+
+    let ix = create_associated_token_account_idempotent(
+        &user_pubkey,
+        &user_pubkey,
+        &tc.token.mint,
+        &spl_token_2022::ID,
+    );
+    instructions.push(ix);
+
+    let acc = Account {
+        mint: tc.token.mint,
+        owner: user_pubkey,
+        amount: 0,
+        delegate: COption::None,
+        state: AccountState::Frozen,
+        is_native: COption::None,
+        delegated_amount: 0,
+        close_authority: COption::None,
+    };
+
+    let mut data = vec![0u8; Account::LEN];
+    let res = Account::pack(acc, &mut data);
+    assert!(res.is_ok());
+
+    let ix = ebalts_client::create_thaw_permissionless_instruction_with_extra_metas(
+        &user_pubkey,
+        &token_account,
+        &tc.token.mint,
+        &mint_cfg_pk,
+        &spl_token_2022::ID,
+        &user_pubkey,
+        false,
+        |pubkey| {
+            let data = data.clone();
+            let data2 = tc.vm.get_account(&pubkey);
+            async move {
+                if pubkey == token_account {
+                    return Ok(Some(data));
+                }
+                Ok(data2.map(|a| a.data.clone()))
+            }
+        },
+    )
+    .await
+    .unwrap();
+
+    instructions.push(ix);
+
+    let tx = Transaction::new_signed_with_payer(
+        &instructions,
+        Some(&user_pubkey),
+        &[user.insecure_clone()],
+        tc.vm.latest_blockhash(),
+    );
+    let res = tc.vm.send_transaction(tx);
+    assert!(res.is_ok());
+
+    let token_account_data = tc.vm.get_account(&token_account).unwrap().data;
+    let account = StateWithExtensions::<Account>::unpack(token_account_data.as_ref()).unwrap();
+    //println!("account: {:?}", account);
+    assert_eq!(account.base.state, AccountState::Initialized);
+
+    // expire bh so we can submit same instructions
+    tc.vm.expire_blockhash();
+
+    let tx = Transaction::new_signed_with_payer(
+        &instructions,
+        Some(&user_pubkey),
+        &[user.insecure_clone()],
+        tc.vm.latest_blockhash(),
+    );
+    let res = tc.vm.send_transaction(tx);
+    println!("res: {:?}", res);
+    //should err because not idempotent
+    assert!(res.is_err());
+
+    let ix2 = ebalts_client::create_thaw_permissionless_instruction_with_extra_metas(
+        &user_pubkey,
+        &token_account,
+        &tc.token.mint,
+        &mint_cfg_pk,
+        &spl_token_2022::ID,
+        &user_pubkey,
+        true,
+        |pubkey| {
+            let data = data.clone();
+            let data2 = tc.vm.get_account(&pubkey);
+            async move {
+                if pubkey == token_account {
+                    return Ok(Some(data));
+                }
+                Ok(data2.map(|a| a.data.clone()))
+            }
+        },
+    )
+    .await
+    .unwrap();
+
+    println!("ix2 data: {:?}", ix2.data);
+
+    instructions.remove(1);
+    //instructions.push(ix2);
+
+    let tx = Transaction::new_signed_with_payer(
+        &[ix2],
+        Some(&user_pubkey),
+        &[user.insecure_clone()],
+        tc.vm.latest_blockhash(),
+    );
+    let res = tc.vm.send_transaction(tx);
+    println!("res: {:?}", res);
+    assert!(res.is_ok());
+}
+
+#[tokio::test]
 async fn test_thaw_permissionless_always_block() {
     let mut tc = TestContext::new();
     let mint_cfg_pk = tc.setup_ebalts(&program_test::AB_ID);
@@ -197,6 +353,7 @@ async fn test_thaw_permissionless_always_block() {
         &mint_cfg_pk,
         &spl_token_2022::ID,
         &user_pubkey,
+        false,
         |pubkey| {
             println!("pubkey: {:?}", pubkey);
             let data = tc.vm.get_account(&pubkey).unwrap().data;
@@ -343,6 +500,7 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
         &mint_cfg_pk,
         &spl_token_2022::ID,
         &user_pubkey,
+        false,
         |pubkey| {
             println!("pubkey: {:?}", pubkey);
             let acc = tc.vm.get_account(&pubkey);

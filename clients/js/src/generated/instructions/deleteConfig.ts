@@ -32,15 +32,16 @@ import {
 import { EBALTS_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
-export const FORFEIT_FREEZE_AUTHORITY_DISCRIMINATOR = 3;
+export const DELETE_CONFIG_DISCRIMINATOR = 3;
 
-export function getForfeitFreezeAuthorityDiscriminatorBytes() {
-  return getU8Encoder().encode(FORFEIT_FREEZE_AUTHORITY_DISCRIMINATOR);
+export function getDeleteConfigDiscriminatorBytes() {
+  return getU8Encoder().encode(DELETE_CONFIG_DISCRIMINATOR);
 }
 
-export type ForfeitFreezeAuthorityInstruction<
+export type DeleteConfigInstruction<
   TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
   TAccountAuthority extends string | IAccountMeta<string> = string,
+  TAccountReceiver extends string | IAccountMeta<string> = string,
   TAccountMint extends string | IAccountMeta<string> = string,
   TAccountMintConfig extends string | IAccountMeta<string> = string,
   TAccountTokenProgram extends
@@ -55,6 +56,9 @@ export type ForfeitFreezeAuthorityInstruction<
         ? ReadonlySignerAccount<TAccountAuthority> &
             IAccountSignerMeta<TAccountAuthority>
         : TAccountAuthority,
+      TAccountReceiver extends string
+        ? WritableAccount<TAccountReceiver>
+        : TAccountReceiver,
       TAccountMint extends string
         ? WritableAccount<TAccountMint>
         : TAccountMint,
@@ -68,75 +72,75 @@ export type ForfeitFreezeAuthorityInstruction<
     ]
   >;
 
-export type ForfeitFreezeAuthorityInstructionData = {
+export type DeleteConfigInstructionData = {
   discriminator: number;
   newFreezeAuthority: Address;
 };
 
-export type ForfeitFreezeAuthorityInstructionDataArgs = {
-  newFreezeAuthority: Address;
-};
+export type DeleteConfigInstructionDataArgs = { newFreezeAuthority: Address };
 
-export function getForfeitFreezeAuthorityInstructionDataEncoder(): Encoder<ForfeitFreezeAuthorityInstructionDataArgs> {
+export function getDeleteConfigInstructionDataEncoder(): Encoder<DeleteConfigInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', getU8Encoder()],
       ['newFreezeAuthority', getAddressEncoder()],
     ]),
-    (value) => ({
-      ...value,
-      discriminator: FORFEIT_FREEZE_AUTHORITY_DISCRIMINATOR,
-    })
+    (value) => ({ ...value, discriminator: DELETE_CONFIG_DISCRIMINATOR })
   );
 }
 
-export function getForfeitFreezeAuthorityInstructionDataDecoder(): Decoder<ForfeitFreezeAuthorityInstructionData> {
+export function getDeleteConfigInstructionDataDecoder(): Decoder<DeleteConfigInstructionData> {
   return getStructDecoder([
     ['discriminator', getU8Decoder()],
     ['newFreezeAuthority', getAddressDecoder()],
   ]);
 }
 
-export function getForfeitFreezeAuthorityInstructionDataCodec(): Codec<
-  ForfeitFreezeAuthorityInstructionDataArgs,
-  ForfeitFreezeAuthorityInstructionData
+export function getDeleteConfigInstructionDataCodec(): Codec<
+  DeleteConfigInstructionDataArgs,
+  DeleteConfigInstructionData
 > {
   return combineCodec(
-    getForfeitFreezeAuthorityInstructionDataEncoder(),
-    getForfeitFreezeAuthorityInstructionDataDecoder()
+    getDeleteConfigInstructionDataEncoder(),
+    getDeleteConfigInstructionDataDecoder()
   );
 }
 
-export type ForfeitFreezeAuthorityInput<
+export type DeleteConfigInput<
   TAccountAuthority extends string = string,
+  TAccountReceiver extends string = string,
   TAccountMint extends string = string,
   TAccountMintConfig extends string = string,
   TAccountTokenProgram extends string = string,
 > = {
   authority: TransactionSigner<TAccountAuthority>;
+  receiver: Address<TAccountReceiver>;
   mint: Address<TAccountMint>;
   mintConfig: Address<TAccountMintConfig>;
   tokenProgram?: Address<TAccountTokenProgram>;
-  newFreezeAuthority: ForfeitFreezeAuthorityInstructionDataArgs['newFreezeAuthority'];
+  newFreezeAuthority: DeleteConfigInstructionDataArgs['newFreezeAuthority'];
 };
 
-export function getForfeitFreezeAuthorityInstruction<
+export function getDeleteConfigInstruction<
   TAccountAuthority extends string,
+  TAccountReceiver extends string,
   TAccountMint extends string,
   TAccountMintConfig extends string,
   TAccountTokenProgram extends string,
   TProgramAddress extends Address = typeof EBALTS_PROGRAM_ADDRESS,
 >(
-  input: ForfeitFreezeAuthorityInput<
+  input: DeleteConfigInput<
     TAccountAuthority,
+    TAccountReceiver,
     TAccountMint,
     TAccountMintConfig,
     TAccountTokenProgram
   >,
   config?: { programAddress?: TProgramAddress }
-): ForfeitFreezeAuthorityInstruction<
+): DeleteConfigInstruction<
   TProgramAddress,
   TAccountAuthority,
+  TAccountReceiver,
   TAccountMint,
   TAccountMintConfig,
   TAccountTokenProgram
@@ -147,6 +151,7 @@ export function getForfeitFreezeAuthorityInstruction<
   // Original accounts.
   const originalAccounts = {
     authority: { value: input.authority ?? null, isWritable: false },
+    receiver: { value: input.receiver ?? null, isWritable: true },
     mint: { value: input.mint ?? null, isWritable: true },
     mintConfig: { value: input.mintConfig ?? null, isWritable: true },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
@@ -169,17 +174,19 @@ export function getForfeitFreezeAuthorityInstruction<
   const instruction = {
     accounts: [
       getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.receiver),
       getAccountMeta(accounts.mint),
       getAccountMeta(accounts.mintConfig),
       getAccountMeta(accounts.tokenProgram),
     ],
     programAddress,
-    data: getForfeitFreezeAuthorityInstructionDataEncoder().encode(
-      args as ForfeitFreezeAuthorityInstructionDataArgs
+    data: getDeleteConfigInstructionDataEncoder().encode(
+      args as DeleteConfigInstructionDataArgs
     ),
-  } as ForfeitFreezeAuthorityInstruction<
+  } as DeleteConfigInstruction<
     TProgramAddress,
     TAccountAuthority,
+    TAccountReceiver,
     TAccountMint,
     TAccountMintConfig,
     TAccountTokenProgram
@@ -188,29 +195,30 @@ export function getForfeitFreezeAuthorityInstruction<
   return instruction;
 }
 
-export type ParsedForfeitFreezeAuthorityInstruction<
+export type ParsedDeleteConfigInstruction<
   TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
   TAccountMetas extends readonly IAccountMeta[] = readonly IAccountMeta[],
 > = {
   programAddress: Address<TProgram>;
   accounts: {
     authority: TAccountMetas[0];
-    mint: TAccountMetas[1];
-    mintConfig: TAccountMetas[2];
-    tokenProgram: TAccountMetas[3];
+    receiver: TAccountMetas[1];
+    mint: TAccountMetas[2];
+    mintConfig: TAccountMetas[3];
+    tokenProgram: TAccountMetas[4];
   };
-  data: ForfeitFreezeAuthorityInstructionData;
+  data: DeleteConfigInstructionData;
 };
 
-export function parseForfeitFreezeAuthorityInstruction<
+export function parseDeleteConfigInstruction<
   TProgram extends string,
   TAccountMetas extends readonly IAccountMeta[],
 >(
   instruction: IInstruction<TProgram> &
     IInstructionWithAccounts<TAccountMetas> &
     IInstructionWithData<Uint8Array>
-): ParsedForfeitFreezeAuthorityInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 4) {
+): ParsedDeleteConfigInstruction<TProgram, TAccountMetas> {
+  if (instruction.accounts.length < 5) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -224,12 +232,11 @@ export function parseForfeitFreezeAuthorityInstruction<
     programAddress: instruction.programAddress,
     accounts: {
       authority: getNextAccount(),
+      receiver: getNextAccount(),
       mint: getNextAccount(),
       mintConfig: getNextAccount(),
       tokenProgram: getNextAccount(),
     },
-    data: getForfeitFreezeAuthorityInstructionDataDecoder().decode(
-      instruction.data
-    ),
+    data: getDeleteConfigInstructionDataDecoder().decode(instruction.data),
   };
 }

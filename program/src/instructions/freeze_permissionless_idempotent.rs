@@ -2,8 +2,8 @@ use ebalts_interface::onchain::invoke_can_freeze_permissionless;
 use solana_cpi::invoke_signed;
 use solana_program::account_info::AccountInfo;
 use solana_program_error::{ProgramError, ProgramResult};
-use spl_token_2022::state::{Account, AccountState};
 use solana_program_pack::Pack;
+use spl_token_2022::state::{Account, AccountState};
 
 use crate::{
     error::EbaltsError,

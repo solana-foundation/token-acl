@@ -2,8 +2,7 @@ use ebalts_interface::onchain::invoke_can_thaw_permissionless;
 use solana_cpi::invoke_signed;
 use solana_program::account_info::AccountInfo;
 use solana_program_error::{ProgramError, ProgramResult};
-use spl_token_2022::state::{Account, AccountState};
-use solana_program_pack::Pack;
+use spl_token_2022::{extension::StateWithExtensions, state::AccountState};
 
 use crate::{
     error::EbaltsError,
@@ -38,12 +37,12 @@ impl ThawPermissionlessIdempotent<'_> {
 
         {
             let ta_data = self.token_account.data.borrow();
-            let ta = Account::unpack(&ta_data)?;
-            if ta.state != AccountState::Frozen {
+            let ta = StateWithExtensions::<spl_token_2022::state::Account>::unpack(&ta_data)?;
+            if ta.base.state != AccountState::Frozen {
                 return Ok(());
             }
 
-            if ta.owner != *self.token_account_owner.key {
+            if ta.base.owner != *self.token_account_owner.key {
                 return Err(EbaltsError::InvalidTokenAccountOwner.into());
             }
             // no need to enforce ta.mint == self.mint.key, thaw CPI will do this

@@ -1,5 +1,5 @@
 pub mod create_config;
-pub mod forfeit_freeze_authority;
+pub mod delete_config;
 pub mod freeze;
 pub mod freeze_permissionless;
 pub mod freeze_permissionless_idempotent;
@@ -11,7 +11,7 @@ pub mod thaw_permissionless_idempotent;
 pub mod toggle_permissionless_instructions;
 
 pub use create_config::*;
-pub use forfeit_freeze_authority::*;
+pub use delete_config::*;
 pub use freeze::*;
 pub use freeze_permissionless::*;
 pub use freeze_permissionless_idempotent::*;

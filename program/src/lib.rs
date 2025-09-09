@@ -4,13 +4,13 @@ use solana_program::{
 use solana_program_error::ProgramError;
 
 use crate::instructions::{
-    CreateConfig, ForfeitFreezeAuthority, Freeze, FreezePermissionless, FreezePermissionlessIdempotent, SetAuthority, SetGatingProgram, Thaw, ThawPermissionless, ThawPermissionlessIdempotent, TogglePermissionlessInstructions
+    CreateConfig, DeleteConfig, Freeze, FreezePermissionless, FreezePermissionlessIdempotent,
+    SetAuthority, SetGatingProgram, Thaw, ThawPermissionless, ThawPermissionlessIdempotent,
+    TogglePermissionlessInstructions,
 };
 
 pub mod error;
-pub mod instruction;
 pub mod instructions;
-pub mod offchain;
 pub mod state;
 
 declare_id!("81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc");
@@ -23,7 +23,6 @@ fn process_instruction<'a>(
     instruction_data: &'a [u8],
 ) -> ProgramResult {
     let [discriminator, remaining_data @ ..] = instruction_data else {
-        println!("Invalid instruction data: {:?}", instruction_data);
         return Err(ProgramError::InvalidInstructionData);
     };
 
@@ -43,9 +42,7 @@ fn process_instruction<'a>(
         SetGatingProgram::DISCRIMINATOR => {
             SetGatingProgram::try_from(accounts)?.process(remaining_data)
         }
-        ForfeitFreezeAuthority::DISCRIMINATOR => {
-            ForfeitFreezeAuthority::try_from(accounts)?.process(remaining_data)
-        }
+        DeleteConfig::DISCRIMINATOR => DeleteConfig::try_from(accounts)?.process(remaining_data),
         TogglePermissionlessInstructions::DISCRIMINATOR => {
             TogglePermissionlessInstructions::try_from(accounts)?.process(remaining_data)
         }

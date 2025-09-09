@@ -319,7 +319,7 @@
         }, 
         {
             "kind": "instructionNode",
-            "name": "forfeitFreezeAuthority",
+            "name": "deleteConfig",
             "docs": [],
             "accounts": [
                 {
@@ -328,6 +328,14 @@
                     "docs": [],
                     "isWritable": false,
                     "isSigner": true,
+                    "isOptional": false
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "receiver",
+                    "docs": [],
+                    "isWritable": true,
+                    "isSigner": false,
                     "isOptional": false
                 },
                 {
@@ -1062,7 +1070,71 @@
             ]
         }
       ],
-      "errors": []
+      "errors": [
+            {
+              "kind": "errorNode",
+              "name": "InvalidAuthority",
+              "code": 0,
+              "message": "An invalid authority was provided",
+              "docs": ["InvalidAuthority: An invalid authority was provided"]
+            },
+            {
+              "kind": "errorNode",
+              "name": "InvalidSystemProgram",
+              "code": 1,
+              "message": "An invalid system program was provided",
+              "docs": ["InvalidSystemProgram: An invalid system program was provided"]
+            },
+            {
+              "kind": "errorNode",
+              "name": "InvalidTokenProgram",
+              "code": 2,
+              "message": "An invalid token program was provided",
+              "docs": ["InvalidTokenProgram: An invalid token program was provided"]
+            },
+            {
+              "kind": "errorNode",
+              "name": "InvalidTokenMint",
+              "code": 3,
+              "message": "An invalid token mint was provided",
+              "docs": ["InvalidTokenMint: An invalid token mint was provided"]
+            },
+            {
+              "kind": "errorNode",
+              "name": "InvalidMintConfig",
+              "code": 4,
+              "message": "An invalid mint config was provided",
+              "docs": ["InvalidMintConfig: An invalid mint config was provided"]
+            },
+            {
+              "kind": "errorNode",
+              "name": "InvalidGatingProgram",
+              "code": 5,
+              "message": "An invalid gating program was provided",
+              "docs": ["InvalidGatingProgram: An invalid gating program was provided"]
+            },
+            {
+              "kind": "errorNode",
+              "name": "PermissionlessThawNotEnabled",
+              "code": 6,
+              "message": "Permissionless thaw is not enabled",
+              "docs": ["PermissionlessThawNotEnabled: Permissionless thaw is not enabled"]
+            },
+            {
+              "kind": "errorNode",
+              "name": "PermissionlessFreezeNotEnabled",
+              "code": 7,
+              "message": "Permissionless freeze is not enabled",
+              "docs": ["PermissionlessFreezeNotEnabled: Permissionless freeze is not enabled"]
+            },
+            {
+              "kind": "errorNode",
+              "name": "InvalidTokenAccountOwner",
+              "code": 8,
+              "message": "An invalid token account owner was provided",
+              "docs": ["InvalidTokenAccountOwner: An invalid token account owner was provided"]
+            }
+      ]
     },
     "additionalPrograms": []
 }

@@ -17,6 +17,7 @@
       "clients:cli:format": "zx ./scripts/rust/format.mjs clients/cli",
       "clients:cli:lint": "zx ./scripts/rust/lint.mjs clients/cli",
       "clients:cli:test": "zx ./scripts/rust/test.mjs clients/cli",
+      "clients:cli:build": "zx ./scripts/rust/build.mjs clients/cli",
       "clients:rust:format": "zx ./scripts/rust/format.mjs clients/rust",
       "clients:rust:lint": "zx ./scripts/rust/lint.mjs clients/rust",
       "clients:rust:test": "zx ./scripts/rust/test.mjs clients/rust",

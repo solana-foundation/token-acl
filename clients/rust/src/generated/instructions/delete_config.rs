@@ -11,8 +11,10 @@ use solana_pubkey::Pubkey;
 
 /// Accounts.
 #[derive(Debug)]
-pub struct ForfeitFreezeAuthority {
+pub struct DeleteConfig {
     pub authority: solana_pubkey::Pubkey,
+
+    pub receiver: solana_pubkey::Pubkey,
 
     pub mint: solana_pubkey::Pubkey,
 
@@ -21,10 +23,10 @@ pub struct ForfeitFreezeAuthority {
     pub token_program: solana_pubkey::Pubkey,
 }
 
-impl ForfeitFreezeAuthority {
+impl DeleteConfig {
     pub fn instruction(
         &self,
-        args: ForfeitFreezeAuthorityInstructionArgs,
+        args: DeleteConfigInstructionArgs,
     ) -> solana_instruction::Instruction {
         self.instruction_with_remaining_accounts(args, &[])
     }
@@ -32,14 +34,15 @@ impl ForfeitFreezeAuthority {
     #[allow(clippy::vec_init_then_push)]
     pub fn instruction_with_remaining_accounts(
         &self,
-        args: ForfeitFreezeAuthorityInstructionArgs,
+        args: DeleteConfigInstructionArgs,
         remaining_accounts: &[solana_instruction::AccountMeta],
     ) -> solana_instruction::Instruction {
-        let mut accounts = Vec::with_capacity(4 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(5 + remaining_accounts.len());
         accounts.push(solana_instruction::AccountMeta::new_readonly(
             self.authority,
             true,
         ));
+        accounts.push(solana_instruction::AccountMeta::new(self.receiver, false));
         accounts.push(solana_instruction::AccountMeta::new(self.mint, false));
         accounts.push(solana_instruction::AccountMeta::new(
             self.mint_config,
@@ -50,7 +53,7 @@ impl ForfeitFreezeAuthority {
             false,
         ));
         accounts.extend_from_slice(remaining_accounts);
-        let mut data = borsh::to_vec(&ForfeitFreezeAuthorityInstructionData::new()).unwrap();
+        let mut data = borsh::to_vec(&DeleteConfigInstructionData::new()).unwrap();
         let mut args = borsh::to_vec(&args).unwrap();
         data.append(&mut args);
 
@@ -64,17 +67,17 @@ impl ForfeitFreezeAuthority {
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ForfeitFreezeAuthorityInstructionData {
+pub struct DeleteConfigInstructionData {
     discriminator: u8,
 }
 
-impl ForfeitFreezeAuthorityInstructionData {
+impl DeleteConfigInstructionData {
     pub fn new() -> Self {
         Self { discriminator: 3 }
     }
 }
 
-impl Default for ForfeitFreezeAuthorityInstructionData {
+impl Default for DeleteConfigInstructionData {
     fn default() -> Self {
         Self::new()
     }
@@ -82,21 +85,23 @@ impl Default for ForfeitFreezeAuthorityInstructionData {
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ForfeitFreezeAuthorityInstructionArgs {
+pub struct DeleteConfigInstructionArgs {
     pub new_freeze_authority: Pubkey,
 }
 
-/// Instruction builder for `ForfeitFreezeAuthority`.
+/// Instruction builder for `DeleteConfig`.
 ///
 /// ### Accounts:
 ///
 ///   0. `[signer]` authority
-///   1. `[writable]` mint
-///   2. `[writable]` mint_config
-///   3. `[optional]` token_program (default to `TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`)
+///   1. `[writable]` receiver
+///   2. `[writable]` mint
+///   3. `[writable]` mint_config
+///   4. `[optional]` token_program (default to `TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`)
 #[derive(Clone, Debug, Default)]
-pub struct ForfeitFreezeAuthorityBuilder {
+pub struct DeleteConfigBuilder {
     authority: Option<solana_pubkey::Pubkey>,
+    receiver: Option<solana_pubkey::Pubkey>,
     mint: Option<solana_pubkey::Pubkey>,
     mint_config: Option<solana_pubkey::Pubkey>,
     token_program: Option<solana_pubkey::Pubkey>,
@@ -104,13 +109,18 @@ pub struct ForfeitFreezeAuthorityBuilder {
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
-impl ForfeitFreezeAuthorityBuilder {
+impl DeleteConfigBuilder {
     pub fn new() -> Self {
         Self::default()
     }
     #[inline(always)]
     pub fn authority(&mut self, authority: solana_pubkey::Pubkey) -> &mut Self {
         self.authority = Some(authority);
+        self
+    }
+    #[inline(always)]
+    pub fn receiver(&mut self, receiver: solana_pubkey::Pubkey) -> &mut Self {
+        self.receiver = Some(receiver);
         self
     }
     #[inline(always)]
@@ -151,15 +161,16 @@ impl ForfeitFreezeAuthorityBuilder {
     }
     #[allow(clippy::clone_on_copy)]
     pub fn instruction(&self) -> solana_instruction::Instruction {
-        let accounts = ForfeitFreezeAuthority {
+        let accounts = DeleteConfig {
             authority: self.authority.expect("authority is not set"),
+            receiver: self.receiver.expect("receiver is not set"),
             mint: self.mint.expect("mint is not set"),
             mint_config: self.mint_config.expect("mint_config is not set"),
             token_program: self.token_program.unwrap_or(solana_pubkey::pubkey!(
                 "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
             )),
         };
-        let args = ForfeitFreezeAuthorityInstructionArgs {
+        let args = DeleteConfigInstructionArgs {
             new_freeze_authority: self
                 .new_freeze_authority
                 .clone()
@@ -170,9 +181,11 @@ impl ForfeitFreezeAuthorityBuilder {
     }
 }
 
-/// `forfeit_freeze_authority` CPI accounts.
-pub struct ForfeitFreezeAuthorityCpiAccounts<'a, 'b> {
+/// `delete_config` CPI accounts.
+pub struct DeleteConfigCpiAccounts<'a, 'b> {
     pub authority: &'b solana_account_info::AccountInfo<'a>,
+
+    pub receiver: &'b solana_account_info::AccountInfo<'a>,
 
     pub mint: &'b solana_account_info::AccountInfo<'a>,
 
@@ -181,12 +194,14 @@ pub struct ForfeitFreezeAuthorityCpiAccounts<'a, 'b> {
     pub token_program: &'b solana_account_info::AccountInfo<'a>,
 }
 
-/// `forfeit_freeze_authority` CPI instruction.
-pub struct ForfeitFreezeAuthorityCpi<'a, 'b> {
+/// `delete_config` CPI instruction.
+pub struct DeleteConfigCpi<'a, 'b> {
     /// The program to invoke.
     pub __program: &'b solana_account_info::AccountInfo<'a>,
 
     pub authority: &'b solana_account_info::AccountInfo<'a>,
+
+    pub receiver: &'b solana_account_info::AccountInfo<'a>,
 
     pub mint: &'b solana_account_info::AccountInfo<'a>,
 
@@ -194,18 +209,19 @@ pub struct ForfeitFreezeAuthorityCpi<'a, 'b> {
 
     pub token_program: &'b solana_account_info::AccountInfo<'a>,
     /// The arguments for the instruction.
-    pub __args: ForfeitFreezeAuthorityInstructionArgs,
+    pub __args: DeleteConfigInstructionArgs,
 }
 
-impl<'a, 'b> ForfeitFreezeAuthorityCpi<'a, 'b> {
+impl<'a, 'b> DeleteConfigCpi<'a, 'b> {
     pub fn new(
         program: &'b solana_account_info::AccountInfo<'a>,
-        accounts: ForfeitFreezeAuthorityCpiAccounts<'a, 'b>,
-        args: ForfeitFreezeAuthorityInstructionArgs,
+        accounts: DeleteConfigCpiAccounts<'a, 'b>,
+        args: DeleteConfigInstructionArgs,
     ) -> Self {
         Self {
             __program: program,
             authority: accounts.authority,
+            receiver: accounts.receiver,
             mint: accounts.mint,
             mint_config: accounts.mint_config,
             token_program: accounts.token_program,
@@ -238,10 +254,14 @@ impl<'a, 'b> ForfeitFreezeAuthorityCpi<'a, 'b> {
         signers_seeds: &[&[&[u8]]],
         remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)],
     ) -> solana_program_entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(4 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(5 + remaining_accounts.len());
         accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.authority.key,
             true,
+        ));
+        accounts.push(solana_instruction::AccountMeta::new(
+            *self.receiver.key,
+            false,
         ));
         accounts.push(solana_instruction::AccountMeta::new(*self.mint.key, false));
         accounts.push(solana_instruction::AccountMeta::new(
@@ -259,7 +279,7 @@ impl<'a, 'b> ForfeitFreezeAuthorityCpi<'a, 'b> {
                 is_writable: remaining_account.2,
             })
         });
-        let mut data = borsh::to_vec(&ForfeitFreezeAuthorityInstructionData::new()).unwrap();
+        let mut data = borsh::to_vec(&DeleteConfigInstructionData::new()).unwrap();
         let mut args = borsh::to_vec(&self.__args).unwrap();
         data.append(&mut args);
 
@@ -268,9 +288,10 @@ impl<'a, 'b> ForfeitFreezeAuthorityCpi<'a, 'b> {
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(5 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(6 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
         account_infos.push(self.authority.clone());
+        account_infos.push(self.receiver.clone());
         account_infos.push(self.mint.clone());
         account_infos.push(self.mint_config.clone());
         account_infos.push(self.token_program.clone());
@@ -286,24 +307,26 @@ impl<'a, 'b> ForfeitFreezeAuthorityCpi<'a, 'b> {
     }
 }
 
-/// Instruction builder for `ForfeitFreezeAuthority` via CPI.
+/// Instruction builder for `DeleteConfig` via CPI.
 ///
 /// ### Accounts:
 ///
 ///   0. `[signer]` authority
-///   1. `[writable]` mint
-///   2. `[writable]` mint_config
-///   3. `[]` token_program
+///   1. `[writable]` receiver
+///   2. `[writable]` mint
+///   3. `[writable]` mint_config
+///   4. `[]` token_program
 #[derive(Clone, Debug)]
-pub struct ForfeitFreezeAuthorityCpiBuilder<'a, 'b> {
-    instruction: Box<ForfeitFreezeAuthorityCpiBuilderInstruction<'a, 'b>>,
+pub struct DeleteConfigCpiBuilder<'a, 'b> {
+    instruction: Box<DeleteConfigCpiBuilderInstruction<'a, 'b>>,
 }
 
-impl<'a, 'b> ForfeitFreezeAuthorityCpiBuilder<'a, 'b> {
+impl<'a, 'b> DeleteConfigCpiBuilder<'a, 'b> {
     pub fn new(program: &'b solana_account_info::AccountInfo<'a>) -> Self {
-        let instruction = Box::new(ForfeitFreezeAuthorityCpiBuilderInstruction {
+        let instruction = Box::new(DeleteConfigCpiBuilderInstruction {
             __program: program,
             authority: None,
+            receiver: None,
             mint: None,
             mint_config: None,
             token_program: None,
@@ -315,6 +338,11 @@ impl<'a, 'b> ForfeitFreezeAuthorityCpiBuilder<'a, 'b> {
     #[inline(always)]
     pub fn authority(&mut self, authority: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
         self.instruction.authority = Some(authority);
+        self
+    }
+    #[inline(always)]
+    pub fn receiver(&mut self, receiver: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+        self.instruction.receiver = Some(receiver);
         self
     }
     #[inline(always)]
@@ -380,17 +408,19 @@ impl<'a, 'b> ForfeitFreezeAuthorityCpiBuilder<'a, 'b> {
         &self,
         signers_seeds: &[&[&[u8]]],
     ) -> solana_program_entrypoint::ProgramResult {
-        let args = ForfeitFreezeAuthorityInstructionArgs {
+        let args = DeleteConfigInstructionArgs {
             new_freeze_authority: self
                 .instruction
                 .new_freeze_authority
                 .clone()
                 .expect("new_freeze_authority is not set"),
         };
-        let instruction = ForfeitFreezeAuthorityCpi {
+        let instruction = DeleteConfigCpi {
             __program: self.instruction.__program,
 
             authority: self.instruction.authority.expect("authority is not set"),
+
+            receiver: self.instruction.receiver.expect("receiver is not set"),
 
             mint: self.instruction.mint.expect("mint is not set"),
 
@@ -413,9 +443,10 @@ impl<'a, 'b> ForfeitFreezeAuthorityCpiBuilder<'a, 'b> {
 }
 
 #[derive(Clone, Debug)]
-struct ForfeitFreezeAuthorityCpiBuilderInstruction<'a, 'b> {
+struct DeleteConfigCpiBuilderInstruction<'a, 'b> {
     __program: &'b solana_account_info::AccountInfo<'a>,
     authority: Option<&'b solana_account_info::AccountInfo<'a>>,
+    receiver: Option<&'b solana_account_info::AccountInfo<'a>>,
     mint: Option<&'b solana_account_info::AccountInfo<'a>>,
     mint_config: Option<&'b solana_account_info::AccountInfo<'a>>,
     token_program: Option<&'b solana_account_info::AccountInfo<'a>>,

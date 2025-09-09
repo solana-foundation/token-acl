@@ -7,7 +7,7 @@
  */
 
 export * from './createConfig';
-export * from './forfeitFreezeAuthority';
+export * from './deleteConfig';
 export * from './freeze';
 export * from './freezePermissionless';
 export * from './freezePermissionlessIdempotent';

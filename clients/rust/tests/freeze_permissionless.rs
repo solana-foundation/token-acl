@@ -166,6 +166,7 @@ async fn test_freeze_permissionless_always_block() {
         &mint_cfg_pk,
         &spl_token_2022::ID,
         &user_pubkey,
+        false,
         |pubkey| {
             println!("pubkey: {:?}", pubkey);
             let data = tc.vm.get_account(&pubkey).unwrap().data;
@@ -319,6 +320,7 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
         &mint_cfg_pk,
         &spl_token_2022::ID,
         &user_pubkey,
+        false,
         |pubkey| {
             println!("pubkey: {:?}", pubkey);
             let acc = tc.vm.get_account(&pubkey);

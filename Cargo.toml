@@ -61,3 +61,5 @@ spl-pod = "0.5.1"
 spl-token-2022 = { version = "9.0.0", features = ["no-entrypoint"] }
 solana-sdk = "2.2.1"
 spl-associated-token-account-client = "2.0.0"
+ebalts-interface = { path = "interface/" }
+ebalts-client = { path = "clients/rust/" }

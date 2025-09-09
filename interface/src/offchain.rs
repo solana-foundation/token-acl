@@ -159,7 +159,7 @@ where
 }
 
 #[allow(clippy::too_many_arguments)]
-pub async fn add_extra_account_metas_for_permissionless_ix<F, Fut, T, F2>(
+async fn add_extra_account_metas_for_permissionless_ix<F, Fut, T, F2>(
     instruction: &mut Instruction,
     program_id: &Pubkey,
     signer_pubkey: &Pubkey,
@@ -183,6 +183,7 @@ where
 
     // Check to make sure the provided keys are in the instruction
     if [
+        program_id,
         signer_pubkey,
         token_account_pubkey,
         mint_pubkey,
@@ -215,15 +216,15 @@ where
     // Add only the extra accounts resolved from the validation state
     instruction
         .accounts
-        .extend_from_slice(&cpi_ix.accounts[3..]);
+        .extend_from_slice(&cpi_ix.accounts[4..]);
 
     // Add the program id and validation state account
-    instruction
+    /*instruction
         .accounts
         .push(AccountMeta::new_readonly(*program_id, false));
     instruction
         .accounts
-        .push(AccountMeta::new_readonly(*extra_metas_pubkey, false));
+        .push(AccountMeta::new_readonly(*extra_metas_pubkey, false));*/
 
     Ok(())
 }

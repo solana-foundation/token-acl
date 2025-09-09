@@ -39,7 +39,7 @@ impl CreateConfig<'_> {
         let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
 
         let ix = solana_system_interface::instruction::create_account(
-            self.authority.key,
+            self.payer.key,
             self.mint_config.key,
             lamports,
             MintConfig::LEN as u64,
@@ -48,7 +48,7 @@ impl CreateConfig<'_> {
 
         invoke_signed(
             &ix,
-            &[self.authority.clone(), self.mint_config.clone()],
+            &[self.payer.clone(), self.mint_config.clone()],
             &[&seeds],
         )?;
 

@@ -6,7 +6,7 @@
 //!
 
 pub(crate) mod r#create_config;
-pub(crate) mod r#forfeit_freeze_authority;
+pub(crate) mod r#delete_config;
 pub(crate) mod r#freeze;
 pub(crate) mod r#freeze_permissionless;
 pub(crate) mod r#freeze_permissionless_idempotent;
@@ -18,7 +18,7 @@ pub(crate) mod r#thaw_permissionless_idempotent;
 pub(crate) mod r#toggle_permissionless_instructions;
 
 pub use self::r#create_config::*;
-pub use self::r#forfeit_freeze_authority::*;
+pub use self::r#delete_config::*;
 pub use self::r#freeze::*;
 pub use self::r#freeze_permissionless::*;
 pub use self::r#freeze_permissionless_idempotent::*;

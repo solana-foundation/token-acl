@@ -14,7 +14,7 @@ import {
 } from '@solana/kit';
 import {
   type ParsedCreateConfigInstruction,
-  type ParsedForfeitFreezeAuthorityInstruction,
+  type ParsedDeleteConfigInstruction,
   type ParsedFreezeInstruction,
   type ParsedFreezePermissionlessIdempotentInstruction,
   type ParsedFreezePermissionlessInstruction,
@@ -49,7 +49,7 @@ export enum EbaltsInstruction {
   CreateConfig,
   SetAuthority,
   SetGatingProgram,
-  ForfeitFreezeAuthority,
+  DeleteConfig,
   Thaw,
   Freeze,
   ThawPermissionless,
@@ -73,7 +73,7 @@ export function identifyEbaltsInstruction(
     return EbaltsInstruction.SetGatingProgram;
   }
   if (containsBytes(data, getU8Encoder().encode(3), 0)) {
-    return EbaltsInstruction.ForfeitFreezeAuthority;
+    return EbaltsInstruction.DeleteConfig;
   }
   if (containsBytes(data, getU8Encoder().encode(4), 0)) {
     return EbaltsInstruction.Thaw;
@@ -114,8 +114,8 @@ export type ParsedEbaltsInstruction<
       instructionType: EbaltsInstruction.SetGatingProgram;
     } & ParsedSetGatingProgramInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.ForfeitFreezeAuthority;
-    } & ParsedForfeitFreezeAuthorityInstruction<TProgram>)
+      instructionType: EbaltsInstruction.DeleteConfig;
+    } & ParsedDeleteConfigInstruction<TProgram>)
   | ({
       instructionType: EbaltsInstruction.Thaw;
     } & ParsedThawInstruction<TProgram>)
