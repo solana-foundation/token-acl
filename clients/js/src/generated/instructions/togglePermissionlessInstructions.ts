@@ -28,7 +28,7 @@ import {
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/kit';
-import { EBALTS_PROGRAM_ADDRESS } from '../programs';
+import { TOKEN_ACL_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const TOGGLE_PERMISSIONLESS_INSTRUCTIONS_DISCRIMINATOR = 8;
@@ -40,7 +40,7 @@ export function getTogglePermissionlessInstructionsDiscriminatorBytes() {
 }
 
 export type TogglePermissionlessInstructionsInstruction<
-  TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgram extends string = typeof TOKEN_ACL_PROGRAM_ADDRESS,
   TAccountAuthority extends string | IAccountMeta<string> = string,
   TAccountMintConfig extends string | IAccountMeta<string> = string,
   TRemainingAccounts extends readonly IAccountMeta<string>[] = [],
@@ -115,7 +115,7 @@ export type TogglePermissionlessInstructionsInput<
 export function getTogglePermissionlessInstructionsInstruction<
   TAccountAuthority extends string,
   TAccountMintConfig extends string,
-  TProgramAddress extends Address = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgramAddress extends Address = typeof TOKEN_ACL_PROGRAM_ADDRESS,
 >(
   input: TogglePermissionlessInstructionsInput<
     TAccountAuthority,
@@ -128,7 +128,7 @@ export function getTogglePermissionlessInstructionsInstruction<
   TAccountMintConfig
 > {
   // Program address.
-  const programAddress = config?.programAddress ?? EBALTS_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? TOKEN_ACL_PROGRAM_ADDRESS;
 
   // Original accounts.
   const originalAccounts = {
@@ -163,7 +163,7 @@ export function getTogglePermissionlessInstructionsInstruction<
 }
 
 export type ParsedTogglePermissionlessInstructionsInstruction<
-  TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgram extends string = typeof TOKEN_ACL_PROGRAM_ADDRESS,
   TAccountMetas extends readonly IAccountMeta[] = readonly IAccountMeta[],
 > = {
   programAddress: Address<TProgram>;

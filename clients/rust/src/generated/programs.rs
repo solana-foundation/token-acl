@@ -7,5 +7,5 @@
 
 use solana_pubkey::{pubkey, Pubkey};
 
-/// `ebalts` program ID.
-pub const EBALTS_ID: Pubkey = pubkey!("81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc");
+/// `token_acl` program ID.
+pub const TOKEN_ACL_ID: Pubkey = pubkey!("81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc");

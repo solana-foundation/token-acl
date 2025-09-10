@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "program": {
       "kind": "programNode",
-      "name": "ebalts",
+      "name": "token-acl",
       "publicKey": "81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc",
       "version": "0.1.0",
       "origin": "shank",

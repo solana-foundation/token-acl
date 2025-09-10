@@ -1,4 +1,4 @@
-use ebalts_interface::instruction::{
+use token_acl_interface::instruction::{
     CanFreezePermissionlessInstruction, CanThawPermissionlessInstruction,
 };
 use solana_cpi::invoke_signed;
@@ -30,7 +30,7 @@ impl InitializeExtraMetas<'_> {
 
         let bump_seed = [self.thaw_bump];
         let seeds = [
-            ebalts_interface::THAW_EXTRA_ACCOUNT_METAS_SEED,
+            token_acl_interface::THAW_EXTRA_ACCOUNT_METAS_SEED,
             self.mint.key.as_ref(),
             &bump_seed,
         ];
@@ -50,7 +50,7 @@ impl InitializeExtraMetas<'_> {
 
         let bump_seed = [self.freeze_bump];
         let seeds = [
-            ebalts_interface::FREEZE_EXTRA_ACCOUNT_METAS_SEED,
+            token_acl_interface::FREEZE_EXTRA_ACCOUNT_METAS_SEED,
             self.mint.key.as_ref(),
             &bump_seed,
         ];
@@ -172,14 +172,14 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for InitializeExtraMetas<'a> {
 
         let (_, thaw_bump) = Pubkey::find_program_address(
             &[
-                ebalts_interface::THAW_EXTRA_ACCOUNT_METAS_SEED,
+                token_acl_interface::THAW_EXTRA_ACCOUNT_METAS_SEED,
                 mint.key.as_ref(),
             ],
             &crate::ID,
         );
         let (_, freeze_bump) = Pubkey::find_program_address(
             &[
-                ebalts_interface::FREEZE_EXTRA_ACCOUNT_METAS_SEED,
+                token_acl_interface::FREEZE_EXTRA_ACCOUNT_METAS_SEED,
                 mint.key.as_ref(),
             ],
             &crate::ID,

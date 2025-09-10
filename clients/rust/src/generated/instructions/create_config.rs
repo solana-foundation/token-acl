@@ -64,7 +64,7 @@ impl CreateConfig {
         data.append(&mut args);
 
         solana_instruction::Instruction {
-            program_id: crate::EBALTS_ID,
+            program_id: crate::TOKEN_ACL_ID,
             accounts,
             data,
         }
@@ -307,7 +307,7 @@ impl<'a, 'b> CreateConfigCpi<'a, 'b> {
         data.append(&mut args);
 
         let instruction = solana_instruction::Instruction {
-            program_id: crate::EBALTS_ID,
+            program_id: crate::TOKEN_ACL_ID,
             accounts,
             data,
         };

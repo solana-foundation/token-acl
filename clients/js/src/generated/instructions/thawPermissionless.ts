@@ -27,7 +27,7 @@ import {
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/kit';
-import { EBALTS_PROGRAM_ADDRESS } from '../programs';
+import { TOKEN_ACL_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const THAW_PERMISSIONLESS_DISCRIMINATOR = 6;
@@ -37,7 +37,7 @@ export function getThawPermissionlessDiscriminatorBytes() {
 }
 
 export type ThawPermissionlessInstruction<
-  TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgram extends string = typeof TOKEN_ACL_PROGRAM_ADDRESS,
   TAccountAuthority extends string | IAccountMeta<string> = string,
   TAccountMint extends string | IAccountMeta<string> = string,
   TAccountTokenAccount extends string | IAccountMeta<string> = string,
@@ -129,7 +129,7 @@ export function getThawPermissionlessInstruction<
   TAccountMintConfig extends string,
   TAccountTokenProgram extends string,
   TAccountGatingProgram extends string,
-  TProgramAddress extends Address = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgramAddress extends Address = typeof TOKEN_ACL_PROGRAM_ADDRESS,
 >(
   input: ThawPermissionlessInput<
     TAccountAuthority,
@@ -152,7 +152,7 @@ export function getThawPermissionlessInstruction<
   TAccountGatingProgram
 > {
   // Program address.
-  const programAddress = config?.programAddress ?? EBALTS_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? TOKEN_ACL_PROGRAM_ADDRESS;
 
   // Original accounts.
   const originalAccounts = {
@@ -206,7 +206,7 @@ export function getThawPermissionlessInstruction<
 }
 
 export type ParsedThawPermissionlessInstruction<
-  TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgram extends string = typeof TOKEN_ACL_PROGRAM_ADDRESS,
   TAccountMetas extends readonly IAccountMeta[] = readonly IAccountMeta[],
 > = {
   programAddress: Address<TProgram>;

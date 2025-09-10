@@ -16,6 +16,10 @@ spl-token-client = { version = "0.13.0" }
 tokio = { version = "1", features = ["full"] }
 spl-tlv-account-resolution = "0.8.1"
 spl-transfer-hook-interface = { version = "0.8.2" }
-ebalts-client = { workspace = true }
-ebalts-interface = { workspace = true }
+token-acl-client = { workspace = true }
+token-acl-interface = { workspace = true }
 spl-associated-token-account-client  = { workspace = true }
+
+[[bin]]
+name = "token-acl"
+path = "src/main.rs"

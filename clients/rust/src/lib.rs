@@ -8,7 +8,7 @@ use solana_program_error::ProgramError;
 use solana_pubkey::Pubkey;
 pub use spl_tlv_account_resolution::state::{AccountDataResult, AccountFetchError};
 
-use crate::generated::errors::ebalts;
+use crate::generated::errors::token_acl::TokenAclError;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn create_thaw_permissionless_instruction_with_extra_metas<F, Fut>(
@@ -30,9 +30,8 @@ where
         .and_then(|data| crate::accounts::MintConfig::from_bytes(&data).ok())
         .ok_or(ProgramError::InvalidAccountData)?;
 
-    
     if !mint_config.enable_permissionless_thaw {
-        return Err(ebalts::EbaltsError::PermissionlessThawNotEnabled.into());
+        return Err(TokenAclError::PermissionlessThawNotEnabled.into());
     }
 
     let mut ix = if idempotent {
@@ -58,7 +57,7 @@ where
     };
 
     if mint_config.gating_program != Pubkey::default() {
-        ebalts_interface::offchain::add_extra_account_metas_for_thaw(
+        token_acl_interface::offchain::add_extra_account_metas_for_thaw(
             &mut ix,
             &mint_config.gating_program,
             signer_pubkey,
@@ -94,7 +93,7 @@ where
         .ok_or(ProgramError::InvalidAccountData)?;
 
     if !mint_config.enable_permissionless_freeze {
-        return Err(ebalts::EbaltsError::PermissionlessFreezeNotEnabled.into());
+        return Err(TokenAclError::PermissionlessFreezeNotEnabled.into());
     }
 
     let mut ix = if idempotent {
@@ -120,7 +119,7 @@ where
     };
 
     if mint_config.gating_program != Pubkey::default() {
-        ebalts_interface::offchain::add_extra_account_metas_for_freeze(
+        token_acl_interface::offchain::add_extra_account_metas_for_freeze(
             &mut ix,
             &mint_config.gating_program,
             signer_pubkey,

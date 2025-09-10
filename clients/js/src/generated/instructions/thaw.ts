@@ -27,7 +27,7 @@ import {
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/kit';
-import { EBALTS_PROGRAM_ADDRESS } from '../programs';
+import { TOKEN_ACL_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const THAW_DISCRIMINATOR = 4;
@@ -37,7 +37,7 @@ export function getThawDiscriminatorBytes() {
 }
 
 export type ThawInstruction<
-  TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgram extends string = typeof TOKEN_ACL_PROGRAM_ADDRESS,
   TAccountAuthority extends string | IAccountMeta<string> = string,
   TAccountMint extends string | IAccountMeta<string> = string,
   TAccountTokenAccount extends string | IAccountMeta<string> = string,
@@ -115,7 +115,7 @@ export function getThawInstruction<
   TAccountTokenAccount extends string,
   TAccountMintConfig extends string,
   TAccountTokenProgram extends string,
-  TProgramAddress extends Address = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgramAddress extends Address = typeof TOKEN_ACL_PROGRAM_ADDRESS,
 >(
   input: ThawInput<
     TAccountAuthority,
@@ -134,7 +134,7 @@ export function getThawInstruction<
   TAccountTokenProgram
 > {
   // Program address.
-  const programAddress = config?.programAddress ?? EBALTS_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? TOKEN_ACL_PROGRAM_ADDRESS;
 
   // Original accounts.
   const originalAccounts = {
@@ -179,7 +179,7 @@ export function getThawInstruction<
 }
 
 export type ParsedThawInstruction<
-  TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgram extends string = typeof TOKEN_ACL_PROGRAM_ADDRESS,
   TAccountMetas extends readonly IAccountMeta[] = readonly IAccountMeta[],
 > = {
   programAddress: Address<TProgram>;

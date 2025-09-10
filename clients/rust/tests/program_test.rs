@@ -40,8 +40,8 @@ impl TestContext {
         let current_dir = std::env::current_dir().unwrap();
 
         let res = vm.add_program_from_file(
-            ebalts_client::programs::EBALTS_ID,
-            current_dir.join("tests/fixtures/ebalts.so"),
+            token_acl_client::programs::TOKEN_ACL_ID,
+            current_dir.join("tests/fixtures/token_acl.so"),
         );
         assert!(res.is_ok());
 
@@ -166,14 +166,14 @@ impl TestContext {
                 AccountMeta::new(*payer, true),
                 AccountMeta::new_readonly(self.token.mint, false),
                 AccountMeta::new(
-                    ebalts_interface::get_thaw_extra_account_metas_address(
+                    token_acl_interface::get_thaw_extra_account_metas_address(
                         &self.token.mint,
                         gating_program,
                     ),
                     false,
                 ),
                 AccountMeta::new(
-                    ebalts_interface::get_freeze_extra_account_metas_address(
+                    token_acl_interface::get_freeze_extra_account_metas_address(
                         &self.token.mint,
                         gating_program,
                     ),
@@ -184,10 +184,10 @@ impl TestContext {
         )
     }
 
-    pub fn setup_ebalts(&mut self, gating_program: &Pubkey) -> Pubkey {
-        let (mint_cfg_pk, _) = ebalts_client::accounts::MintConfig::find_pda(&self.token.mint);
+    pub fn setup_token_acl(&mut self, gating_program: &Pubkey) -> Pubkey {
+        let (mint_cfg_pk, _) = token_acl_client::accounts::MintConfig::find_pda(&self.token.mint);
 
-        let ix = ebalts_client::instructions::CreateConfigBuilder::new()
+        let ix = token_acl_client::instructions::CreateConfigBuilder::new()
             .authority(self.token.auth.pubkey())
             .gating_program(*gating_program)
             .mint(self.token.mint)
@@ -249,10 +249,10 @@ impl TestContext {
     }
 
     pub fn thaw(&mut self, token_account: &Pubkey) {
-        let ix = ebalts_client::instructions::ThawBuilder::new()
+        let ix = token_acl_client::instructions::ThawBuilder::new()
             .authority(self.token.auth.pubkey())
             .mint(self.token.mint)
-            .mint_config(ebalts_client::accounts::MintConfig::find_pda(&self.token.mint).0)
+            .mint_config(token_acl_client::accounts::MintConfig::find_pda(&self.token.mint).0)
             .token_account(*token_account)
             .token_program(spl_token_2022::ID)
             .instruction();
@@ -268,10 +268,10 @@ impl TestContext {
     }
 
     pub fn freeze(&mut self, token_account: &Pubkey) {
-        let ix = ebalts_client::instructions::FreezeBuilder::new()
+        let ix = token_acl_client::instructions::FreezeBuilder::new()
             .authority(self.token.auth.pubkey())
             .mint(self.token.mint)
-            .mint_config(ebalts_client::accounts::MintConfig::find_pda(&self.token.mint).0)
+            .mint_config(token_acl_client::accounts::MintConfig::find_pda(&self.token.mint).0)
             .token_account(*token_account)
             .token_program(spl_token_2022::ID)
             .instruction();

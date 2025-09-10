@@ -28,7 +28,7 @@ import {
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/kit';
-import { EBALTS_PROGRAM_ADDRESS } from '../programs';
+import { TOKEN_ACL_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const SET_GATING_PROGRAM_DISCRIMINATOR = 2;
@@ -38,7 +38,7 @@ export function getSetGatingProgramDiscriminatorBytes() {
 }
 
 export type SetGatingProgramInstruction<
-  TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgram extends string = typeof TOKEN_ACL_PROGRAM_ADDRESS,
   TAccountAuthority extends string | IAccountMeta<string> = string,
   TAccountMintConfig extends string | IAccountMeta<string> = string,
   TRemainingAccounts extends readonly IAccountMeta<string>[] = [],
@@ -103,7 +103,7 @@ export type SetGatingProgramInput<
 export function getSetGatingProgramInstruction<
   TAccountAuthority extends string,
   TAccountMintConfig extends string,
-  TProgramAddress extends Address = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgramAddress extends Address = typeof TOKEN_ACL_PROGRAM_ADDRESS,
 >(
   input: SetGatingProgramInput<TAccountAuthority, TAccountMintConfig>,
   config?: { programAddress?: TProgramAddress }
@@ -113,7 +113,7 @@ export function getSetGatingProgramInstruction<
   TAccountMintConfig
 > {
   // Program address.
-  const programAddress = config?.programAddress ?? EBALTS_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? TOKEN_ACL_PROGRAM_ADDRESS;
 
   // Original accounts.
   const originalAccounts = {
@@ -148,7 +148,7 @@ export function getSetGatingProgramInstruction<
 }
 
 export type ParsedSetGatingProgramInstruction<
-  TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgram extends string = typeof TOKEN_ACL_PROGRAM_ADDRESS,
   TAccountMetas extends readonly IAccountMeta[] = readonly IAccountMeta[],
 > = {
   programAddress: Address<TProgram>;

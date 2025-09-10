@@ -12,7 +12,7 @@ use spl_token_2022::{
     pod::PodMint,
 };
 
-use crate::{error::EbaltsError, state::MintConfig};
+use crate::{error::TokenAclError, state::MintConfig};
 
 pub struct CreateConfig<'a> {
     pub payer: &'a AccountInfo<'a>,
@@ -71,12 +71,12 @@ impl CreateConfig<'_> {
         // these can't also be changed or activated later for existing mints
 
         mint.get_extension::<DefaultAccountState>()
-            .map_err(|_| Into::<ProgramError>::into(EbaltsError::InvalidTokenMint))?;
+            .map_err(|_| Into::<ProgramError>::into(TokenAclError::InvalidTokenMint))?;
 
         let freeze_authority = mint
             .base
             .freeze_authority
-            .ok_or(Into::<ProgramError>::into(EbaltsError::InvalidTokenMint))?;
+            .ok_or(Into::<ProgramError>::into(TokenAclError::InvalidTokenMint))?;
 
         drop(mint_data);
         if freeze_authority == *self.authority.key {
@@ -105,18 +105,18 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for CreateConfig<'a> {
         };
 
         if !authority.is_signer {
-            return Err(EbaltsError::InvalidAuthority.into());
+            return Err(TokenAclError::InvalidAuthority.into());
         }
 
         let (_, config_bump) =
             Pubkey::find_program_address(&[MintConfig::SEED_PREFIX, mint.key.as_ref()], &crate::ID);
 
         if !solana_system_interface::program::check_id(system_program.key) {
-            return Err(EbaltsError::InvalidSystemProgram.into());
+            return Err(TokenAclError::InvalidSystemProgram.into());
         }
 
         if !spl_token_2022::check_id(token_program.key) {
-            return Err(EbaltsError::InvalidTokenProgram.into());
+            return Err(TokenAclError::InvalidTokenProgram.into());
         }
 
         Ok(Self {

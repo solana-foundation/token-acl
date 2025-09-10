@@ -68,7 +68,7 @@ impl FreezePermissionless {
         let data = borsh::to_vec(&FreezePermissionlessInstructionData::new()).unwrap();
 
         solana_instruction::Instruction {
-            program_id: crate::EBALTS_ID,
+            program_id: crate::TOKEN_ACL_ID,
             accounts,
             data,
         }
@@ -309,7 +309,7 @@ impl<'a, 'b> FreezePermissionlessCpi<'a, 'b> {
         let data = borsh::to_vec(&FreezePermissionlessInstructionData::new()).unwrap();
 
         let instruction = solana_instruction::Instruction {
-            program_id: crate::EBALTS_ID,
+            program_id: crate::TOKEN_ACL_ID,
             accounts,
             data,
         };

@@ -56,7 +56,7 @@ impl Thaw {
         let data = borsh::to_vec(&ThawInstructionData::new()).unwrap();
 
         solana_instruction::Instruction {
-            program_id: crate::EBALTS_ID,
+            program_id: crate::TOKEN_ACL_ID,
             accounts,
             data,
         }
@@ -261,7 +261,7 @@ impl<'a, 'b> ThawCpi<'a, 'b> {
         let data = borsh::to_vec(&ThawInstructionData::new()).unwrap();
 
         let instruction = solana_instruction::Instruction {
-            program_id: crate::EBALTS_ID,
+            program_id: crate::TOKEN_ACL_ID,
             accounts,
             data,
         };

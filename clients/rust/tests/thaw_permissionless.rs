@@ -25,9 +25,9 @@ use crate::program_test::TestContext;
 fn test_thaw_permissionless() {
     let mut tc = TestContext::new();
 
-    let (mint_cfg_pk, bump) = ebalts_client::accounts::MintConfig::find_pda(&tc.token.mint);
+    let (mint_cfg_pk, bump) = token_acl_client::accounts::MintConfig::find_pda(&tc.token.mint);
 
-    let ix = ebalts_client::instructions::CreateConfigBuilder::new()
+    let ix = token_acl_client::instructions::CreateConfigBuilder::new()
         .authority(tc.token.auth.pubkey())
         .gating_program(program_test::AA_ID)
         .mint(tc.token.mint)
@@ -48,7 +48,7 @@ fn test_thaw_permissionless() {
     println!("res: {:?}", res);
     assert!(res.is_ok());
 
-    let cfg = ebalts_client::accounts::MintConfig::from_bytes(
+    let cfg = token_acl_client::accounts::MintConfig::from_bytes(
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
@@ -76,7 +76,7 @@ fn test_thaw_permissionless() {
     //println!("account: {:?}", account);
     assert_eq!(account.base.state, AccountState::Frozen);
 
-    let ix = ebalts_client::instructions::ThawPermissionlessBuilder::new()
+    let ix = token_acl_client::instructions::ThawPermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -100,7 +100,7 @@ fn test_thaw_permissionless() {
         TransactionError::InstructionError(0x00, InstructionError::Custom(0x06))
     );
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
         .freeze_enabled(false)
         .thaw_enabled(true)
@@ -117,7 +117,7 @@ fn test_thaw_permissionless() {
     //println!("res: {:?}", res);
     assert!(res.is_ok());
 
-    let ix = ebalts_client::instructions::ThawPermissionlessBuilder::new()
+    let ix = token_acl_client::instructions::ThawPermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -148,11 +148,11 @@ fn test_thaw_permissionless() {
 async fn test_create_ata_and_thaw_permissionless() {
     let mut tc = TestContext::new();
 
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_WD_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_WD_ID);
 
     tc.setup_aa_wd_gate_extra_metas();
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
         .freeze_enabled(false)
         .thaw_enabled(true)
@@ -206,7 +206,7 @@ async fn test_create_ata_and_thaw_permissionless() {
     let res = Account::pack(acc, &mut data);
     assert!(res.is_ok());
 
-    let ix = ebalts_client::create_thaw_permissionless_instruction_with_extra_metas(
+    let ix = token_acl_client::create_thaw_permissionless_instruction_with_extra_metas(
         &user_pubkey,
         &token_account,
         &tc.token.mint,
@@ -258,7 +258,7 @@ async fn test_create_ata_and_thaw_permissionless() {
     //should err because not idempotent
     assert!(res.is_err());
 
-    let ix2 = ebalts_client::create_thaw_permissionless_instruction_with_extra_metas(
+    let ix2 = token_acl_client::create_thaw_permissionless_instruction_with_extra_metas(
         &user_pubkey,
         &token_account,
         &tc.token.mint,
@@ -299,7 +299,7 @@ async fn test_create_ata_and_thaw_permissionless() {
 #[tokio::test]
 async fn test_thaw_permissionless_always_block() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AB_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AB_ID);
 
     tc.setup_ab_gate_extra_metas();
 
@@ -307,7 +307,7 @@ async fn test_thaw_permissionless_always_block() {
     let user_pubkey = user.pubkey();
     let user_token_account = tc.create_token_account(&user);
 
-    let ix = ebalts_client::instructions::ThawPermissionlessBuilder::new()
+    let ix = token_acl_client::instructions::ThawPermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -330,7 +330,7 @@ async fn test_thaw_permissionless_always_block() {
         TransactionError::InstructionError(0x00, InstructionError::Custom(0x06))
     );
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
         .freeze_enabled(false)
         .thaw_enabled(true)
@@ -346,7 +346,7 @@ async fn test_thaw_permissionless_always_block() {
     let res = tc.vm.send_transaction(tx);
     assert!(res.is_ok());
 
-    let ix = ebalts_client::create_thaw_permissionless_instruction_with_extra_metas(
+    let ix = token_acl_client::create_thaw_permissionless_instruction_with_extra_metas(
         &user_pubkey,
         &user_token_account,
         &tc.token.mint,
@@ -389,7 +389,7 @@ async fn test_thaw_permissionless_always_block() {
 #[tokio::test]
 async fn test_thaw_permissionless_always_allow_with_deps() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_WD_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_WD_ID);
 
     tc.setup_aa_wd_gate_extra_metas();
 
@@ -397,7 +397,7 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
     let user_pubkey = user.pubkey();
     let user_token_account = tc.create_token_account(&user);
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
         .freeze_enabled(false)
         .thaw_enabled(true)
@@ -414,7 +414,7 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
     //println!("res: {:?}", res);
     assert!(res.is_ok());
 
-    let ix = ebalts_client::instructions::ThawPermissionlessBuilder::new()
+    let ix = token_acl_client::instructions::ThawPermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -437,7 +437,7 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
         TransactionError::InstructionError(0x00, InstructionError::NotEnoughAccountKeys)
     );
 
-    let ix = ebalts_client::instructions::ThawPermissionlessBuilder::new()
+    let ix = token_acl_client::instructions::ThawPermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -446,7 +446,7 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
         .token_program(spl_token_2022::ID)
         .gating_program(program_test::AA_WD_ID)
         .add_remaining_account(AccountMeta::new(
-            ebalts_interface::get_thaw_extra_account_metas_address(
+            token_acl_interface::get_thaw_extra_account_metas_address(
                 &tc.token.mint,
                 &program_test::AA_WD_ID,
             ),
@@ -468,7 +468,7 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
         TransactionError::InstructionError(0x00, InstructionError::Custom(2_724_315_840)) // https://github.com/solana-program/libraries/blob/main/tlv-account-resolution/src/error.rs#L19
     );
 
-    let extra_account_metas_address = ebalts_interface::get_thaw_extra_account_metas_address(
+    let extra_account_metas_address = token_acl_interface::get_thaw_extra_account_metas_address(
         &tc.token.mint,
         &program_test::AA_WD_ID,
     );
@@ -493,7 +493,7 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
     let cb = solana_compute_budget_interface::ComputeBudgetInstruction::set_compute_unit_limit(
         1_400_000,
     );
-    let ix = ebalts_client::create_thaw_permissionless_instruction_with_extra_metas(
+    let ix = token_acl_client::create_thaw_permissionless_instruction_with_extra_metas(
         &user_pubkey,
         &user_token_account,
         &tc.token.mint,

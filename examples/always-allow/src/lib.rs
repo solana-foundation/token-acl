@@ -1,4 +1,4 @@
-use ebalts_interface::instruction::{
+use token_acl_interface::instruction::{
     CanFreezePermissionlessInstruction, CanThawPermissionlessInstruction,
 };
 use solana_program::{

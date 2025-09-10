@@ -9,7 +9,7 @@ use num_derive::FromPrimitive;
 use thiserror::Error;
 
 #[derive(Clone, Debug, Eq, Error, FromPrimitive, PartialEq)]
-pub enum EbaltsError {
+pub enum TokenAclError {
     /// 0 - An invalid authority was provided
     #[error("An invalid authority was provided")]
     InvalidAuthority = 0x0,
@@ -39,14 +39,14 @@ pub enum EbaltsError {
     InvalidTokenAccountOwner = 0x8,
 }
 
-impl solana_program_error::PrintProgramError for EbaltsError {
+impl solana_program_error::PrintProgramError for TokenAclError {
     fn print<E>(&self) {
         solana_msg::msg!(&self.to_string());
     }
 }
 
-impl<T> solana_decode_error::DecodeError<T> for EbaltsError {
+impl<T> solana_decode_error::DecodeError<T> for TokenAclError {
     fn type_of() -> &'static str {
-        "EbaltsError"
+        "TokenAclError"
     }
 }

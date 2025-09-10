@@ -40,10 +40,10 @@ async fn process_create_config(
     mint: &Pubkey,
     gating_program: Option<&Pubkey>,
 ) -> Result<Signature, Box<dyn Error>> {
-    let config = ebalts_client::accounts::MintConfig::find_pda(mint).0;
+    let config = token_acl_client::accounts::MintConfig::find_pda(mint).0;
     let gating_program = gating_program.cloned().unwrap_or(Pubkey::default());
 
-    let ix = ebalts_client::instructions::CreateConfigBuilder::new()
+    let ix = token_acl_client::instructions::CreateConfigBuilder::new()
         .authority(payer.pubkey())
         .payer(payer.pubkey())
         .mint(*mint)
@@ -80,9 +80,9 @@ async fn process_delete_config(
 ) -> Result<Signature, Box<dyn Error>> {
     let payer_pk = payer.pubkey();
     let receiver = receiver.unwrap_or(&payer_pk);
-    let config = ebalts_client::accounts::MintConfig::find_pda(mint).0;
+    let config = token_acl_client::accounts::MintConfig::find_pda(mint).0;
 
-    let ix = ebalts_client::instructions::DeleteConfigBuilder::new()
+    let ix = token_acl_client::instructions::DeleteConfigBuilder::new()
         .authority(payer.pubkey())
         .receiver(*receiver)
         .mint(*mint)
@@ -114,9 +114,9 @@ async fn process_set_authority(
     mint: &Pubkey,
     new_authority: &Pubkey,
 ) -> Result<Signature, Box<dyn Error>> {
-    let config = ebalts_client::accounts::MintConfig::find_pda(mint).0;
+    let config = token_acl_client::accounts::MintConfig::find_pda(mint).0;
 
-    let ix = ebalts_client::instructions::SetAuthorityBuilder::new()
+    let ix = token_acl_client::instructions::SetAuthorityBuilder::new()
         .authority(payer.pubkey())
         .new_authority(*new_authority)
         .mint_config(config)
@@ -147,9 +147,9 @@ async fn process_set_gating_program(
     mint: &Pubkey,
     new_gating_program: &Pubkey,
 ) -> Result<Signature, Box<dyn Error>> {
-    let config = ebalts_client::accounts::MintConfig::find_pda(mint).0;
+    let config = token_acl_client::accounts::MintConfig::find_pda(mint).0;
 
-    let ix = ebalts_client::instructions::SetGatingProgramBuilder::new()
+    let ix = token_acl_client::instructions::SetGatingProgramBuilder::new()
         .authority(payer.pubkey())
         .new_gating_program(*new_gating_program)
         .mint_config(config)
@@ -181,9 +181,9 @@ async fn process_set_instructions(
     enable_thaw: bool,
     enable_freeze: bool,
 ) -> Result<Signature, Box<dyn Error>> {
-    let config = ebalts_client::accounts::MintConfig::find_pda(mint).0;
+    let config = token_acl_client::accounts::MintConfig::find_pda(mint).0;
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(payer.pubkey())
         .thaw_enabled(enable_thaw)
         .freeze_enabled(enable_freeze)
@@ -217,9 +217,9 @@ async fn process_freeze(
     let token_account_data = rpc_client.get_account(&token_account).await.unwrap();
     let ta = StateWithExtensions::<Account>::unpack(token_account_data.data.as_ref()).unwrap();
 
-    let config = ebalts_client::accounts::MintConfig::find_pda(&ta.base.mint).0;
+    let config = token_acl_client::accounts::MintConfig::find_pda(&ta.base.mint).0;
 
-    let ix = ebalts_client::instructions::FreezeBuilder::new()
+    let ix = token_acl_client::instructions::FreezeBuilder::new()
         .authority(payer.pubkey())
         .mint(ta.base.mint)
         .token_account(token_account)
@@ -306,13 +306,13 @@ async fn process_freeze_permissionless(
             }
         };
 
-    let config = ebalts_client::accounts::MintConfig::find_pda(&mint).0;
+    let config = token_acl_client::accounts::MintConfig::find_pda(&mint).0;
 
     println!("mint: {:?}", mint);
     println!("token_account_pk: {:?}", token_account_pk);
     println!("token_account_owner_pk: {:?}", token_account_owner_pk);
 
-    let ix = ebalts_client::create_freeze_permissionless_instruction_with_extra_metas(
+    let ix = token_acl_client::create_freeze_permissionless_instruction_with_extra_metas(
         &payer.pubkey(),
         &token_account_pk,
         &mint,
@@ -364,9 +364,9 @@ async fn process_thaw(
     let token_account_data = rpc_client.get_account(&token_account).await.unwrap();
     let ta = StateWithExtensions::<Account>::unpack(token_account_data.data.as_ref()).unwrap();
 
-    let config = ebalts_client::accounts::MintConfig::find_pda(&ta.base.mint).0;
+    let config = token_acl_client::accounts::MintConfig::find_pda(&ta.base.mint).0;
 
-    let ix = ebalts_client::instructions::ThawBuilder::new()
+    let ix = token_acl_client::instructions::ThawBuilder::new()
         .authority(payer.pubkey())
         .mint(ta.base.mint)
         .token_account(token_account)
@@ -457,9 +457,9 @@ async fn process_thaw_permissionless(
     println!("token_account_pk: {:?}", token_account_pk);
     println!("token_account_owner_pk: {:?}", token_account_owner_pk);
 
-    let config = ebalts_client::accounts::MintConfig::find_pda(&mint).0;
+    let config = token_acl_client::accounts::MintConfig::find_pda(&mint).0;
 
-    let ix = ebalts_client::create_thaw_permissionless_instruction_with_extra_metas(
+    let ix = token_acl_client::create_thaw_permissionless_instruction_with_extra_metas(
         &payer.pubkey(),
         &token_account_pk,
         &mint,

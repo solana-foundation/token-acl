@@ -26,26 +26,26 @@ import {
   type ParsedTogglePermissionlessInstructionsInstruction,
 } from '../instructions';
 
-export const EBALTS_PROGRAM_ADDRESS =
+export const TOKEN_ACL_PROGRAM_ADDRESS =
   '81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc' as Address<'81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc'>;
 
-export enum EbaltsAccount {
+export enum TokenAclAccount {
   MintConfig,
 }
 
-export function identifyEbaltsAccount(
+export function identifyTokenAclAccount(
   account: { data: ReadonlyUint8Array } | ReadonlyUint8Array
-): EbaltsAccount {
+): TokenAclAccount {
   const data = 'data' in account ? account.data : account;
   if (containsBytes(data, getU8Encoder().encode(1), 0)) {
-    return EbaltsAccount.MintConfig;
+    return TokenAclAccount.MintConfig;
   }
   throw new Error(
-    'The provided account could not be identified as a ebalts account.'
+    'The provided account could not be identified as a token-acl account.'
   );
 }
 
-export enum EbaltsInstruction {
+export enum TokenAclInstruction {
   CreateConfig,
   SetAuthority,
   SetGatingProgram,
@@ -59,81 +59,81 @@ export enum EbaltsInstruction {
   TogglePermissionlessInstructions,
 }
 
-export function identifyEbaltsInstruction(
+export function identifyTokenAclInstruction(
   instruction: { data: ReadonlyUint8Array } | ReadonlyUint8Array
-): EbaltsInstruction {
+): TokenAclInstruction {
   const data = 'data' in instruction ? instruction.data : instruction;
   if (containsBytes(data, getU8Encoder().encode(0), 0)) {
-    return EbaltsInstruction.CreateConfig;
+    return TokenAclInstruction.CreateConfig;
   }
   if (containsBytes(data, getU8Encoder().encode(1), 0)) {
-    return EbaltsInstruction.SetAuthority;
+    return TokenAclInstruction.SetAuthority;
   }
   if (containsBytes(data, getU8Encoder().encode(2), 0)) {
-    return EbaltsInstruction.SetGatingProgram;
+    return TokenAclInstruction.SetGatingProgram;
   }
   if (containsBytes(data, getU8Encoder().encode(3), 0)) {
-    return EbaltsInstruction.DeleteConfig;
+    return TokenAclInstruction.DeleteConfig;
   }
   if (containsBytes(data, getU8Encoder().encode(4), 0)) {
-    return EbaltsInstruction.Thaw;
+    return TokenAclInstruction.Thaw;
   }
   if (containsBytes(data, getU8Encoder().encode(5), 0)) {
-    return EbaltsInstruction.Freeze;
+    return TokenAclInstruction.Freeze;
   }
   if (containsBytes(data, getU8Encoder().encode(6), 0)) {
-    return EbaltsInstruction.ThawPermissionless;
+    return TokenAclInstruction.ThawPermissionless;
   }
   if (containsBytes(data, getU8Encoder().encode(7), 0)) {
-    return EbaltsInstruction.FreezePermissionless;
+    return TokenAclInstruction.FreezePermissionless;
   }
   if (containsBytes(data, getU8Encoder().encode(9), 0)) {
-    return EbaltsInstruction.ThawPermissionlessIdempotent;
+    return TokenAclInstruction.ThawPermissionlessIdempotent;
   }
   if (containsBytes(data, getU8Encoder().encode(10), 0)) {
-    return EbaltsInstruction.FreezePermissionlessIdempotent;
+    return TokenAclInstruction.FreezePermissionlessIdempotent;
   }
   if (containsBytes(data, getU8Encoder().encode(8), 0)) {
-    return EbaltsInstruction.TogglePermissionlessInstructions;
+    return TokenAclInstruction.TogglePermissionlessInstructions;
   }
   throw new Error(
-    'The provided instruction could not be identified as a ebalts instruction.'
+    'The provided instruction could not be identified as a token-acl instruction.'
   );
 }
 
-export type ParsedEbaltsInstruction<
+export type ParsedTokenAclInstruction<
   TProgram extends string = '81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc',
 > =
   | ({
-      instructionType: EbaltsInstruction.CreateConfig;
+      instructionType: TokenAclInstruction.CreateConfig;
     } & ParsedCreateConfigInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.SetAuthority;
+      instructionType: TokenAclInstruction.SetAuthority;
     } & ParsedSetAuthorityInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.SetGatingProgram;
+      instructionType: TokenAclInstruction.SetGatingProgram;
     } & ParsedSetGatingProgramInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.DeleteConfig;
+      instructionType: TokenAclInstruction.DeleteConfig;
     } & ParsedDeleteConfigInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.Thaw;
+      instructionType: TokenAclInstruction.Thaw;
     } & ParsedThawInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.Freeze;
+      instructionType: TokenAclInstruction.Freeze;
     } & ParsedFreezeInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.ThawPermissionless;
+      instructionType: TokenAclInstruction.ThawPermissionless;
     } & ParsedThawPermissionlessInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.FreezePermissionless;
+      instructionType: TokenAclInstruction.FreezePermissionless;
     } & ParsedFreezePermissionlessInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.ThawPermissionlessIdempotent;
+      instructionType: TokenAclInstruction.ThawPermissionlessIdempotent;
     } & ParsedThawPermissionlessIdempotentInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.FreezePermissionlessIdempotent;
+      instructionType: TokenAclInstruction.FreezePermissionlessIdempotent;
     } & ParsedFreezePermissionlessIdempotentInstruction<TProgram>)
   | ({
-      instructionType: EbaltsInstruction.TogglePermissionlessInstructions;
+      instructionType: TokenAclInstruction.TogglePermissionlessInstructions;
     } & ParsedTogglePermissionlessInstructionsInstruction<TProgram>);

@@ -68,7 +68,7 @@ impl FreezePermissionlessIdempotent {
         let data = borsh::to_vec(&FreezePermissionlessIdempotentInstructionData::new()).unwrap();
 
         solana_instruction::Instruction {
-            program_id: crate::EBALTS_ID,
+            program_id: crate::TOKEN_ACL_ID,
             accounts,
             data,
         }
@@ -309,7 +309,7 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpi<'a, 'b> {
         let data = borsh::to_vec(&FreezePermissionlessIdempotentInstructionData::new()).unwrap();
 
         let instruction = solana_instruction::Instruction {
-            program_id: crate::EBALTS_ID,
+            program_id: crate::TOKEN_ACL_ID,
             accounts,
             data,
         };

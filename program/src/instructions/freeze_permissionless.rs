@@ -1,10 +1,10 @@
-use ebalts_interface::onchain::invoke_can_freeze_permissionless;
+use token_acl_interface::onchain::invoke_can_freeze_permissionless;
 use solana_cpi::invoke_signed;
 use solana_program::account_info::AccountInfo;
 use solana_program_error::{ProgramError, ProgramResult};
 
 use crate::{
-    error::EbaltsError,
+    error::TokenAclError,
     state::{load_mint_config, MintConfig},
 };
 
@@ -27,15 +27,15 @@ impl FreezePermissionless<'_> {
         let config = load_mint_config(data)?;
 
         if config.mint != *self.mint.key {
-            return Err(EbaltsError::InvalidTokenMint.into());
+            return Err(TokenAclError::InvalidTokenMint.into());
         }
 
         if !config.is_permissionless_freeze_enabled() {
-            return Err(EbaltsError::PermissionlessFreezeNotEnabled.into());
+            return Err(TokenAclError::PermissionlessFreezeNotEnabled.into());
         }
 
         if config.gating_program != *self.gating_program.key {
-            return Err(EbaltsError::InvalidGatingProgram.into());
+            return Err(TokenAclError::InvalidGatingProgram.into());
         }
 
         invoke_can_freeze_permissionless(
@@ -82,11 +82,11 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for FreezePermissionless<'a> {
         };
 
         if !authority.is_signer {
-            return Err(EbaltsError::InvalidAuthority.into());
+            return Err(TokenAclError::InvalidAuthority.into());
         }
 
         if !spl_token_2022::check_id(token_program.key) {
-            return Err(EbaltsError::InvalidTokenProgram.into());
+            return Err(TokenAclError::InvalidTokenProgram.into());
         }
 
         Ok(Self {

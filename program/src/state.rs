@@ -2,7 +2,7 @@ use bytemuck::{Pod, Zeroable};
 use solana_program_error::ProgramError;
 use spl_pod::primitives::PodBool;
 
-use crate::error::EbaltsError;
+use crate::error::TokenAclError;
 use solana_program::pubkey::Pubkey;
 
 #[repr(C)]
@@ -34,12 +34,12 @@ impl MintConfig {
 #[inline(always)]
 pub fn load_mint_config(data: &[u8]) -> Result<&MintConfig, ProgramError> {
     bytemuck::try_from_bytes::<MintConfig>(data)
-        .map_err(|_| EbaltsError::InvalidMintConfig.into())
+        .map_err(|_| TokenAclError::InvalidMintConfig.into())
         .and_then(|cfg: &MintConfig| {
             if cfg.discriminator == MintConfig::DISCRIMINATOR {
                 Ok(cfg)
             } else {
-                Err(EbaltsError::InvalidMintConfig.into())
+                Err(TokenAclError::InvalidMintConfig.into())
             }
         })
 }
@@ -47,12 +47,12 @@ pub fn load_mint_config(data: &[u8]) -> Result<&MintConfig, ProgramError> {
 #[inline(always)]
 pub fn load_mint_config_mut(data: &mut [u8]) -> Result<&mut MintConfig, ProgramError> {
     bytemuck::try_from_bytes_mut::<MintConfig>(data)
-        .map_err(|_| EbaltsError::InvalidMintConfig.into())
+        .map_err(|_| TokenAclError::InvalidMintConfig.into())
         .and_then(|cfg: &mut MintConfig| {
             if cfg.discriminator == MintConfig::DISCRIMINATOR {
                 Ok(cfg)
             } else {
-                Err(EbaltsError::InvalidMintConfig.into())
+                Err(TokenAclError::InvalidMintConfig.into())
             }
         })
 }

@@ -1,5 +1,5 @@
 [package]
-name = "ebalts-client"
+name = "token-acl-client"
 version = "0.1.0"
 description = "tbd"
 documentation = "tbd"
@@ -29,7 +29,7 @@ spl-type-length-value = { workspace = true }
 spl-pod = { workspace = true }
 thiserror = "2.0"
 borsh = "^0.10"
-ebalts-interface = { path = "../../interface" }
+token-acl-interface = { path = "../../interface" }
 
 [dev-dependencies]
 litesvm = "0.6.1"

@@ -1,7 +1,7 @@
 use solana_program::{account_info::AccountInfo, pubkey::Pubkey};
 use solana_program_error::{ProgramError, ProgramResult};
 
-use crate::{error::EbaltsError, state::load_mint_config_mut};
+use crate::{error::TokenAclError, state::load_mint_config_mut};
 
 pub struct SetGatingProgram<'a> {
     pub authority: &'a AccountInfo<'a>,
@@ -22,7 +22,7 @@ impl SetGatingProgram<'_> {
         let config = load_mint_config_mut(data)?;
 
         if config.freeze_authority != *self.authority.key {
-            return Err(EbaltsError::InvalidAuthority.into());
+            return Err(TokenAclError::InvalidAuthority.into());
         }
 
         config.gating_program = new_gating_program;
@@ -40,7 +40,7 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for SetGatingProgram<'a> {
         };
 
         if !authority.is_signer {
-            return Err(EbaltsError::InvalidAuthority.into());
+            return Err(TokenAclError::InvalidAuthority.into());
         }
 
         Ok(Self {

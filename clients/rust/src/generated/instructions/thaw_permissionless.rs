@@ -68,7 +68,7 @@ impl ThawPermissionless {
         let data = borsh::to_vec(&ThawPermissionlessInstructionData::new()).unwrap();
 
         solana_instruction::Instruction {
-            program_id: crate::EBALTS_ID,
+            program_id: crate::TOKEN_ACL_ID,
             accounts,
             data,
         }
@@ -309,7 +309,7 @@ impl<'a, 'b> ThawPermissionlessCpi<'a, 'b> {
         let data = borsh::to_vec(&ThawPermissionlessInstructionData::new()).unwrap();
 
         let instruction = solana_instruction::Instruction {
-            program_id: crate::EBALTS_ID,
+            program_id: crate::TOKEN_ACL_ID,
             accounts,
             data,
         };

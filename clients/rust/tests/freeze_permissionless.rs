@@ -17,7 +17,7 @@ use crate::program_test::TestContext;
 #[test]
 fn test_freeze_permissionless() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_ID);
 
     tc.setup_aa_gate_extra_metas();
 
@@ -32,7 +32,7 @@ fn test_freeze_permissionless() {
     //println!("account: {:?}", account);
     assert_eq!(account.base.state, AccountState::Initialized);
 
-    let ix = ebalts_client::instructions::FreezePermissionlessBuilder::new()
+    let ix = token_acl_client::instructions::FreezePermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -55,7 +55,7 @@ fn test_freeze_permissionless() {
         TransactionError::InstructionError(0x00, InstructionError::Custom(0x07))
     );
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
         .freeze_enabled(true)
         .thaw_enabled(false)
@@ -72,7 +72,7 @@ fn test_freeze_permissionless() {
     //println!("res: {:?}", res);
     assert!(res.is_ok());
 
-    let ix = ebalts_client::instructions::FreezePermissionlessBuilder::new()
+    let ix = token_acl_client::instructions::FreezePermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -102,7 +102,7 @@ fn test_freeze_permissionless() {
 #[tokio::test]
 async fn test_freeze_permissionless_always_block() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AB_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AB_ID);
 
     tc.setup_ab_gate_extra_metas();
 
@@ -117,7 +117,7 @@ async fn test_freeze_permissionless_always_block() {
     //println!("account: {:?}", account);
     assert_eq!(account.base.state, AccountState::Initialized);
 
-    let ix = ebalts_client::instructions::FreezePermissionlessBuilder::new()
+    let ix = token_acl_client::instructions::FreezePermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -140,7 +140,7 @@ async fn test_freeze_permissionless_always_block() {
         TransactionError::InstructionError(0x00, InstructionError::Custom(0x07))
     );
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
         .freeze_enabled(true)
         .thaw_enabled(false)
@@ -159,7 +159,7 @@ async fn test_freeze_permissionless_always_block() {
 
     println!("mint_cfg_pk: {:?}", mint_cfg_pk);
 
-    let ix = ebalts_client::create_freeze_permissionless_instruction_with_extra_metas(
+    let ix = token_acl_client::create_freeze_permissionless_instruction_with_extra_metas(
         &user_pubkey,
         &user_token_account,
         &tc.token.mint,
@@ -202,7 +202,7 @@ async fn test_freeze_permissionless_always_block() {
 #[tokio::test]
 async fn test_freeze_permissionless_always_allow_with_deps() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_WD_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_WD_ID);
 
     tc.setup_aa_wd_gate_extra_metas();
 
@@ -217,7 +217,7 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
     //println!("account: {:?}", account);
     assert_eq!(account.base.state, AccountState::Initialized);
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
         .freeze_enabled(true)
         .thaw_enabled(false)
@@ -234,7 +234,7 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
     //println!("res: {:?}", res);
     assert!(res.is_ok());
 
-    let ix = ebalts_client::instructions::FreezePermissionlessBuilder::new()
+    let ix = token_acl_client::instructions::FreezePermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -257,7 +257,7 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
         TransactionError::InstructionError(0x00, InstructionError::NotEnoughAccountKeys)
     );
 
-    let ix = ebalts_client::instructions::FreezePermissionlessBuilder::new()
+    let ix = token_acl_client::instructions::FreezePermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -266,7 +266,7 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
         .token_program(spl_token_2022::ID)
         .gating_program(program_test::AA_WD_ID)
         .add_remaining_account(AccountMeta::new(
-            ebalts_interface::get_freeze_extra_account_metas_address(
+            token_acl_interface::get_freeze_extra_account_metas_address(
                 &tc.token.mint,
                 &program_test::AA_WD_ID,
             ),
@@ -288,7 +288,7 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
         TransactionError::InstructionError(0x00, InstructionError::Custom(2_724_315_840)) // https://github.com/solana-program/libraries/blob/main/tlv-account-resolution/src/error.rs#L19
     );
 
-    let extra_account_metas_address = ebalts_interface::get_freeze_extra_account_metas_address(
+    let extra_account_metas_address = token_acl_interface::get_freeze_extra_account_metas_address(
         &tc.token.mint,
         &program_test::AA_WD_ID,
     );
@@ -313,7 +313,7 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
     let cb = solana_compute_budget_interface::ComputeBudgetInstruction::set_compute_unit_limit(
         1_400_000,
     );
-    let ix = ebalts_client::create_freeze_permissionless_instruction_with_extra_metas(
+    let ix = token_acl_client::create_freeze_permissionless_instruction_with_extra_metas(
         &user_pubkey,
         &user_token_account,
         &tc.token.mint,

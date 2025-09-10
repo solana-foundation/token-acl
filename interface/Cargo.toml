@@ -1,5 +1,5 @@
 [package]
-name = "ebalts-interface"
+name = "token-acl-interface"
 version = "0.1.0"
 description = "tbd"
 documentation = "tbd"

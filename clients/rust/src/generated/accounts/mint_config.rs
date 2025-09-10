@@ -50,14 +50,14 @@ impl MintConfig {
     ) -> Result<solana_pubkey::Pubkey, solana_pubkey::PubkeyError> {
         solana_pubkey::Pubkey::create_program_address(
             &["MINT_CONFIG".as_bytes(), mint.as_ref(), &[bump]],
-            &crate::EBALTS_ID,
+            &crate::TOKEN_ACL_ID,
         )
     }
 
     pub fn find_pda(mint: &Pubkey) -> (solana_pubkey::Pubkey, u8) {
         solana_pubkey::Pubkey::find_program_address(
             &["MINT_CONFIG".as_bytes(), mint.as_ref()],
-            &crate::EBALTS_ID,
+            &crate::TOKEN_ACL_ID,
         )
     }
 
@@ -160,7 +160,7 @@ impl anchor_lang::AccountSerialize for MintConfig {}
 #[cfg(feature = "anchor")]
 impl anchor_lang::Owner for MintConfig {
     fn owner() -> Pubkey {
-        crate::EBALTS_ID
+        crate::TOKEN_ACL_ID
     }
 }
 

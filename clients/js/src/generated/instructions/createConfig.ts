@@ -29,7 +29,7 @@ import {
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/kit';
-import { EBALTS_PROGRAM_ADDRESS } from '../programs';
+import { TOKEN_ACL_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const CREATE_CONFIG_DISCRIMINATOR = 0;
@@ -39,7 +39,7 @@ export function getCreateConfigDiscriminatorBytes() {
 }
 
 export type CreateConfigInstruction<
-  TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgram extends string = typeof TOKEN_ACL_PROGRAM_ADDRESS,
   TAccountPayer extends string | IAccountMeta<string> = string,
   TAccountAuthority extends string | IAccountMeta<string> = string,
   TAccountMint extends string | IAccountMeta<string> = string,
@@ -136,7 +136,7 @@ export function getCreateConfigInstruction<
   TAccountMintConfig extends string,
   TAccountSystemProgram extends string,
   TAccountTokenProgram extends string,
-  TProgramAddress extends Address = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgramAddress extends Address = typeof TOKEN_ACL_PROGRAM_ADDRESS,
 >(
   input: CreateConfigInput<
     TAccountPayer,
@@ -157,7 +157,7 @@ export function getCreateConfigInstruction<
   TAccountTokenProgram
 > {
   // Program address.
-  const programAddress = config?.programAddress ?? EBALTS_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? TOKEN_ACL_PROGRAM_ADDRESS;
 
   // Original accounts.
   const originalAccounts = {
@@ -214,7 +214,7 @@ export function getCreateConfigInstruction<
 }
 
 export type ParsedCreateConfigInstruction<
-  TProgram extends string = typeof EBALTS_PROGRAM_ADDRESS,
+  TProgram extends string = typeof TOKEN_ACL_PROGRAM_ADDRESS,
   TAccountMetas extends readonly IAccountMeta[] = readonly IAccountMeta[],
 > = {
   programAddress: Address<TProgram>;

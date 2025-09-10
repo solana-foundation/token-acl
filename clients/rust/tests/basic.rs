@@ -13,9 +13,9 @@ use crate::program_test::TestContext;
 #[test]
 fn test_set_authority() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_ID);
 
-    let mint_config = ebalts_client::accounts::MintConfig::from_bytes(
+    let mint_config = token_acl_client::accounts::MintConfig::from_bytes(
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
@@ -24,7 +24,7 @@ fn test_set_authority() {
     let new_authority = Keypair::new();
     let new_authority_pubkey = new_authority.pubkey();
 
-    let ix = ebalts_client::instructions::SetAuthorityBuilder::new()
+    let ix = token_acl_client::instructions::SetAuthorityBuilder::new()
         .authority(tc.token.auth.pubkey())
         .new_authority(new_authority_pubkey)
         .mint_config(mint_cfg_pk)
@@ -39,7 +39,7 @@ fn test_set_authority() {
     let res = tc.vm.send_transaction(tx);
     assert!(res.is_ok());
 
-    let mint_config = ebalts_client::accounts::MintConfig::from_bytes(
+    let mint_config = token_acl_client::accounts::MintConfig::from_bytes(
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
@@ -49,9 +49,9 @@ fn test_set_authority() {
 #[test]
 fn test_set_gating_program() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_ID);
 
-    let mint_config = ebalts_client::accounts::MintConfig::from_bytes(
+    let mint_config = token_acl_client::accounts::MintConfig::from_bytes(
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
@@ -60,7 +60,7 @@ fn test_set_gating_program() {
     let new_gating_program = Keypair::new();
     let new_gating_program_pubkey = new_gating_program.pubkey();
 
-    let ix = ebalts_client::instructions::SetGatingProgramBuilder::new()
+    let ix = token_acl_client::instructions::SetGatingProgramBuilder::new()
         .authority(tc.token.auth.pubkey())
         .new_gating_program(new_gating_program_pubkey)
         .mint_config(mint_cfg_pk)
@@ -79,16 +79,16 @@ fn test_set_gating_program() {
 #[test]
 fn test_toggle_permissionless_instructions() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_ID);
 
-    let mint_config = ebalts_client::accounts::MintConfig::from_bytes(
+    let mint_config = token_acl_client::accounts::MintConfig::from_bytes(
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
     assert!(!mint_config.enable_permissionless_freeze);
     assert!(!mint_config.enable_permissionless_thaw);
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
         .freeze_enabled(true)
         .thaw_enabled(false)
@@ -104,14 +104,14 @@ fn test_toggle_permissionless_instructions() {
     let res = tc.vm.send_transaction(tx);
     assert!(res.is_ok());
 
-    let mint_config = ebalts_client::accounts::MintConfig::from_bytes(
+    let mint_config = token_acl_client::accounts::MintConfig::from_bytes(
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
     assert!(mint_config.enable_permissionless_freeze);
     assert!(!mint_config.enable_permissionless_thaw);
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
         .freeze_enabled(false)
         .thaw_enabled(true)
@@ -127,14 +127,14 @@ fn test_toggle_permissionless_instructions() {
     let res = tc.vm.send_transaction(tx);
     assert!(res.is_ok());
 
-    let mint_config = ebalts_client::accounts::MintConfig::from_bytes(
+    let mint_config = token_acl_client::accounts::MintConfig::from_bytes(
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
     assert!(!mint_config.enable_permissionless_freeze);
     assert!(mint_config.enable_permissionless_thaw);
 
-    let ix = ebalts_client::instructions::TogglePermissionlessInstructionsBuilder::new()
+    let ix = token_acl_client::instructions::TogglePermissionlessInstructionsBuilder::new()
         .authority(tc.token.auth.pubkey())
         .freeze_enabled(true)
         .thaw_enabled(true)
@@ -150,7 +150,7 @@ fn test_toggle_permissionless_instructions() {
     let res = tc.vm.send_transaction(tx);
     assert!(res.is_ok());
 
-    let mint_config = ebalts_client::accounts::MintConfig::from_bytes(
+    let mint_config = token_acl_client::accounts::MintConfig::from_bytes(
         tc.vm.get_account(&mint_cfg_pk).unwrap().data.as_ref(),
     )
     .unwrap();
@@ -161,7 +161,7 @@ fn test_toggle_permissionless_instructions() {
 #[test]
 fn test_thaw_permissioned() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_ID);
 
     let user_kp = Keypair::new();
     let user_ata = tc.create_token_account(&user_kp);
@@ -170,7 +170,7 @@ fn test_thaw_permissioned() {
     let account = StateWithExtensions::<Account>::unpack(user_ta.data.as_ref()).unwrap();
     assert_eq!(account.base.state, AccountState::Frozen);
 
-    let ix = ebalts_client::instructions::ThawBuilder::new()
+    let ix = token_acl_client::instructions::ThawBuilder::new()
         .authority(tc.token.auth.pubkey())
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -195,12 +195,12 @@ fn test_thaw_permissioned() {
 #[test]
 fn test_freeze_permissioned() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_ID);
 
     let user_kp = Keypair::new();
     let user_ata = tc.create_token_account(&user_kp);
 
-    let ix = ebalts_client::instructions::ThawBuilder::new()
+    let ix = token_acl_client::instructions::ThawBuilder::new()
         .authority(tc.token.auth.pubkey())
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -221,7 +221,7 @@ fn test_freeze_permissioned() {
     let account = StateWithExtensions::<Account>::unpack(user_ta.data.as_ref()).unwrap();
     assert_eq!(account.base.state, AccountState::Initialized);
 
-    let ix = ebalts_client::instructions::FreezeBuilder::new()
+    let ix = token_acl_client::instructions::FreezeBuilder::new()
         .authority(tc.token.auth.pubkey())
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
@@ -246,7 +246,7 @@ fn test_freeze_permissioned() {
 #[test]
 fn test_delete_config() {
     let mut tc = TestContext::new();
-    let mint_cfg_pk = tc.setup_ebalts(&program_test::AA_ID);
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_ID);
 
     let mint = tc.vm.get_account(&tc.token.mint).unwrap();
     let mint = StateWithExtensions::<Mint>::unpack(mint.data.as_ref()).unwrap();
@@ -255,7 +255,7 @@ fn test_delete_config() {
     let new_freeze_authority = Keypair::new();
     let new_freeze_authority_pubkey = new_freeze_authority.pubkey();
 
-    let ix = ebalts_client::instructions::DeleteConfigBuilder::new()
+    let ix = token_acl_client::instructions::DeleteConfigBuilder::new()
         .authority(tc.token.auth.pubkey())
         .receiver(tc.token.auth.pubkey())
         .mint(tc.token.mint)

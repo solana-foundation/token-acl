@@ -4,7 +4,7 @@ use solana_program_error::{ProgramError, ProgramResult};
 use spl_token_2022::instruction::AuthorityType;
 
 use crate::{
-    error::EbaltsError,
+    error::TokenAclError,
     state::{load_mint_config, MintConfig},
 };
 
@@ -31,11 +31,11 @@ impl DeleteConfig<'_> {
             let config = load_mint_config(data)?;
 
             if config.freeze_authority != *self.authority.key {
-                return Err(EbaltsError::InvalidAuthority.into());
+                return Err(TokenAclError::InvalidAuthority.into());
             }
 
             if config.mint != *self.mint.key {
-                return Err(EbaltsError::InvalidTokenMint.into());
+                return Err(TokenAclError::InvalidTokenMint.into());
             }
 
             [config.bump]
@@ -74,11 +74,11 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for DeleteConfig<'a> {
         };
 
         if !authority.is_signer {
-            return Err(EbaltsError::InvalidAuthority.into());
+            return Err(TokenAclError::InvalidAuthority.into());
         }
 
         if !spl_token_2022::check_id(token_program.key) {
-            return Err(EbaltsError::InvalidTokenProgram.into());
+            return Err(TokenAclError::InvalidTokenProgram.into());
         }
 
         Ok(Self {

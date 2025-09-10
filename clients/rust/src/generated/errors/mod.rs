@@ -5,6 +5,6 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
-pub(crate) mod ebalts;
+pub(crate) mod token_acl;
 
-pub use self::ebalts::EbaltsError;
+pub use self::token_acl::TokenAclError;
