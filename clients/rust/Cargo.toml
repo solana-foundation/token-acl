@@ -30,6 +30,7 @@ spl-pod = { workspace = true }
 thiserror = "2.0"
 borsh = "^0.10"
 token-acl-interface = { path = "../../interface" }
+solana-system-interface = { workspace = true }
 
 [dev-dependencies]
 litesvm = "0.6.1"
@@ -37,7 +38,6 @@ solana-program-runtime = { workspace = true }
 solana-instruction = { workspace = true }
 solana-sdk = { workspace = true }
 spl-token-2022 = { workspace = true }
-solana-system-interface = { workspace = true }
 spl-associated-token-account-client  = { workspace = true }
 tokio = { version = "^1.20", features = ["rt-multi-thread", "macros"] }
 solana-compute-budget-interface = "2.2.1"

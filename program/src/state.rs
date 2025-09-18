@@ -5,6 +5,8 @@ use spl_pod::primitives::PodBool;
 use crate::error::TokenAclError;
 use solana_program::pubkey::Pubkey;
 
+pub const FLAG_ACCOUNT_SEED_PREFIX: &'static [u8] = b"FLAG_ACCOUNT";
+
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Pod, Zeroable)]
 pub struct MintConfig {

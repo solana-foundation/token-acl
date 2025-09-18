@@ -1,11 +1,11 @@
-use token_acl_interface::instruction::{
-    CanFreezePermissionlessInstruction, CanThawPermissionlessInstruction,
-};
 use solana_program::{
     account_info::AccountInfo, declare_id, entrypoint, entrypoint::ProgramResult, pubkey::Pubkey,
 };
 use solana_program_error::ProgramError;
 use spl_discriminator::{ArrayDiscriminator, SplDiscriminate};
+use token_acl_interface::instruction::{
+    CanFreezePermissionlessInstruction, CanThawPermissionlessInstruction,
+};
 
 pub mod instructions;
 pub use instructions::*;

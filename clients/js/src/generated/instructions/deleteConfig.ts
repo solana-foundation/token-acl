@@ -14,6 +14,7 @@ import {
   getStructEncoder,
   getU8Decoder,
   getU8Encoder,
+  getUtf8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -29,8 +30,13 @@ import {
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/kit';
+import { findMintConfigPda } from '../pdas';
 import { TOKEN_ACL_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  expectAddress,
+  getAccountMetaFactory,
+  type ResolvedAccount,
+} from '../shared';
 
 export const DELETE_CONFIG_DISCRIMINATOR = 3;
 
@@ -104,6 +110,103 @@ export function getDeleteConfigInstructionDataCodec(): Codec<
     getDeleteConfigInstructionDataEncoder(),
     getDeleteConfigInstructionDataDecoder()
   );
+}
+
+export type DeleteConfigAsyncInput<
+  TAccountAuthority extends string = string,
+  TAccountReceiver extends string = string,
+  TAccountMint extends string = string,
+  TAccountMintConfig extends string = string,
+  TAccountTokenProgram extends string = string,
+> = {
+  authority: TransactionSigner<TAccountAuthority>;
+  receiver: Address<TAccountReceiver>;
+  mint: Address<TAccountMint>;
+  mintConfig?: Address<TAccountMintConfig>;
+  tokenProgram?: Address<TAccountTokenProgram>;
+  newFreezeAuthority: DeleteConfigInstructionDataArgs['newFreezeAuthority'];
+};
+
+export async function getDeleteConfigInstructionAsync<
+  TAccountAuthority extends string,
+  TAccountReceiver extends string,
+  TAccountMint extends string,
+  TAccountMintConfig extends string,
+  TAccountTokenProgram extends string,
+  TProgramAddress extends Address = typeof TOKEN_ACL_PROGRAM_ADDRESS,
+>(
+  input: DeleteConfigAsyncInput<
+    TAccountAuthority,
+    TAccountReceiver,
+    TAccountMint,
+    TAccountMintConfig,
+    TAccountTokenProgram
+  >,
+  config?: { programAddress?: TProgramAddress }
+): Promise<
+  DeleteConfigInstruction<
+    TProgramAddress,
+    TAccountAuthority,
+    TAccountReceiver,
+    TAccountMint,
+    TAccountMintConfig,
+    TAccountTokenProgram
+  >
+> {
+  // Program address.
+  const programAddress = config?.programAddress ?? TOKEN_ACL_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    receiver: { value: input.receiver ?? null, isWritable: true },
+    mint: { value: input.mint ?? null, isWritable: true },
+    mintConfig: { value: input.mintConfig ?? null, isWritable: true },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Original args.
+  const args = { ...input };
+
+  // Resolve default values.
+  if (!accounts.mintConfig.value) {
+    accounts.mintConfig.value = await findMintConfigPda({
+      constant: getUtf8Encoder().encode('MINT_CONFIG'),
+      mint: expectAddress(accounts.mint.value),
+    });
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value =
+      'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address<'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'>;
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.receiver),
+      getAccountMeta(accounts.mint),
+      getAccountMeta(accounts.mintConfig),
+      getAccountMeta(accounts.tokenProgram),
+    ],
+    programAddress,
+    data: getDeleteConfigInstructionDataEncoder().encode(
+      args as DeleteConfigInstructionDataArgs
+    ),
+  } as DeleteConfigInstruction<
+    TProgramAddress,
+    TAccountAuthority,
+    TAccountReceiver,
+    TAccountMint,
+    TAccountMintConfig,
+    TAccountTokenProgram
+  >;
+
+  return instruction;
 }
 
 export type DeleteConfigInput<

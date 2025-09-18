@@ -12,6 +12,7 @@ import {
   getStructEncoder,
   getU8Decoder,
   getU8Encoder,
+  getUtf8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -27,8 +28,13 @@ import {
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/kit';
+import { findFlagAccountPda, findMintConfigPda } from '../pdas';
 import { TOKEN_ACL_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  expectAddress,
+  getAccountMetaFactory,
+  type ResolvedAccount,
+} from '../shared';
 
 export const FREEZE_PERMISSIONLESS_IDEMPOTENT_DISCRIMINATOR = 10;
 
@@ -41,11 +47,15 @@ export type FreezePermissionlessIdempotentInstruction<
   TAccountAuthority extends string | IAccountMeta<string> = string,
   TAccountMint extends string | IAccountMeta<string> = string,
   TAccountTokenAccount extends string | IAccountMeta<string> = string,
+  TAccountFlagAccount extends string | IAccountMeta<string> = string,
   TAccountTokenAccountOwner extends string | IAccountMeta<string> = string,
   TAccountMintConfig extends string | IAccountMeta<string> = string,
   TAccountTokenProgram extends
     | string
     | IAccountMeta<string> = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+  TAccountSystemProgram extends
+    | string
+    | IAccountMeta<string> = '11111111111111111111111111111111',
   TAccountGatingProgram extends string | IAccountMeta<string> = string,
   TRemainingAccounts extends readonly IAccountMeta<string>[] = [],
 > = IInstruction<TProgram> &
@@ -62,6 +72,9 @@ export type FreezePermissionlessIdempotentInstruction<
       TAccountTokenAccount extends string
         ? WritableAccount<TAccountTokenAccount>
         : TAccountTokenAccount,
+      TAccountFlagAccount extends string
+        ? WritableAccount<TAccountFlagAccount>
+        : TAccountFlagAccount,
       TAccountTokenAccountOwner extends string
         ? ReadonlyAccount<TAccountTokenAccountOwner>
         : TAccountTokenAccountOwner,
@@ -71,6 +84,9 @@ export type FreezePermissionlessIdempotentInstruction<
       TAccountTokenProgram extends string
         ? ReadonlyAccount<TAccountTokenProgram>
         : TAccountTokenProgram,
+      TAccountSystemProgram extends string
+        ? ReadonlyAccount<TAccountSystemProgram>
+        : TAccountSystemProgram,
       TAccountGatingProgram extends string
         ? ReadonlyAccount<TAccountGatingProgram>
         : TAccountGatingProgram,
@@ -108,21 +124,161 @@ export function getFreezePermissionlessIdempotentInstructionDataCodec(): Codec<
   );
 }
 
-export type FreezePermissionlessIdempotentInput<
+export type FreezePermissionlessIdempotentAsyncInput<
   TAccountAuthority extends string = string,
   TAccountMint extends string = string,
   TAccountTokenAccount extends string = string,
+  TAccountFlagAccount extends string = string,
   TAccountTokenAccountOwner extends string = string,
   TAccountMintConfig extends string = string,
   TAccountTokenProgram extends string = string,
+  TAccountSystemProgram extends string = string,
   TAccountGatingProgram extends string = string,
 > = {
   authority: TransactionSigner<TAccountAuthority>;
   mint: Address<TAccountMint>;
   tokenAccount: Address<TAccountTokenAccount>;
+  flagAccount?: Address<TAccountFlagAccount>;
+  tokenAccountOwner: Address<TAccountTokenAccountOwner>;
+  mintConfig?: Address<TAccountMintConfig>;
+  tokenProgram?: Address<TAccountTokenProgram>;
+  systemProgram?: Address<TAccountSystemProgram>;
+  gatingProgram: Address<TAccountGatingProgram>;
+};
+
+export async function getFreezePermissionlessIdempotentInstructionAsync<
+  TAccountAuthority extends string,
+  TAccountMint extends string,
+  TAccountTokenAccount extends string,
+  TAccountFlagAccount extends string,
+  TAccountTokenAccountOwner extends string,
+  TAccountMintConfig extends string,
+  TAccountTokenProgram extends string,
+  TAccountSystemProgram extends string,
+  TAccountGatingProgram extends string,
+  TProgramAddress extends Address = typeof TOKEN_ACL_PROGRAM_ADDRESS,
+>(
+  input: FreezePermissionlessIdempotentAsyncInput<
+    TAccountAuthority,
+    TAccountMint,
+    TAccountTokenAccount,
+    TAccountFlagAccount,
+    TAccountTokenAccountOwner,
+    TAccountMintConfig,
+    TAccountTokenProgram,
+    TAccountSystemProgram,
+    TAccountGatingProgram
+  >,
+  config?: { programAddress?: TProgramAddress }
+): Promise<
+  FreezePermissionlessIdempotentInstruction<
+    TProgramAddress,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountTokenAccount,
+    TAccountFlagAccount,
+    TAccountTokenAccountOwner,
+    TAccountMintConfig,
+    TAccountTokenProgram,
+    TAccountSystemProgram,
+    TAccountGatingProgram
+  >
+> {
+  // Program address.
+  const programAddress = config?.programAddress ?? TOKEN_ACL_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    mint: { value: input.mint ?? null, isWritable: false },
+    tokenAccount: { value: input.tokenAccount ?? null, isWritable: true },
+    flagAccount: { value: input.flagAccount ?? null, isWritable: true },
+    tokenAccountOwner: {
+      value: input.tokenAccountOwner ?? null,
+      isWritable: false,
+    },
+    mintConfig: { value: input.mintConfig ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
+    gatingProgram: { value: input.gatingProgram ?? null, isWritable: false },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Resolve default values.
+  if (!accounts.flagAccount.value) {
+    accounts.flagAccount.value = await findFlagAccountPda({
+      constant: getUtf8Encoder().encode('FLAG_ACCOUNT'),
+      tokenAccount: expectAddress(accounts.tokenAccount.value),
+    });
+  }
+  if (!accounts.mintConfig.value) {
+    accounts.mintConfig.value = await findMintConfigPda({
+      constant: getUtf8Encoder().encode('MINT_CONFIG'),
+      mint: expectAddress(accounts.mint.value),
+    });
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value =
+      'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address<'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'>;
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value =
+      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.mint),
+      getAccountMeta(accounts.tokenAccount),
+      getAccountMeta(accounts.flagAccount),
+      getAccountMeta(accounts.tokenAccountOwner),
+      getAccountMeta(accounts.mintConfig),
+      getAccountMeta(accounts.tokenProgram),
+      getAccountMeta(accounts.systemProgram),
+      getAccountMeta(accounts.gatingProgram),
+    ],
+    programAddress,
+    data: getFreezePermissionlessIdempotentInstructionDataEncoder().encode({}),
+  } as FreezePermissionlessIdempotentInstruction<
+    TProgramAddress,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountTokenAccount,
+    TAccountFlagAccount,
+    TAccountTokenAccountOwner,
+    TAccountMintConfig,
+    TAccountTokenProgram,
+    TAccountSystemProgram,
+    TAccountGatingProgram
+  >;
+
+  return instruction;
+}
+
+export type FreezePermissionlessIdempotentInput<
+  TAccountAuthority extends string = string,
+  TAccountMint extends string = string,
+  TAccountTokenAccount extends string = string,
+  TAccountFlagAccount extends string = string,
+  TAccountTokenAccountOwner extends string = string,
+  TAccountMintConfig extends string = string,
+  TAccountTokenProgram extends string = string,
+  TAccountSystemProgram extends string = string,
+  TAccountGatingProgram extends string = string,
+> = {
+  authority: TransactionSigner<TAccountAuthority>;
+  mint: Address<TAccountMint>;
+  tokenAccount: Address<TAccountTokenAccount>;
+  flagAccount: Address<TAccountFlagAccount>;
   tokenAccountOwner: Address<TAccountTokenAccountOwner>;
   mintConfig: Address<TAccountMintConfig>;
   tokenProgram?: Address<TAccountTokenProgram>;
+  systemProgram?: Address<TAccountSystemProgram>;
   gatingProgram: Address<TAccountGatingProgram>;
 };
 
@@ -130,9 +286,11 @@ export function getFreezePermissionlessIdempotentInstruction<
   TAccountAuthority extends string,
   TAccountMint extends string,
   TAccountTokenAccount extends string,
+  TAccountFlagAccount extends string,
   TAccountTokenAccountOwner extends string,
   TAccountMintConfig extends string,
   TAccountTokenProgram extends string,
+  TAccountSystemProgram extends string,
   TAccountGatingProgram extends string,
   TProgramAddress extends Address = typeof TOKEN_ACL_PROGRAM_ADDRESS,
 >(
@@ -140,9 +298,11 @@ export function getFreezePermissionlessIdempotentInstruction<
     TAccountAuthority,
     TAccountMint,
     TAccountTokenAccount,
+    TAccountFlagAccount,
     TAccountTokenAccountOwner,
     TAccountMintConfig,
     TAccountTokenProgram,
+    TAccountSystemProgram,
     TAccountGatingProgram
   >,
   config?: { programAddress?: TProgramAddress }
@@ -151,9 +311,11 @@ export function getFreezePermissionlessIdempotentInstruction<
   TAccountAuthority,
   TAccountMint,
   TAccountTokenAccount,
+  TAccountFlagAccount,
   TAccountTokenAccountOwner,
   TAccountMintConfig,
   TAccountTokenProgram,
+  TAccountSystemProgram,
   TAccountGatingProgram
 > {
   // Program address.
@@ -164,12 +326,14 @@ export function getFreezePermissionlessIdempotentInstruction<
     authority: { value: input.authority ?? null, isWritable: false },
     mint: { value: input.mint ?? null, isWritable: false },
     tokenAccount: { value: input.tokenAccount ?? null, isWritable: true },
+    flagAccount: { value: input.flagAccount ?? null, isWritable: true },
     tokenAccountOwner: {
       value: input.tokenAccountOwner ?? null,
       isWritable: false,
     },
     mintConfig: { value: input.mintConfig ?? null, isWritable: false },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
     gatingProgram: { value: input.gatingProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
@@ -182,6 +346,10 @@ export function getFreezePermissionlessIdempotentInstruction<
     accounts.tokenProgram.value =
       'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address<'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'>;
   }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value =
+      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   const instruction = {
@@ -189,9 +357,11 @@ export function getFreezePermissionlessIdempotentInstruction<
       getAccountMeta(accounts.authority),
       getAccountMeta(accounts.mint),
       getAccountMeta(accounts.tokenAccount),
+      getAccountMeta(accounts.flagAccount),
       getAccountMeta(accounts.tokenAccountOwner),
       getAccountMeta(accounts.mintConfig),
       getAccountMeta(accounts.tokenProgram),
+      getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.gatingProgram),
     ],
     programAddress,
@@ -201,9 +371,11 @@ export function getFreezePermissionlessIdempotentInstruction<
     TAccountAuthority,
     TAccountMint,
     TAccountTokenAccount,
+    TAccountFlagAccount,
     TAccountTokenAccountOwner,
     TAccountMintConfig,
     TAccountTokenProgram,
+    TAccountSystemProgram,
     TAccountGatingProgram
   >;
 
@@ -219,10 +391,12 @@ export type ParsedFreezePermissionlessIdempotentInstruction<
     authority: TAccountMetas[0];
     mint: TAccountMetas[1];
     tokenAccount: TAccountMetas[2];
-    tokenAccountOwner: TAccountMetas[3];
-    mintConfig: TAccountMetas[4];
-    tokenProgram: TAccountMetas[5];
-    gatingProgram: TAccountMetas[6];
+    flagAccount: TAccountMetas[3];
+    tokenAccountOwner: TAccountMetas[4];
+    mintConfig: TAccountMetas[5];
+    tokenProgram: TAccountMetas[6];
+    systemProgram: TAccountMetas[7];
+    gatingProgram: TAccountMetas[8];
   };
   data: FreezePermissionlessIdempotentInstructionData;
 };
@@ -235,7 +409,7 @@ export function parseFreezePermissionlessIdempotentInstruction<
     IInstructionWithAccounts<TAccountMetas> &
     IInstructionWithData<Uint8Array>
 ): ParsedFreezePermissionlessIdempotentInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 7) {
+  if (instruction.accounts.length < 9) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -251,9 +425,11 @@ export function parseFreezePermissionlessIdempotentInstruction<
       authority: getNextAccount(),
       mint: getNextAccount(),
       tokenAccount: getNextAccount(),
+      flagAccount: getNextAccount(),
       tokenAccountOwner: getNextAccount(),
       mintConfig: getNextAccount(),
       tokenProgram: getNextAccount(),
+      systemProgram: getNextAccount(),
       gatingProgram: getNextAccount(),
     },
     data: getFreezePermissionlessIdempotentInstructionDataDecoder().decode(

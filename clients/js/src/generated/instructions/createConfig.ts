@@ -14,6 +14,7 @@ import {
   getStructEncoder,
   getU8Decoder,
   getU8Encoder,
+  getUtf8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -29,8 +30,13 @@ import {
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/kit';
+import { findMintConfigPda } from '../pdas';
 import { TOKEN_ACL_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  expectAddress,
+  getAccountMetaFactory,
+  type ResolvedAccount,
+} from '../shared';
 
 export const CREATE_CONFIG_DISCRIMINATOR = 0;
 
@@ -110,6 +116,115 @@ export function getCreateConfigInstructionDataCodec(): Codec<
     getCreateConfigInstructionDataEncoder(),
     getCreateConfigInstructionDataDecoder()
   );
+}
+
+export type CreateConfigAsyncInput<
+  TAccountPayer extends string = string,
+  TAccountAuthority extends string = string,
+  TAccountMint extends string = string,
+  TAccountMintConfig extends string = string,
+  TAccountSystemProgram extends string = string,
+  TAccountTokenProgram extends string = string,
+> = {
+  payer: Address<TAccountPayer>;
+  authority: TransactionSigner<TAccountAuthority>;
+  mint: Address<TAccountMint>;
+  mintConfig?: Address<TAccountMintConfig>;
+  systemProgram?: Address<TAccountSystemProgram>;
+  tokenProgram?: Address<TAccountTokenProgram>;
+  gatingProgram: CreateConfigInstructionDataArgs['gatingProgram'];
+};
+
+export async function getCreateConfigInstructionAsync<
+  TAccountPayer extends string,
+  TAccountAuthority extends string,
+  TAccountMint extends string,
+  TAccountMintConfig extends string,
+  TAccountSystemProgram extends string,
+  TAccountTokenProgram extends string,
+  TProgramAddress extends Address = typeof TOKEN_ACL_PROGRAM_ADDRESS,
+>(
+  input: CreateConfigAsyncInput<
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountMintConfig,
+    TAccountSystemProgram,
+    TAccountTokenProgram
+  >,
+  config?: { programAddress?: TProgramAddress }
+): Promise<
+  CreateConfigInstruction<
+    TProgramAddress,
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountMintConfig,
+    TAccountSystemProgram,
+    TAccountTokenProgram
+  >
+> {
+  // Program address.
+  const programAddress = config?.programAddress ?? TOKEN_ACL_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    payer: { value: input.payer ?? null, isWritable: true },
+    authority: { value: input.authority ?? null, isWritable: false },
+    mint: { value: input.mint ?? null, isWritable: true },
+    mintConfig: { value: input.mintConfig ?? null, isWritable: true },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Original args.
+  const args = { ...input };
+
+  // Resolve default values.
+  if (!accounts.mintConfig.value) {
+    accounts.mintConfig.value = await findMintConfigPda({
+      constant: getUtf8Encoder().encode('MINT_CONFIG'),
+      mint: expectAddress(accounts.mint.value),
+    });
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value =
+      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value =
+      'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address<'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'>;
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.payer),
+      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.mint),
+      getAccountMeta(accounts.mintConfig),
+      getAccountMeta(accounts.systemProgram),
+      getAccountMeta(accounts.tokenProgram),
+    ],
+    programAddress,
+    data: getCreateConfigInstructionDataEncoder().encode(
+      args as CreateConfigInstructionDataArgs
+    ),
+  } as CreateConfigInstruction<
+    TProgramAddress,
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountMintConfig,
+    TAccountSystemProgram,
+    TAccountTokenProgram
+  >;
+
+  return instruction;
 }
 
 export type CreateConfigInput<

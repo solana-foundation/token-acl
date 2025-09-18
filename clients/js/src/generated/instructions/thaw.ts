@@ -12,6 +12,7 @@ import {
   getStructEncoder,
   getU8Decoder,
   getU8Encoder,
+  getUtf8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -27,8 +28,13 @@ import {
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/kit';
+import { findMintConfigPda } from '../pdas';
 import { TOKEN_ACL_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  expectAddress,
+  getAccountMetaFactory,
+  type ResolvedAccount,
+} from '../shared';
 
 export const THAW_DISCRIMINATOR = 4;
 
@@ -93,6 +99,97 @@ export function getThawInstructionDataCodec(): Codec<
     getThawInstructionDataEncoder(),
     getThawInstructionDataDecoder()
   );
+}
+
+export type ThawAsyncInput<
+  TAccountAuthority extends string = string,
+  TAccountMint extends string = string,
+  TAccountTokenAccount extends string = string,
+  TAccountMintConfig extends string = string,
+  TAccountTokenProgram extends string = string,
+> = {
+  authority: TransactionSigner<TAccountAuthority>;
+  mint: Address<TAccountMint>;
+  tokenAccount: Address<TAccountTokenAccount>;
+  mintConfig?: Address<TAccountMintConfig>;
+  tokenProgram?: Address<TAccountTokenProgram>;
+};
+
+export async function getThawInstructionAsync<
+  TAccountAuthority extends string,
+  TAccountMint extends string,
+  TAccountTokenAccount extends string,
+  TAccountMintConfig extends string,
+  TAccountTokenProgram extends string,
+  TProgramAddress extends Address = typeof TOKEN_ACL_PROGRAM_ADDRESS,
+>(
+  input: ThawAsyncInput<
+    TAccountAuthority,
+    TAccountMint,
+    TAccountTokenAccount,
+    TAccountMintConfig,
+    TAccountTokenProgram
+  >,
+  config?: { programAddress?: TProgramAddress }
+): Promise<
+  ThawInstruction<
+    TProgramAddress,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountTokenAccount,
+    TAccountMintConfig,
+    TAccountTokenProgram
+  >
+> {
+  // Program address.
+  const programAddress = config?.programAddress ?? TOKEN_ACL_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    mint: { value: input.mint ?? null, isWritable: false },
+    tokenAccount: { value: input.tokenAccount ?? null, isWritable: true },
+    mintConfig: { value: input.mintConfig ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Resolve default values.
+  if (!accounts.mintConfig.value) {
+    accounts.mintConfig.value = await findMintConfigPda({
+      constant: getUtf8Encoder().encode('MINT_CONFIG'),
+      mint: expectAddress(accounts.mint.value),
+    });
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value =
+      'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address<'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'>;
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.mint),
+      getAccountMeta(accounts.tokenAccount),
+      getAccountMeta(accounts.mintConfig),
+      getAccountMeta(accounts.tokenProgram),
+    ],
+    programAddress,
+    data: getThawInstructionDataEncoder().encode({}),
+  } as ThawInstruction<
+    TProgramAddress,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountTokenAccount,
+    TAccountMintConfig,
+    TAccountTokenProgram
+  >;
+
+  return instruction;
 }
 
 export type ThawInput<

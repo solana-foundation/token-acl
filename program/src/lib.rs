@@ -30,13 +30,15 @@ fn process_instruction<'a>(
         CreateConfig::DISCRIMINATOR => CreateConfig::try_from(accounts)?.process(remaining_data),
         Freeze::DISCRIMINATOR => Freeze::try_from(accounts)?.process(),
         Thaw::DISCRIMINATOR => Thaw::try_from(accounts)?.process(),
-        ThawPermissionless::DISCRIMINATOR => ThawPermissionless::try_from(accounts)?.process(),
+        ThawPermissionless::DISCRIMINATOR => ThawPermissionless::try_from(accounts)?.process(false),
         ThawPermissionlessIdempotent::DISCRIMINATOR => {
-            ThawPermissionlessIdempotent::try_from(accounts)?.process()
+            ThawPermissionless::try_from(accounts)?.process(true)
         }
-        FreezePermissionless::DISCRIMINATOR => FreezePermissionless::try_from(accounts)?.process(),
+        FreezePermissionless::DISCRIMINATOR => {
+            FreezePermissionless::try_from(accounts)?.process(false)
+        }
         FreezePermissionlessIdempotent::DISCRIMINATOR => {
-            FreezePermissionlessIdempotent::try_from(accounts)?.process()
+            FreezePermissionless::try_from(accounts)?.process(true)
         }
         SetAuthority::DISCRIMINATOR => SetAuthority::try_from(accounts)?.process(remaining_data),
         SetGatingProgram::DISCRIMINATOR => {

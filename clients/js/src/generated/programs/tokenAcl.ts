@@ -30,6 +30,7 @@ export const TOKEN_ACL_PROGRAM_ADDRESS =
   '81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc' as Address<'81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc'>;
 
 export enum TokenAclAccount {
+  FlagAccount,
   MintConfig,
 }
 
