@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "program": {
       "kind": "programNode",
-      "name": "token-acl",
+      "name": "tokenAcl",
       "publicKey": "81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc",
       "version": "0.1.0",
       "origin": "shank",
@@ -184,21 +184,6 @@
                         "name": "mintConfig"
                       },
                       "seeds": [
-                        {
-                            "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "MINT_CONFIG"
-                                }
-                            }
-                        },
                         {
                             "kind": "pdaSeedValueNode",
                             "name": "mint",
@@ -423,21 +408,6 @@
                       "seeds": [
                         {
                             "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "MINT_CONFIG"
-                                }
-                            }
-                        },
-                        {
-                            "kind": "pdaSeedValueNode",
                             "name": "mint",
                             "value": {
                                 "kind": "accountValueNode",
@@ -538,21 +508,6 @@
                       "seeds": [
                         {
                             "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "MINT_CONFIG"
-                                }
-                            }
-                        },
-                        {
-                            "kind": "pdaSeedValueNode",
                             "name": "mint",
                             "value": {
                                 "kind": "accountValueNode",
@@ -643,21 +598,6 @@
                         "name": "mintConfig"
                       },
                       "seeds": [
-                        {
-                            "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "MINT_CONFIG"
-                                }
-                            }
-                        },
                         {
                             "kind": "pdaSeedValueNode",
                             "name": "mint",
@@ -752,21 +692,6 @@
                       "seeds": [
                         {
                             "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "FLAG_ACCOUNT"
-                                }
-                            }
-                        },
-                        {
-                            "kind": "pdaSeedValueNode",
                             "name": "tokenAccount",
                             "value": {
                                 "kind": "accountValueNode",
@@ -798,21 +723,6 @@
                         "name": "mintConfig"
                       },
                       "seeds": [
-                        {
-                            "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "MINT_CONFIG"
-                                }
-                            }
-                        },
                         {
                             "kind": "pdaSeedValueNode",
                             "name": "mint",
@@ -927,21 +837,6 @@
                       "seeds": [
                         {
                             "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "FLAG_ACCOUNT"
-                                }
-                            }
-                        },
-                        {
-                            "kind": "pdaSeedValueNode",
                             "name": "tokenAccount",
                             "value": {
                                 "kind": "accountValueNode",
@@ -973,21 +868,6 @@
                         "name": "mintConfig"
                       },
                       "seeds": [
-                        {
-                            "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "MINT_CONFIG"
-                                }
-                            }
-                        },
                         {
                             "kind": "pdaSeedValueNode",
                             "name": "mint",
@@ -1104,21 +984,6 @@
                       "seeds": [
                         {
                             "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "FLAG_ACCOUNT"
-                                }
-                            }
-                        },
-                        {
-                            "kind": "pdaSeedValueNode",
                             "name": "tokenAccount",
                             "value": {
                                 "kind": "accountValueNode",
@@ -1150,21 +1015,6 @@
                         "name": "mintConfig"
                       },
                       "seeds": [
-                        {
-                            "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "MINT_CONFIG"
-                                }
-                            }
-                        },
                         {
                             "kind": "pdaSeedValueNode",
                             "name": "mint",
@@ -1279,21 +1129,6 @@
                       "seeds": [
                         {
                             "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "FLAG_ACCOUNT"
-                                }
-                            }
-                        },
-                        {
-                            "kind": "pdaSeedValueNode",
                             "name": "tokenAccount",
                             "value": {
                                 "kind": "accountValueNode",
@@ -1325,21 +1160,6 @@
                         "name": "mintConfig"
                       },
                       "seeds": [
-                        {
-                            "kind": "pdaSeedValueNode",
-                            "name": "constant",
-                            "value": {
-                                "kind": "constantValueNode",
-                                "type": {
-                                    "kind": "stringTypeNode",
-                                    "encoding": "utf8"
-                                },
-                                "value": {
-                                    "kind": "stringValueNode",
-                                    "string": "MINT_CONFIG"
-                                }
-                            }
-                        },
                         {
                             "kind": "pdaSeedValueNode",
                             "name": "mint",

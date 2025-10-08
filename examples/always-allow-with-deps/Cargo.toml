@@ -28,6 +28,7 @@ spl-pod = { workspace = true }
 spl-tlv-account-resolution = { workspace = true }
 spl-token-2022 = { workspace = true }
 token-acl-interface = { version = "0.1.0", path = "../../interface" }
+token-acl-client = { version = "0.1.0", path = "../../clients/rust" }
 spl-type-length-value = { workspace = true }
 spl-associated-token-account-client = { workspace = true }
 bytemuck = { version = "1.21.0", features = ["derive"] }

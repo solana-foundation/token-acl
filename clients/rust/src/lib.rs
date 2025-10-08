@@ -70,6 +70,7 @@ where
             token_account_pubkey,
             mint_pubkey,
             token_account_owner_pubkey,
+            &flag_account,
             fetch_account_data_fn,
         )
         .await?;
@@ -138,6 +139,7 @@ where
             token_account_pubkey,
             mint_pubkey,
             token_account_owner_pubkey,
+            &flag_account,
             fetch_account_data_fn,
         )
         .await?;

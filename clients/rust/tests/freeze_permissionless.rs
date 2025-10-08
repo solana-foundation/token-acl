@@ -179,7 +179,7 @@ async fn test_freeze_permissionless_always_block() {
         false,
         |pubkey| {
             println!("pubkey: {:?}", pubkey);
-            let data = tc.vm.get_account(&pubkey).unwrap().data;
+            let data = tc.vm.get_account(&pubkey).unwrap_or_default().data;
             async move { Ok(Some(data)) }
         },
     )
@@ -246,6 +246,8 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
 
     let flag_account = token_acl_client::accounts::FlagAccount::find_pda(&user_token_account).0;
 
+    println!("flag_account: {:?}", flag_account);
+
     let ix = token_acl_client::instructions::FreezePermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
@@ -264,6 +266,7 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
         tc.vm.latest_blockhash(),
     );
     let res = tc.vm.send_transaction(tx);
+    println!("res: {:?}", res);
     assert!(res.is_err());
     let err = res.err().unwrap();
     assert_eq!(

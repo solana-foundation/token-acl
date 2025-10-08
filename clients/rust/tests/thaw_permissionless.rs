@@ -366,8 +366,13 @@ async fn test_thaw_permissionless_always_block() {
         false,
         |pubkey| {
             println!("pubkey: {:?}", pubkey);
-            let data = tc.vm.get_account(&pubkey).unwrap().data;
-            async move { Ok(Some(data)) }
+            let acc = tc.vm.get_account(&pubkey);
+            async move {
+                match acc {
+                    Some(a) => Ok(Some(a.data)),
+                    None => Ok(None),
+                }
+            }
         },
     )
     .await
@@ -504,6 +509,9 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
         "account: {:?}",
         tc.vm.get_account(&extra_account_metas_address)
     );
+
+    let flag_account = token_acl_client::accounts::FlagAccount::find_pda(&user_token_account).0;
+    println!("flag_account: {:?}", flag_account);
 
     let cb = solana_compute_budget_interface::ComputeBudgetInstruction::set_compute_unit_limit(
         1_400_000,

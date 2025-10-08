@@ -33,6 +33,8 @@ pub struct MintConfig {
     pub gating_program: Pubkey,
 }
 
+pub const MINT_CONFIG_DISCRIMINATOR: u8 = 1;
+
 impl MintConfig {
     pub const LEN: usize = 0;
 
@@ -169,5 +171,5 @@ impl anchor_lang::IdlBuild for MintConfig {}
 
 #[cfg(feature = "anchor-idl-build")]
 impl anchor_lang::Discriminator for MintConfig {
-    const DISCRIMINATOR: [u8; 8] = [0; 8];
+    const DISCRIMINATOR: &[u8] = &[0; 8];
 }

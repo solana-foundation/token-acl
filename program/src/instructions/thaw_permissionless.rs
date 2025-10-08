@@ -85,8 +85,11 @@ impl ThawPermissionless<'_> {
             self.token_account.clone(),
             self.mint.clone(),
             self.token_account_owner.clone(),
+            self.flag_account.clone(),
             self.remaining_accounts,
         )?;
+
+        self.flag_account.data.borrow_mut()[0] = 0;
 
         let bump_seed = [config.bump];
         let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
