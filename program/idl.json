@@ -4,12 +4,41 @@
     "version": "1.0.0",
     "program": {
       "kind": "programNode",
-      "name": "token-acl",
+      "name": "tokenAcl",
       "publicKey": "81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc",
       "version": "0.1.0",
       "origin": "shank",
       "docs": [],
       "accounts": [
+        {
+            "kind": "accountNode",
+            "name": "flagAccount",
+            "size": 1,
+            "docs": [],
+            "pda": {
+              "kind": "pdaLinkNode",
+              "name": "flagAccount"
+            },
+            "data": {
+                "kind": "structTypeNode",
+                "fields": [
+                    {
+                        "kind": "structFieldTypeNode",
+                        "name": "isThawing",
+                        "docs": [],
+                        "type": {
+                            "kind": "booleanTypeNode",
+                            "size": {
+                                "kind": "numberTypeNode",
+                                "format": "u8",
+                                "endian": "le"
+                            }
+
+                        }
+                    }
+                ]
+            }
+        },
         {
             "kind": "accountNode",
             "name": "mintConfig",
@@ -147,7 +176,24 @@
                     "docs": [],
                     "isWritable": true,
                     "isSigner": false,
-                    "isOptional": false
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "mintConfig"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "mint",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "mint"
+                            }
+                        }
+                      ]
+                    }
                 },
                 {
                     "kind": "instructionAccountNode",
@@ -352,7 +398,24 @@
                     "docs": [],
                     "isWritable": true,
                     "isSigner": false,
-                    "isOptional": false
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "mintConfig"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "mint",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "mint"
+                            }
+                        }
+                      ]
+                    }
                 },
                 {
                     "kind": "instructionAccountNode",
@@ -435,7 +498,24 @@
                     "docs": [],
                     "isWritable": false,
                     "isSigner": false,
-                    "isOptional": false
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "mintConfig"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "mint",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "mint"
+                            }
+                        }
+                      ]
+                    }
                 },
                 {
                     "kind": "instructionAccountNode",
@@ -510,7 +590,24 @@
                     "docs": [],
                     "isWritable": false,
                     "isSigner": false,
-                    "isOptional": false
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "mintConfig"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "mint",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "mint"
+                            }
+                        }
+                      ]
+                    }
                 },
                 {
                     "kind": "instructionAccountNode",
@@ -581,6 +678,31 @@
                 },
                 {
                     "kind": "instructionAccountNode",
+                    "name": "flagAccount",
+                    "docs": [],
+                    "isWritable": true,
+                    "isSigner": false,
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "flagAccount"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "tokenAccount",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "tokenAccount"
+                            }
+                        }
+                      ]
+                    }
+                },
+                {
+                    "kind": "instructionAccountNode",
                     "name": "tokenAccountOwner",
                     "docs": [],
                     "isWritable": false,
@@ -593,7 +715,24 @@
                     "docs": [],
                     "isWritable": false,
                     "isSigner": false,
-                    "isOptional": false
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "mintConfig"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "mint",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "mint"
+                            }
+                        }
+                      ]
+                    }
                 },
                 {
                     "kind": "instructionAccountNode",
@@ -605,6 +744,18 @@
                     "defaultValue": {
                       "kind": "publicKeyValueNode",
                       "publicKey": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+                    }
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "systemProgram",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "publicKeyValueNode",
+                      "publicKey": "11111111111111111111111111111111"
                     }
                 },
                 {
@@ -672,6 +823,31 @@
                 },
                 {
                     "kind": "instructionAccountNode",
+                    "name": "flagAccount",
+                    "docs": [],
+                    "isWritable": true,
+                    "isSigner": false,
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "flagAccount"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "tokenAccount",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "tokenAccount"
+                            }
+                        }
+                      ]
+                    }
+                },
+                {
+                    "kind": "instructionAccountNode",
                     "name": "tokenAccountOwner",
                     "docs": [],
                     "isWritable": false,
@@ -684,7 +860,24 @@
                     "docs": [],
                     "isWritable": false,
                     "isSigner": false,
-                    "isOptional": false
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "mintConfig"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "mint",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "mint"
+                            }
+                        }
+                      ]
+                    }
                 },
                 {
                     "kind": "instructionAccountNode",
@@ -696,6 +889,18 @@
                     "defaultValue": {
                       "kind": "publicKeyValueNode",
                       "publicKey": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+                    }
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "systemProgram",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "publicKeyValueNode",
+                      "publicKey": "11111111111111111111111111111111"
                     }
                 },
                 {
@@ -765,6 +970,31 @@
                 },
                 {
                     "kind": "instructionAccountNode",
+                    "name": "flagAccount",
+                    "docs": [],
+                    "isWritable": true,
+                    "isSigner": false,
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "flagAccount"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "tokenAccount",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "tokenAccount"
+                            }
+                        }
+                      ]
+                    }
+                },
+                {
+                    "kind": "instructionAccountNode",
                     "name": "tokenAccountOwner",
                     "docs": [],
                     "isWritable": false,
@@ -777,7 +1007,24 @@
                     "docs": [],
                     "isWritable": false,
                     "isSigner": false,
-                    "isOptional": false
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "mintConfig"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "mint",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "mint"
+                            }
+                        }
+                      ]
+                    }
                 },
                 {
                     "kind": "instructionAccountNode",
@@ -789,6 +1036,18 @@
                     "defaultValue": {
                       "kind": "publicKeyValueNode",
                       "publicKey": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+                    }
+                },
+                {
+                    "kind": "instructionAccountNode",
+                    "name": "systemProgram",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "publicKeyValueNode",
+                      "publicKey": "11111111111111111111111111111111"
                     }
                 },
                 {
@@ -856,6 +1115,31 @@
                 },
                 {
                     "kind": "instructionAccountNode",
+                    "name": "flagAccount",
+                    "docs": [],
+                    "isWritable": true,
+                    "isSigner": false,
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "flagAccount"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "tokenAccount",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "tokenAccount"
+                            }
+                        }
+                      ]
+                    }
+                },
+                {
+                    "kind": "instructionAccountNode",
                     "name": "tokenAccountOwner",
                     "docs": [],
                     "isWritable": false,
@@ -868,7 +1152,24 @@
                     "docs": [],
                     "isWritable": false,
                     "isSigner": false,
-                    "isOptional": false
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "pdaValueNode",
+                      "pda": {
+                        "kind": "pdaLinkNode",
+                        "name": "mintConfig"
+                      },
+                      "seeds": [
+                        {
+                            "kind": "pdaSeedValueNode",
+                            "name": "mint",
+                            "value": {
+                                "kind": "accountValueNode",
+                                "name": "mint"
+                            }
+                        }
+                      ]
+                    }
                 },
                 {
                     "kind": "instructionAccountNode",
@@ -884,13 +1185,24 @@
                 },
                 {
                     "kind": "instructionAccountNode",
+                    "name": "systemProgram",
+                    "docs": [],
+                    "isWritable": false,
+                    "isSigner": false,
+                    "isOptional": false,
+                    "defaultValue": {
+                      "kind": "publicKeyValueNode",
+                      "publicKey": "11111111111111111111111111111111"
+                    }
+                },
+                {
+                    "kind": "instructionAccountNode",
                     "name": "gatingProgram",
                     "docs": [],
                     "isWritable": false,
                     "isSigner": false,
                     "isOptional": false
                 }
-                
             ],
             "arguments": [
                 {
@@ -1063,6 +1375,31 @@
                 {
                     "kind": "variablePdaSeedNode",
                     "name": "mint",
+                    "type": {
+                      "kind": "publicKeyTypeNode"
+                    }
+                }
+            ]
+        },
+        {
+            "kind": "pdaNode",
+            "name": "flagAccount",
+            "docs": [],
+            "seeds": [
+                {
+                    "kind": "constantPdaSeedNode",
+                    "type": {
+                        "kind": "stringTypeNode",
+                        "encoding": "utf8"
+                    },
+                    "value": {
+                        "kind": "stringValueNode",
+                        "string": "FLAG_ACCOUNT"
+                    }
+                },
+                {
+                    "kind": "variablePdaSeedNode",
+                    "name": "tokenAccount",
                     "type": {
                       "kind": "publicKeyTypeNode"
                     }

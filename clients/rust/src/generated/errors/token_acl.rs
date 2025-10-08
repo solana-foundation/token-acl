@@ -39,14 +39,8 @@ pub enum TokenAclError {
     InvalidTokenAccountOwner = 0x8,
 }
 
-impl solana_program_error::PrintProgramError for TokenAclError {
-    fn print<E>(&self) {
-        solana_msg::msg!(&self.to_string());
-    }
-}
-
-impl<T> solana_decode_error::DecodeError<T> for TokenAclError {
-    fn type_of() -> &'static str {
-        "TokenAclError"
+impl From<TokenAclError> for solana_program_error::ProgramError {
+    fn from(e: TokenAclError) -> Self {
+        solana_program_error::ProgramError::Custom(e as u32)
     }
 }

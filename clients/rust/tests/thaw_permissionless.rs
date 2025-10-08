@@ -76,12 +76,16 @@ fn test_thaw_permissionless() {
     //println!("account: {:?}", account);
     assert_eq!(account.base.state, AccountState::Frozen);
 
+    let flag_account = token_acl_client::accounts::FlagAccount::find_pda(&user_token_account).0;
+
     let ix = token_acl_client::instructions::ThawPermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
         .mint_config(mint_cfg_pk)
         .token_account(user_token_account)
         .token_account_owner(user_pubkey)
+        .system_program(solana_system_interface::program::ID)
+        .flag_account(flag_account)
         .gating_program(program_test::AA_ID)
         .instruction();
 
@@ -124,6 +128,8 @@ fn test_thaw_permissionless() {
         .token_account(user_token_account)
         .token_account_owner(user_pubkey)
         .gating_program(program_test::AA_ID)
+        .system_program(solana_system_interface::program::ID)
+        .flag_account(flag_account)
         .instruction();
 
     tc.vm.expire_blockhash();
@@ -307,6 +313,8 @@ async fn test_thaw_permissionless_always_block() {
     let user_pubkey = user.pubkey();
     let user_token_account = tc.create_token_account(&user);
 
+    let flag_account = token_acl_client::accounts::FlagAccount::find_pda(&user_token_account).0;
+
     let ix = token_acl_client::instructions::ThawPermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
@@ -314,6 +322,8 @@ async fn test_thaw_permissionless_always_block() {
         .token_account(user_token_account)
         .token_account_owner(user_pubkey)
         .gating_program(program_test::AB_ID)
+        .system_program(solana_system_interface::program::ID)
+        .flag_account(flag_account)
         .instruction();
 
     let tx = Transaction::new_signed_with_payer(
@@ -356,8 +366,13 @@ async fn test_thaw_permissionless_always_block() {
         false,
         |pubkey| {
             println!("pubkey: {:?}", pubkey);
-            let data = tc.vm.get_account(&pubkey).unwrap().data;
-            async move { Ok(Some(data)) }
+            let acc = tc.vm.get_account(&pubkey);
+            async move {
+                match acc {
+                    Some(a) => Ok(Some(a.data)),
+                    None => Ok(None),
+                }
+            }
         },
     )
     .await
@@ -414,6 +429,7 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
     //println!("res: {:?}", res);
     assert!(res.is_ok());
 
+    let flag_account = token_acl_client::accounts::FlagAccount::find_pda(&user_token_account).0;
     let ix = token_acl_client::instructions::ThawPermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
@@ -421,6 +437,8 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
         .token_account(user_token_account)
         .token_account_owner(user_pubkey)
         .gating_program(program_test::AA_WD_ID)
+        .system_program(solana_system_interface::program::ID)
+        .flag_account(flag_account)
         .instruction();
 
     let tx = Transaction::new_signed_with_payer(
@@ -445,6 +463,8 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
         .token_account_owner(user_pubkey)
         .token_program(spl_token_2022::ID)
         .gating_program(program_test::AA_WD_ID)
+        .system_program(solana_system_interface::program::ID)
+        .flag_account(flag_account)
         .add_remaining_account(AccountMeta::new(
             token_acl_interface::get_thaw_extra_account_metas_address(
                 &tc.token.mint,
@@ -489,6 +509,9 @@ async fn test_thaw_permissionless_always_allow_with_deps() {
         "account: {:?}",
         tc.vm.get_account(&extra_account_metas_address)
     );
+
+    let flag_account = token_acl_client::accounts::FlagAccount::find_pda(&user_token_account).0;
+    println!("flag_account: {:?}", flag_account);
 
     let cb = solana_compute_budget_interface::ComputeBudgetInstruction::set_compute_unit_limit(
         1_400_000,

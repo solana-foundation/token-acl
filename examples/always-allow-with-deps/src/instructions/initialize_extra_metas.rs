@@ -1,6 +1,3 @@
-use token_acl_interface::instruction::{
-    CanFreezePermissionlessInstruction, CanThawPermissionlessInstruction,
-};
 use solana_cpi::invoke_signed;
 use solana_program::{account_info::AccountInfo, pubkey::Pubkey};
 use solana_program_error::{ProgramError, ProgramResult};
@@ -8,6 +5,9 @@ use solana_rent::Rent;
 use solana_sysvar::Sysvar;
 use spl_tlv_account_resolution::{
     account::ExtraAccountMeta, pubkey_data::PubkeyData, seeds::Seed, state::ExtraAccountMetaList,
+};
+use token_acl_interface::instruction::{
+    CanFreezePermissionlessInstruction, CanThawPermissionlessInstruction,
 };
 
 pub struct InitializeExtraMetas<'a> {
@@ -69,15 +69,15 @@ impl InitializeExtraMetas<'_> {
         )?;
 
         let metas: Vec<ExtraAccountMeta> = vec![
-            // [5] associated token program
+            // [6] associated token program
             ExtraAccountMeta::new_with_pubkey(
                 &spl_associated_token_account_client::program::ID,
                 false,
                 false,
             )?,
-            // [6] token program
+            // [7] token program
             ExtraAccountMeta::new_with_pubkey(&spl_token_2022::ID, false, false)?,
-            // [7] token account owner
+            // [8] token account owner
             ExtraAccountMeta::new_with_pubkey_data(
                 &PubkeyData::AccountData {
                     account_index: 1,
@@ -86,18 +86,18 @@ impl InitializeExtraMetas<'_> {
                 false,
                 false,
             )?,
-            // [8] ata
+            // [9] ata
             ExtraAccountMeta::new_external_pda_with_seeds(
-                5,
+                6,
                 &[
                     Seed::AccountKey { index: 3 }, // owner
-                    Seed::AccountKey { index: 6 }, // token program
+                    Seed::AccountKey { index: 7 }, // token program
                     Seed::AccountKey { index: 2 }, // mint
                 ],
                 false,
                 false,
             )?,
-            // [9] extra metas account
+            // [10] extra metas account
             ExtraAccountMeta::new_with_seeds(
                 &[
                     Seed::Literal {
@@ -110,15 +110,15 @@ impl InitializeExtraMetas<'_> {
             )?,
         ];
         let metas2: Vec<ExtraAccountMeta> = vec![
-            // [5] associated token program
+            // [6] associated token program
             ExtraAccountMeta::new_with_pubkey(
                 &spl_associated_token_account_client::program::ID,
                 false,
                 false,
             )?,
-            // [6] token program
+            // [7] token program
             ExtraAccountMeta::new_with_pubkey(&spl_token_2022::ID, false, false)?,
-            // [7] token account owner
+            // [8] token account owner
             ExtraAccountMeta::new_with_pubkey_data(
                 &PubkeyData::AccountData {
                     account_index: 1,
@@ -127,18 +127,18 @@ impl InitializeExtraMetas<'_> {
                 false,
                 false,
             )?,
-            // [8] ata
+            // [9] ata
             ExtraAccountMeta::new_external_pda_with_seeds(
-                5,
+                6,
                 &[
                     Seed::AccountKey { index: 3 }, // owner
-                    Seed::AccountKey { index: 6 }, // token program
+                    Seed::AccountKey { index: 7 }, // token program
                     Seed::AccountKey { index: 2 }, // mint
                 ],
                 false,
                 false,
             )?,
-            // [9] extra metas account
+            // [10] extra metas account
             ExtraAccountMeta::new_with_seeds(
                 &[
                     Seed::Literal {

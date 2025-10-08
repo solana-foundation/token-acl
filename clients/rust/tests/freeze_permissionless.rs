@@ -32,6 +32,8 @@ fn test_freeze_permissionless() {
     //println!("account: {:?}", account);
     assert_eq!(account.base.state, AccountState::Initialized);
 
+    let flag_account = token_acl_client::accounts::FlagAccount::find_pda(&user_token_account).0;
+
     let ix = token_acl_client::instructions::FreezePermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
@@ -39,6 +41,8 @@ fn test_freeze_permissionless() {
         .token_account(user_token_account)
         .token_account_owner(user_pubkey)
         .gating_program(program_test::AA_ID)
+        .system_program(solana_system_interface::program::ID)
+        .flag_account(flag_account)
         .instruction();
 
     let tx = Transaction::new_signed_with_payer(
@@ -79,6 +83,8 @@ fn test_freeze_permissionless() {
         .token_account(user_token_account)
         .token_account_owner(user_pubkey)
         .gating_program(program_test::AA_ID)
+        .system_program(solana_system_interface::program::ID)
+        .flag_account(flag_account)
         .instruction();
 
     tc.vm.expire_blockhash();
@@ -117,6 +123,8 @@ async fn test_freeze_permissionless_always_block() {
     //println!("account: {:?}", account);
     assert_eq!(account.base.state, AccountState::Initialized);
 
+    let flag_account = token_acl_client::accounts::FlagAccount::find_pda(&user_token_account).0;
+
     let ix = token_acl_client::instructions::FreezePermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
@@ -124,6 +132,8 @@ async fn test_freeze_permissionless_always_block() {
         .token_account(user_token_account)
         .token_account_owner(user_pubkey)
         .gating_program(program_test::AA_ID)
+        .system_program(solana_system_interface::program::ID)
+        .flag_account(flag_account)
         .instruction();
 
     let tx = Transaction::new_signed_with_payer(
@@ -169,7 +179,7 @@ async fn test_freeze_permissionless_always_block() {
         false,
         |pubkey| {
             println!("pubkey: {:?}", pubkey);
-            let data = tc.vm.get_account(&pubkey).unwrap().data;
+            let data = tc.vm.get_account(&pubkey).unwrap_or_default().data;
             async move { Ok(Some(data)) }
         },
     )
@@ -234,6 +244,10 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
     //println!("res: {:?}", res);
     assert!(res.is_ok());
 
+    let flag_account = token_acl_client::accounts::FlagAccount::find_pda(&user_token_account).0;
+
+    println!("flag_account: {:?}", flag_account);
+
     let ix = token_acl_client::instructions::FreezePermissionlessBuilder::new()
         .authority(user_pubkey)
         .mint(tc.token.mint)
@@ -241,6 +255,8 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
         .token_account(user_token_account)
         .token_account_owner(user_pubkey)
         .gating_program(program_test::AA_WD_ID)
+        .system_program(solana_system_interface::program::ID)
+        .flag_account(flag_account)
         .instruction();
 
     let tx = Transaction::new_signed_with_payer(
@@ -250,6 +266,7 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
         tc.vm.latest_blockhash(),
     );
     let res = tc.vm.send_transaction(tx);
+    println!("res: {:?}", res);
     assert!(res.is_err());
     let err = res.err().unwrap();
     assert_eq!(
@@ -265,6 +282,8 @@ async fn test_freeze_permissionless_always_allow_with_deps() {
         .token_account_owner(user_pubkey)
         .token_program(spl_token_2022::ID)
         .gating_program(program_test::AA_WD_ID)
+        .system_program(solana_system_interface::program::ID)
+        .flag_account(flag_account)
         .add_remaining_account(AccountMeta::new(
             token_acl_interface::get_freeze_extra_account_metas_address(
                 &tc.token.mint,

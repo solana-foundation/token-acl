@@ -30,6 +30,8 @@ where
         .and_then(|data| crate::accounts::MintConfig::from_bytes(&data).ok())
         .ok_or(ProgramError::InvalidAccountData)?;
 
+    let flag_account = crate::accounts::FlagAccount::find_pda(token_account_pubkey).0;
+
     if !mint_config.enable_permissionless_thaw {
         return Err(TokenAclError::PermissionlessThawNotEnabled.into());
     }
@@ -43,6 +45,8 @@ where
             .token_account_owner(*token_account_owner_pubkey)
             .mint_config(*mint_config_pubkey)
             .token_program(*token_program_pubkey)
+            .flag_account(flag_account)
+            .system_program(solana_system_interface::program::ID)
             .instruction()
     } else {
         crate::instructions::ThawPermissionlessBuilder::new()
@@ -53,6 +57,8 @@ where
             .token_account_owner(*token_account_owner_pubkey)
             .mint_config(*mint_config_pubkey)
             .token_program(*token_program_pubkey)
+            .flag_account(flag_account)
+            .system_program(solana_system_interface::program::ID)
             .instruction()
     };
 
@@ -64,6 +70,7 @@ where
             token_account_pubkey,
             mint_pubkey,
             token_account_owner_pubkey,
+            &flag_account,
             fetch_account_data_fn,
         )
         .await?;
@@ -96,6 +103,8 @@ where
         return Err(TokenAclError::PermissionlessFreezeNotEnabled.into());
     }
 
+    let flag_account = crate::accounts::FlagAccount::find_pda(&token_account_pubkey).0;
+
     let mut ix = if idempotent {
         crate::instructions::FreezePermissionlessIdempotentBuilder::new()
             .gating_program(mint_config.gating_program)
@@ -105,6 +114,8 @@ where
             .token_account_owner(*token_account_owner_pubkey)
             .mint_config(*mint_config_pubkey)
             .token_program(*token_program_pubkey)
+            .system_program(solana_system_interface::program::ID)
+            .flag_account(flag_account)
             .instruction()
     } else {
         crate::instructions::FreezePermissionlessBuilder::new()
@@ -115,6 +126,8 @@ where
             .token_account_owner(*token_account_owner_pubkey)
             .mint_config(*mint_config_pubkey)
             .token_program(*token_program_pubkey)
+            .system_program(solana_system_interface::program::ID)
+            .flag_account(flag_account)
             .instruction()
     };
 
@@ -126,6 +139,7 @@ where
             token_account_pubkey,
             mint_pubkey,
             token_account_owner_pubkey,
+            &flag_account,
             fetch_account_data_fn,
         )
         .await?;

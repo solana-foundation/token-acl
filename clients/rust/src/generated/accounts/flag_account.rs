@@ -11,54 +11,34 @@ use solana_pubkey::Pubkey;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct MintConfig {
-    pub discriminator: u8,
-    pub bump: u8,
-    pub enable_permissionless_thaw: bool,
-    pub enable_permissionless_freeze: bool,
-    #[cfg_attr(
-        feature = "serde",
-        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
-    )]
-    pub mint: Pubkey,
-    #[cfg_attr(
-        feature = "serde",
-        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
-    )]
-    pub freeze_authority: Pubkey,
-    #[cfg_attr(
-        feature = "serde",
-        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
-    )]
-    pub gating_program: Pubkey,
+pub struct FlagAccount {
+    pub is_thawing: bool,
 }
 
-pub const MINT_CONFIG_DISCRIMINATOR: u8 = 1;
-
-impl MintConfig {
-    pub const LEN: usize = 0;
+impl FlagAccount {
+    pub const LEN: usize = 1;
 
     /// Prefix values used to generate a PDA for this account.
     ///
     /// Values are positional and appear in the following order:
     ///
-    ///   0. `MintConfig::PREFIX`
-    ///   1. mint (`Pubkey`)
-    pub const PREFIX: &'static [u8] = "MINT_CONFIG".as_bytes();
+    ///   0. `FlagAccount::PREFIX`
+    ///   1. token_account (`Pubkey`)
+    pub const PREFIX: &'static [u8] = "FLAG_ACCOUNT".as_bytes();
 
     pub fn create_pda(
-        mint: Pubkey,
+        token_account: Pubkey,
         bump: u8,
     ) -> Result<solana_pubkey::Pubkey, solana_pubkey::PubkeyError> {
         solana_pubkey::Pubkey::create_program_address(
-            &["MINT_CONFIG".as_bytes(), mint.as_ref(), &[bump]],
+            &["FLAG_ACCOUNT".as_bytes(), token_account.as_ref(), &[bump]],
             &crate::TOKEN_ACL_ID,
         )
     }
 
-    pub fn find_pda(mint: &Pubkey) -> (solana_pubkey::Pubkey, u8) {
+    pub fn find_pda(token_account: &Pubkey) -> (solana_pubkey::Pubkey, u8) {
         solana_pubkey::Pubkey::find_program_address(
-            &["MINT_CONFIG".as_bytes(), mint.as_ref()],
+            &["FLAG_ACCOUNT".as_bytes(), token_account.as_ref()],
             &crate::TOKEN_ACL_ID,
         )
     }
@@ -70,7 +50,7 @@ impl MintConfig {
     }
 }
 
-impl<'a> TryFrom<&solana_account_info::AccountInfo<'a>> for MintConfig {
+impl<'a> TryFrom<&solana_account_info::AccountInfo<'a>> for FlagAccount {
     type Error = std::io::Error;
 
     fn try_from(account_info: &solana_account_info::AccountInfo<'a>) -> Result<Self, Self::Error> {
@@ -80,30 +60,30 @@ impl<'a> TryFrom<&solana_account_info::AccountInfo<'a>> for MintConfig {
 }
 
 #[cfg(feature = "fetch")]
-pub fn fetch_mint_config(
+pub fn fetch_flag_account(
     rpc: &solana_client::rpc_client::RpcClient,
     address: &solana_pubkey::Pubkey,
-) -> Result<crate::shared::DecodedAccount<MintConfig>, std::io::Error> {
-    let accounts = fetch_all_mint_config(rpc, &[*address])?;
+) -> Result<crate::shared::DecodedAccount<FlagAccount>, std::io::Error> {
+    let accounts = fetch_all_flag_account(rpc, &[*address])?;
     Ok(accounts[0].clone())
 }
 
 #[cfg(feature = "fetch")]
-pub fn fetch_all_mint_config(
+pub fn fetch_all_flag_account(
     rpc: &solana_client::rpc_client::RpcClient,
     addresses: &[solana_pubkey::Pubkey],
-) -> Result<Vec<crate::shared::DecodedAccount<MintConfig>>, std::io::Error> {
+) -> Result<Vec<crate::shared::DecodedAccount<FlagAccount>>, std::io::Error> {
     let accounts = rpc
         .get_multiple_accounts(addresses)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-    let mut decoded_accounts: Vec<crate::shared::DecodedAccount<MintConfig>> = Vec::new();
+    let mut decoded_accounts: Vec<crate::shared::DecodedAccount<FlagAccount>> = Vec::new();
     for i in 0..addresses.len() {
         let address = addresses[i];
         let account = accounts[i].as_ref().ok_or(std::io::Error::new(
             std::io::ErrorKind::Other,
             format!("Account not found: {}", address),
         ))?;
-        let data = MintConfig::from_bytes(&account.data)?;
+        let data = FlagAccount::from_bytes(&account.data)?;
         decoded_accounts.push(crate::shared::DecodedAccount {
             address,
             account: account.clone(),
@@ -114,27 +94,27 @@ pub fn fetch_all_mint_config(
 }
 
 #[cfg(feature = "fetch")]
-pub fn fetch_maybe_mint_config(
+pub fn fetch_maybe_flag_account(
     rpc: &solana_client::rpc_client::RpcClient,
     address: &solana_pubkey::Pubkey,
-) -> Result<crate::shared::MaybeAccount<MintConfig>, std::io::Error> {
-    let accounts = fetch_all_maybe_mint_config(rpc, &[*address])?;
+) -> Result<crate::shared::MaybeAccount<FlagAccount>, std::io::Error> {
+    let accounts = fetch_all_maybe_flag_account(rpc, &[*address])?;
     Ok(accounts[0].clone())
 }
 
 #[cfg(feature = "fetch")]
-pub fn fetch_all_maybe_mint_config(
+pub fn fetch_all_maybe_flag_account(
     rpc: &solana_client::rpc_client::RpcClient,
     addresses: &[solana_pubkey::Pubkey],
-) -> Result<Vec<crate::shared::MaybeAccount<MintConfig>>, std::io::Error> {
+) -> Result<Vec<crate::shared::MaybeAccount<FlagAccount>>, std::io::Error> {
     let accounts = rpc
         .get_multiple_accounts(addresses)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-    let mut decoded_accounts: Vec<crate::shared::MaybeAccount<MintConfig>> = Vec::new();
+    let mut decoded_accounts: Vec<crate::shared::MaybeAccount<FlagAccount>> = Vec::new();
     for i in 0..addresses.len() {
         let address = addresses[i];
         if let Some(account) = accounts[i].as_ref() {
-            let data = MintConfig::from_bytes(&account.data)?;
+            let data = FlagAccount::from_bytes(&account.data)?;
             decoded_accounts.push(crate::shared::MaybeAccount::Exists(
                 crate::shared::DecodedAccount {
                     address,
@@ -150,26 +130,26 @@ pub fn fetch_all_maybe_mint_config(
 }
 
 #[cfg(feature = "anchor")]
-impl anchor_lang::AccountDeserialize for MintConfig {
+impl anchor_lang::AccountDeserialize for FlagAccount {
     fn try_deserialize_unchecked(buf: &mut &[u8]) -> anchor_lang::Result<Self> {
         Ok(Self::deserialize(buf)?)
     }
 }
 
 #[cfg(feature = "anchor")]
-impl anchor_lang::AccountSerialize for MintConfig {}
+impl anchor_lang::AccountSerialize for FlagAccount {}
 
 #[cfg(feature = "anchor")]
-impl anchor_lang::Owner for MintConfig {
+impl anchor_lang::Owner for FlagAccount {
     fn owner() -> Pubkey {
         crate::TOKEN_ACL_ID
     }
 }
 
 #[cfg(feature = "anchor-idl-build")]
-impl anchor_lang::IdlBuild for MintConfig {}
+impl anchor_lang::IdlBuild for FlagAccount {}
 
 #[cfg(feature = "anchor-idl-build")]
-impl anchor_lang::Discriminator for MintConfig {
+impl anchor_lang::Discriminator for FlagAccount {
     const DISCRIMINATOR: &[u8] = &[0; 8];
 }

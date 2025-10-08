@@ -15,6 +15,7 @@ pub fn invoke_can_thaw_permissionless<'a>(
     token_account: AccountInfo<'a>,
     mint: AccountInfo<'a>,
     token_account_owner: AccountInfo<'a>,
+    flag_account: AccountInfo<'a>,
     additional_accounts: &[AccountInfo<'a>],
 ) -> ProgramResult {
     let mut instruction = instruction::can_thaw_permissionless(
@@ -23,11 +24,12 @@ pub fn invoke_can_thaw_permissionless<'a>(
         token_account.key,
         mint.key,
         token_account_owner.key,
+        flag_account.key,
     );
 
     let validation_pubkey = get_thaw_extra_account_metas_address(mint.key, program_id);
 
-    let mut cpi_account_infos = vec![signer, token_account, mint, token_account_owner];
+    let mut cpi_account_infos = vec![signer, token_account, mint, token_account_owner, flag_account];
 
     if let Some(validation_info) = additional_accounts
         .iter()
@@ -57,6 +59,7 @@ pub fn invoke_can_freeze_permissionless<'a>(
     token_account: AccountInfo<'a>,
     mint: AccountInfo<'a>,
     token_account_owner: AccountInfo<'a>,
+    flag_account: AccountInfo<'a>,
     additional_accounts: &[AccountInfo<'a>],
 ) -> ProgramResult {
     let mut instruction = instruction::can_freeze_permissionless(
@@ -65,10 +68,11 @@ pub fn invoke_can_freeze_permissionless<'a>(
         token_account.key,
         mint.key,
         token_account_owner.key,
+        flag_account.key,
     );
 
     let validation_pubkey = get_freeze_extra_account_metas_address(mint.key, program_id);
-    let mut cpi_account_infos = vec![signer, token_account, mint, token_account_owner];
+    let mut cpi_account_infos = vec![signer, token_account, mint, token_account_owner, flag_account];
 
     if let Some(validation_info) = additional_accounts
         .iter()

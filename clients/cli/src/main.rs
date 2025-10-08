@@ -302,7 +302,9 @@ async fn process_freeze_permissionless(
                 (mint, token_account, token_account_owner_pk, true, data)
             }
             _ => {
-                return Err("error: token_account or token_account_owner and mint must be provided".into())
+                return Err(
+                    "error: token_account or token_account_owner and mint must be provided".into(),
+                )
             }
         };
 
@@ -449,7 +451,9 @@ async fn process_thaw_permissionless(
                 (mint, token_account, token_account_owner_pk, true, data)
             }
             _ => {
-                return Err("error: token_account or token_account_owner and mint must be provided".into())
+                return Err(
+                    "error: token_account or token_account_owner and mint must be provided".into(),
+                )
             }
         };
 

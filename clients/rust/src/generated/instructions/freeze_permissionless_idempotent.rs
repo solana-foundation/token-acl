@@ -8,6 +8,8 @@
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 
+pub const FREEZE_PERMISSIONLESS_IDEMPOTENT_DISCRIMINATOR: u8 = 10;
+
 /// Accounts.
 #[derive(Debug)]
 pub struct FreezePermissionlessIdempotent {
@@ -17,11 +19,15 @@ pub struct FreezePermissionlessIdempotent {
 
     pub token_account: solana_pubkey::Pubkey,
 
+    pub flag_account: solana_pubkey::Pubkey,
+
     pub token_account_owner: solana_pubkey::Pubkey,
 
     pub mint_config: solana_pubkey::Pubkey,
 
     pub token_program: solana_pubkey::Pubkey,
+
+    pub system_program: solana_pubkey::Pubkey,
 
     pub gating_program: solana_pubkey::Pubkey,
 }
@@ -36,7 +42,7 @@ impl FreezePermissionlessIdempotent {
         &self,
         remaining_accounts: &[solana_instruction::AccountMeta],
     ) -> solana_instruction::Instruction {
-        let mut accounts = Vec::with_capacity(7 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(9 + remaining_accounts.len());
         accounts.push(solana_instruction::AccountMeta::new_readonly(
             self.authority,
             true,
@@ -46,6 +52,10 @@ impl FreezePermissionlessIdempotent {
         ));
         accounts.push(solana_instruction::AccountMeta::new(
             self.token_account,
+            false,
+        ));
+        accounts.push(solana_instruction::AccountMeta::new(
+            self.flag_account,
             false,
         ));
         accounts.push(solana_instruction::AccountMeta::new_readonly(
@@ -58,6 +68,10 @@ impl FreezePermissionlessIdempotent {
         ));
         accounts.push(solana_instruction::AccountMeta::new_readonly(
             self.token_program,
+            false,
+        ));
+        accounts.push(solana_instruction::AccountMeta::new_readonly(
+            self.system_program,
             false,
         ));
         accounts.push(solana_instruction::AccountMeta::new_readonly(
@@ -100,18 +114,22 @@ impl Default for FreezePermissionlessIdempotentInstructionData {
 ///   0. `[signer]` authority
 ///   1. `[]` mint
 ///   2. `[writable]` token_account
-///   3. `[]` token_account_owner
-///   4. `[]` mint_config
-///   5. `[optional]` token_program (default to `TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`)
-///   6. `[]` gating_program
+///   3. `[writable]` flag_account
+///   4. `[]` token_account_owner
+///   5. `[]` mint_config
+///   6. `[optional]` token_program (default to `TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`)
+///   7. `[optional]` system_program (default to `11111111111111111111111111111111`)
+///   8. `[]` gating_program
 #[derive(Clone, Debug, Default)]
 pub struct FreezePermissionlessIdempotentBuilder {
     authority: Option<solana_pubkey::Pubkey>,
     mint: Option<solana_pubkey::Pubkey>,
     token_account: Option<solana_pubkey::Pubkey>,
+    flag_account: Option<solana_pubkey::Pubkey>,
     token_account_owner: Option<solana_pubkey::Pubkey>,
     mint_config: Option<solana_pubkey::Pubkey>,
     token_program: Option<solana_pubkey::Pubkey>,
+    system_program: Option<solana_pubkey::Pubkey>,
     gating_program: Option<solana_pubkey::Pubkey>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
@@ -136,6 +154,11 @@ impl FreezePermissionlessIdempotentBuilder {
         self
     }
     #[inline(always)]
+    pub fn flag_account(&mut self, flag_account: solana_pubkey::Pubkey) -> &mut Self {
+        self.flag_account = Some(flag_account);
+        self
+    }
+    #[inline(always)]
     pub fn token_account_owner(&mut self, token_account_owner: solana_pubkey::Pubkey) -> &mut Self {
         self.token_account_owner = Some(token_account_owner);
         self
@@ -149,6 +172,12 @@ impl FreezePermissionlessIdempotentBuilder {
     #[inline(always)]
     pub fn token_program(&mut self, token_program: solana_pubkey::Pubkey) -> &mut Self {
         self.token_program = Some(token_program);
+        self
+    }
+    /// `[optional account, default to '11111111111111111111111111111111']`
+    #[inline(always)]
+    pub fn system_program(&mut self, system_program: solana_pubkey::Pubkey) -> &mut Self {
+        self.system_program = Some(system_program);
         self
     }
     #[inline(always)]
@@ -177,6 +206,7 @@ impl FreezePermissionlessIdempotentBuilder {
             authority: self.authority.expect("authority is not set"),
             mint: self.mint.expect("mint is not set"),
             token_account: self.token_account.expect("token_account is not set"),
+            flag_account: self.flag_account.expect("flag_account is not set"),
             token_account_owner: self
                 .token_account_owner
                 .expect("token_account_owner is not set"),
@@ -184,6 +214,9 @@ impl FreezePermissionlessIdempotentBuilder {
             token_program: self.token_program.unwrap_or(solana_pubkey::pubkey!(
                 "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
             )),
+            system_program: self
+                .system_program
+                .unwrap_or(solana_pubkey::pubkey!("11111111111111111111111111111111")),
             gating_program: self.gating_program.expect("gating_program is not set"),
         };
 
@@ -199,11 +232,15 @@ pub struct FreezePermissionlessIdempotentCpiAccounts<'a, 'b> {
 
     pub token_account: &'b solana_account_info::AccountInfo<'a>,
 
+    pub flag_account: &'b solana_account_info::AccountInfo<'a>,
+
     pub token_account_owner: &'b solana_account_info::AccountInfo<'a>,
 
     pub mint_config: &'b solana_account_info::AccountInfo<'a>,
 
     pub token_program: &'b solana_account_info::AccountInfo<'a>,
+
+    pub system_program: &'b solana_account_info::AccountInfo<'a>,
 
     pub gating_program: &'b solana_account_info::AccountInfo<'a>,
 }
@@ -219,11 +256,15 @@ pub struct FreezePermissionlessIdempotentCpi<'a, 'b> {
 
     pub token_account: &'b solana_account_info::AccountInfo<'a>,
 
+    pub flag_account: &'b solana_account_info::AccountInfo<'a>,
+
     pub token_account_owner: &'b solana_account_info::AccountInfo<'a>,
 
     pub mint_config: &'b solana_account_info::AccountInfo<'a>,
 
     pub token_program: &'b solana_account_info::AccountInfo<'a>,
+
+    pub system_program: &'b solana_account_info::AccountInfo<'a>,
 
     pub gating_program: &'b solana_account_info::AccountInfo<'a>,
 }
@@ -238,28 +279,27 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpi<'a, 'b> {
             authority: accounts.authority,
             mint: accounts.mint,
             token_account: accounts.token_account,
+            flag_account: accounts.flag_account,
             token_account_owner: accounts.token_account_owner,
             mint_config: accounts.mint_config,
             token_program: accounts.token_program,
+            system_program: accounts.system_program,
             gating_program: accounts.gating_program,
         }
     }
     #[inline(always)]
-    pub fn invoke(&self) -> solana_program_entrypoint::ProgramResult {
+    pub fn invoke(&self) -> solana_program_error::ProgramResult {
         self.invoke_signed_with_remaining_accounts(&[], &[])
     }
     #[inline(always)]
     pub fn invoke_with_remaining_accounts(
         &self,
         remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)],
-    ) -> solana_program_entrypoint::ProgramResult {
+    ) -> solana_program_error::ProgramResult {
         self.invoke_signed_with_remaining_accounts(&[], remaining_accounts)
     }
     #[inline(always)]
-    pub fn invoke_signed(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-    ) -> solana_program_entrypoint::ProgramResult {
+    pub fn invoke_signed(&self, signers_seeds: &[&[&[u8]]]) -> solana_program_error::ProgramResult {
         self.invoke_signed_with_remaining_accounts(signers_seeds, &[])
     }
     #[allow(clippy::arithmetic_side_effects)]
@@ -269,8 +309,8 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpi<'a, 'b> {
         &self,
         signers_seeds: &[&[&[u8]]],
         remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)],
-    ) -> solana_program_entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(7 + remaining_accounts.len());
+    ) -> solana_program_error::ProgramResult {
+        let mut accounts = Vec::with_capacity(9 + remaining_accounts.len());
         accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.authority.key,
             true,
@@ -283,6 +323,10 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpi<'a, 'b> {
             *self.token_account.key,
             false,
         ));
+        accounts.push(solana_instruction::AccountMeta::new(
+            *self.flag_account.key,
+            false,
+        ));
         accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.token_account_owner.key,
             false,
@@ -293,6 +337,10 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpi<'a, 'b> {
         ));
         accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.token_program.key,
+            false,
+        ));
+        accounts.push(solana_instruction::AccountMeta::new_readonly(
+            *self.system_program.key,
             false,
         ));
         accounts.push(solana_instruction::AccountMeta::new_readonly(
@@ -313,14 +361,16 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpi<'a, 'b> {
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(8 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(10 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
         account_infos.push(self.authority.clone());
         account_infos.push(self.mint.clone());
         account_infos.push(self.token_account.clone());
+        account_infos.push(self.flag_account.clone());
         account_infos.push(self.token_account_owner.clone());
         account_infos.push(self.mint_config.clone());
         account_infos.push(self.token_program.clone());
+        account_infos.push(self.system_program.clone());
         account_infos.push(self.gating_program.clone());
         remaining_accounts
             .iter()
@@ -341,10 +391,12 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpi<'a, 'b> {
 ///   0. `[signer]` authority
 ///   1. `[]` mint
 ///   2. `[writable]` token_account
-///   3. `[]` token_account_owner
-///   4. `[]` mint_config
-///   5. `[]` token_program
-///   6. `[]` gating_program
+///   3. `[writable]` flag_account
+///   4. `[]` token_account_owner
+///   5. `[]` mint_config
+///   6. `[]` token_program
+///   7. `[]` system_program
+///   8. `[]` gating_program
 #[derive(Clone, Debug)]
 pub struct FreezePermissionlessIdempotentCpiBuilder<'a, 'b> {
     instruction: Box<FreezePermissionlessIdempotentCpiBuilderInstruction<'a, 'b>>,
@@ -357,9 +409,11 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpiBuilder<'a, 'b> {
             authority: None,
             mint: None,
             token_account: None,
+            flag_account: None,
             token_account_owner: None,
             mint_config: None,
             token_program: None,
+            system_program: None,
             gating_program: None,
             __remaining_accounts: Vec::new(),
         });
@@ -384,6 +438,14 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
+    pub fn flag_account(
+        &mut self,
+        flag_account: &'b solana_account_info::AccountInfo<'a>,
+    ) -> &mut Self {
+        self.instruction.flag_account = Some(flag_account);
+        self
+    }
+    #[inline(always)]
     pub fn token_account_owner(
         &mut self,
         token_account_owner: &'b solana_account_info::AccountInfo<'a>,
@@ -405,6 +467,14 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpiBuilder<'a, 'b> {
         token_program: &'b solana_account_info::AccountInfo<'a>,
     ) -> &mut Self {
         self.instruction.token_program = Some(token_program);
+        self
+    }
+    #[inline(always)]
+    pub fn system_program(
+        &mut self,
+        system_program: &'b solana_account_info::AccountInfo<'a>,
+    ) -> &mut Self {
+        self.instruction.system_program = Some(system_program);
         self
     }
     #[inline(always)]
@@ -443,15 +513,12 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn invoke(&self) -> solana_program_entrypoint::ProgramResult {
+    pub fn invoke(&self) -> solana_program_error::ProgramResult {
         self.invoke_signed(&[])
     }
     #[allow(clippy::clone_on_copy)]
     #[allow(clippy::vec_init_then_push)]
-    pub fn invoke_signed(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-    ) -> solana_program_entrypoint::ProgramResult {
+    pub fn invoke_signed(&self, signers_seeds: &[&[&[u8]]]) -> solana_program_error::ProgramResult {
         let instruction = FreezePermissionlessIdempotentCpi {
             __program: self.instruction.__program,
 
@@ -463,6 +530,11 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpiBuilder<'a, 'b> {
                 .instruction
                 .token_account
                 .expect("token_account is not set"),
+
+            flag_account: self
+                .instruction
+                .flag_account
+                .expect("flag_account is not set"),
 
             token_account_owner: self
                 .instruction
@@ -478,6 +550,11 @@ impl<'a, 'b> FreezePermissionlessIdempotentCpiBuilder<'a, 'b> {
                 .instruction
                 .token_program
                 .expect("token_program is not set"),
+
+            system_program: self
+                .instruction
+                .system_program
+                .expect("system_program is not set"),
 
             gating_program: self
                 .instruction
@@ -497,9 +574,11 @@ struct FreezePermissionlessIdempotentCpiBuilderInstruction<'a, 'b> {
     authority: Option<&'b solana_account_info::AccountInfo<'a>>,
     mint: Option<&'b solana_account_info::AccountInfo<'a>>,
     token_account: Option<&'b solana_account_info::AccountInfo<'a>>,
+    flag_account: Option<&'b solana_account_info::AccountInfo<'a>>,
     token_account_owner: Option<&'b solana_account_info::AccountInfo<'a>>,
     mint_config: Option<&'b solana_account_info::AccountInfo<'a>>,
     token_program: Option<&'b solana_account_info::AccountInfo<'a>>,
+    system_program: Option<&'b solana_account_info::AccountInfo<'a>>,
     gating_program: Option<&'b solana_account_info::AccountInfo<'a>>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(&'b solana_account_info::AccountInfo<'a>, bool, bool)>,

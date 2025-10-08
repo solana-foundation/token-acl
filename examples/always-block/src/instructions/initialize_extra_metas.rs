@@ -1,12 +1,12 @@
-use token_acl_interface::instruction::{
-    CanFreezePermissionlessInstruction, CanThawPermissionlessInstruction,
-};
 use solana_cpi::invoke_signed;
 use solana_program::{account_info::AccountInfo, pubkey::Pubkey};
 use solana_program_error::{ProgramError, ProgramResult};
 use solana_rent::Rent;
 use solana_sysvar::Sysvar;
 use spl_tlv_account_resolution::{account::ExtraAccountMeta, state::ExtraAccountMetaList};
+use token_acl_interface::instruction::{
+    CanFreezePermissionlessInstruction, CanThawPermissionlessInstruction,
+};
 
 pub struct InitializeExtraMetas<'a> {
     pub payer: &'a AccountInfo<'a>,

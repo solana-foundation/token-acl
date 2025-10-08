@@ -5,6 +5,8 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
+pub(crate) mod r#flag_account;
 pub(crate) mod r#mint_config;
 
+pub use self::r#flag_account::*;
 pub use self::r#mint_config::*;
