@@ -13,7 +13,7 @@ pub mod error;
 pub mod instructions;
 pub mod state;
 
-declare_id!("81H44JYqk1p8RUks7pNJjhQG4Pj8FcaJeTUxZKN3JfLc");
+declare_id!("TACLkU6CiCdkQN2MjoyDkVg2yAH9zkxiHDsiztQ52TP");
 
 #[cfg(not(feature = "no-entrypoint"))]
 entrypoint!(process_instruction);
