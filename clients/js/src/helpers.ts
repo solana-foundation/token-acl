@@ -54,11 +54,12 @@ export async function createThawPermissionlessInstructionWithExtraMetas(
   console.log(mintConfigData);
   console.log(thawExtraMetas[0]);
 
-  const canThawPermissionlessInstruction = getCanThawPermissionlessAccountMetas(
+  const canThawPermissionlessInstruction = getCanThawOrFreezePermissionlessAccountMetas(
     authority.address,
     tokenAccount,
     mint,
     tokenAccountOwner,
+    flagAccount[0],
     thawExtraMetas[0]
   );
 
@@ -87,7 +88,7 @@ export async function createThawPermissionlessInstructionWithExtraMetas(
 
   const ix = {
     ...thawAccountInstruction,
-    accounts: [...thawAccountInstruction.accounts!, ...metas.slice(4)],
+    accounts: [...thawAccountInstruction.accounts!, ...metas.slice(5)],
   };
   return ix;
 }
@@ -127,11 +128,12 @@ export async function createThawPermissionlessIdempotentInstructionWithExtraMeta
   console.log(mintConfigData);
   console.log(thawExtraMetas[0]);
 
-  const canThawPermissionlessInstruction = getCanThawPermissionlessAccountMetas(
+  const canThawPermissionlessInstruction = getCanThawOrFreezePermissionlessAccountMetas(
     authority.address,
     tokenAccount,
     mint,
     tokenAccountOwner,
+    flagAccount[0],
     thawExtraMetas[0]
   );
 
@@ -160,24 +162,26 @@ export async function createThawPermissionlessIdempotentInstructionWithExtraMeta
 
   const ix = {
     ...thawAccountInstruction,
-    accounts: [...thawAccountInstruction.accounts!, ...metas.slice(4)],
+    accounts: [...thawAccountInstruction.accounts!, ...metas.slice(5)],
   };
   return ix;
 }
 
-function getCanThawPermissionlessAccountMetas(
+function getCanThawOrFreezePermissionlessAccountMetas(
   authority: Address,
   tokenAccount: Address,
   mint: Address,
   owner: Address,
-  extraMetasThaw: Address
+  flagAccount: Address,
+  extraMetas: Address
 ): AccountMeta[] {
   return [
     { address: authority, role: AccountRole.READONLY },
     { address: tokenAccount, role: AccountRole.READONLY },
     { address: mint, role: AccountRole.READONLY },
     { address: owner, role: AccountRole.READONLY },
-    { address: extraMetasThaw, role: AccountRole.READONLY },
+    { address: flagAccount, role: AccountRole.READONLY },
+    { address: extraMetas, role: AccountRole.READONLY },
   ];
 }
 
@@ -223,17 +227,26 @@ export async function createFreezePermissionlessInstructionWithExtraMetas(
     gatingProgram: mintConfigData.gatingProgram,
   });
 
+  const canFreezePermissionlessInstruction = getCanThawOrFreezePermissionlessAccountMetas(
+    authority.address,
+    tokenAccount,
+    mint,
+    tokenAccountOwner,
+    flagAccount[0],
+    freezeExtraMetas[0]
+  );
+
   const metas = await resolveExtraMetas(
     accountRetriever,
     freezeExtraMetas[0],
-    freezeAccountInstruction.accounts,
+    canFreezePermissionlessInstruction,
     Buffer.from(freezeAccountInstruction.data),
     mintConfigData.gatingProgram
   );
 
   const ix = {
     ...freezeAccountInstruction,
-    accounts: metas,
+    accounts: [...freezeAccountInstruction.accounts!, ...metas.slice(5)],
   };
   return ix;
 }
@@ -280,17 +293,26 @@ export async function createFreezePermissionlessIdempotentInstructionWithExtraMe
     gatingProgram: mintConfigData.gatingProgram,
   });
 
+  const canFreezePermissionlessInstruction = getCanThawOrFreezePermissionlessAccountMetas(
+    authority.address,
+    tokenAccount,
+    mint,
+    tokenAccountOwner,
+    flagAccount[0],
+    freezeExtraMetas[0]
+  );
+
   const metas = await resolveExtraMetas(
     accountRetriever,
     freezeExtraMetas[0],
-    freezeAccountInstruction.accounts,
+    canFreezePermissionlessInstruction,
     Buffer.from(freezeAccountInstruction.data),
     mintConfigData.gatingProgram
   );
 
   const ix = {
     ...freezeAccountInstruction,
-    accounts: metas,
+    accounts: [...freezeAccountInstruction.accounts!, ...metas.slice(5)],
   };
   return ix;
 }
