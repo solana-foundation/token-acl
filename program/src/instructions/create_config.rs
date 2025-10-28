@@ -35,22 +35,32 @@ impl CreateConfig<'_> {
             Pubkey::try_from(remaining_data).map_err(|_| ProgramError::InvalidInstructionData)?;
 
         let lamports = Rent::get()?.minimum_balance(MintConfig::LEN);
+
+        if self.mint_config.lamports() < lamports {
+            let diff = lamports - self.mint_config.lamports();
+
+            let ix = solana_system_interface::instruction::transfer(
+                self.payer.key,
+                self.mint_config.key,
+                diff,
+            );
+            invoke(&ix, &[self.payer.clone(), self.mint_config.clone()])?;
+        }
+
         let bump_seed = [self.config_bump];
         let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
 
-        let ix = solana_system_interface::instruction::create_account(
-            self.payer.key,
+        let allocate_ix = solana_system_interface::instruction::allocate(
             self.mint_config.key,
-            lamports,
             MintConfig::LEN as u64,
+        );
+        invoke_signed(&allocate_ix, &[self.payer.clone(), self.mint_config.clone()], &[&seeds])?;
+
+        let assign_ix = solana_system_interface::instruction::assign(
+            self.mint_config.key,
             &crate::ID,
         );
-
-        invoke_signed(
-            &ix,
-            &[self.payer.clone(), self.mint_config.clone()],
-            &[&seeds],
-        )?;
+        invoke_signed(&assign_ix, &[self.payer.clone(), self.mint_config.clone()], &[&seeds])?;
 
         let data = &mut self.mint_config.data.borrow_mut();
         let config = pod_from_bytes_mut::<MintConfig>(data)?;
