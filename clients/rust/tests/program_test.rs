@@ -9,7 +9,7 @@ use spl_associated_token_account_client::address::get_associated_token_address_w
 use spl_associated_token_account_client::instruction::create_associated_token_account;
 use spl_token_2022::extension::default_account_state::instruction::initialize_default_account_state;
 use spl_token_2022::extension::ExtensionType;
-use spl_token_2022::instruction::initialize_mint2;
+use spl_token_2022::instruction::{initialize_mint_close_authority, initialize_mint2};
 use spl_token_2022::state::{AccountState, Mint};
 
 pub const AA_ID: Pubkey = Pubkey::from_str_const("Eba1ts11111111111111111111111111111111111112");
@@ -80,7 +80,7 @@ impl TestContext {
         assert!(res.is_ok());
 
         let mint_size =
-            ExtensionType::try_calculate_account_len::<Mint>(&[ExtensionType::DefaultAccountState])
+            ExtensionType::try_calculate_account_len::<Mint>(&[ExtensionType::DefaultAccountState, ExtensionType::MintCloseAuthority])
                 .unwrap();
         let mint_kp = Keypair::new();
         let mint_pk = mint_kp.pubkey();
@@ -99,7 +99,9 @@ impl TestContext {
             initialize_default_account_state(token_program_id, &mint_pk, &AccountState::Frozen)
                 .unwrap();
 
-        let ix3 = initialize_mint2(
+        let ix3 = initialize_mint_close_authority(token_program_id, &mint_pk, Some(&auth_pubkey)).unwrap();
+        
+        let ix4 = initialize_mint2(
             token_program_id,
             &mint_pk,
             &auth_pubkey,
@@ -108,14 +110,17 @@ impl TestContext {
         )
         .unwrap();
 
+
+
         let block_hash = vm.latest_blockhash();
         let tx = Transaction::new_signed_with_payer(
-            &[ix1, ix2, ix3],
+            &[ix1, ix2, ix3, ix4],
             Some(&payer_pk),
             &[auth.insecure_clone(), mint_kp],
             block_hash,
         );
         let res = vm.send_transaction(tx);
+        println!("res: {:?}", res);
         assert!(res.is_ok());
 
         TokenContext {
@@ -208,6 +213,25 @@ impl TestContext {
         assert!(res.is_ok());
 
         mint_cfg_pk
+    }
+
+    pub fn close_mint(&mut self) {
+        let ix = spl_token_2022::instruction::close_account(
+            &spl_token_2022::ID,
+            &self.token.mint,
+            &self.token.auth.pubkey(),
+            &self.token.auth.pubkey(),
+            &[],
+        ).unwrap();
+
+        let tx = Transaction::new_signed_with_payer(
+            &[ix],
+            Some(&self.token.auth.pubkey()),
+            &[self.token.auth.insecure_clone()],
+            self.vm.latest_blockhash(),
+        );
+        let res = self.vm.send_transaction(tx);
+        assert!(res.is_ok());
     }
 
     pub fn setup_aa_gate_extra_metas(&mut self) {

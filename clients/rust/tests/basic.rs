@@ -1,4 +1,5 @@
 pub mod program_test;
+use solana_pubkey::Pubkey;
 use solana_sdk::{
     program_option::COption, signature::Keypair, signer::Signer, transaction::Transaction,
 };
@@ -279,4 +280,42 @@ fn test_delete_config() {
         mint.base.freeze_authority,
         COption::Some(new_freeze_authority_pubkey)
     );
+}
+
+#[test]
+fn test_delete_config_after_close() {
+    let mut tc = TestContext::new();
+    let mint_cfg_pk = tc.setup_token_acl(&program_test::AA_ID);
+
+    let mint = tc.vm.get_account(&tc.token.mint).unwrap();
+    let mint = StateWithExtensions::<Mint>::unpack(mint.data.as_ref()).unwrap();
+    assert_eq!(mint.base.freeze_authority, COption::Some(mint_cfg_pk));
+
+    let new_freeze_authority = Keypair::new();
+    let new_freeze_authority_pubkey = new_freeze_authority.pubkey();
+
+    tc.close_mint();
+
+    let ix = token_acl_client::instructions::DeleteConfigBuilder::new()
+        .authority(tc.token.auth.pubkey())
+        .receiver(tc.token.auth.pubkey())
+        .mint(tc.token.mint)
+        .mint_config(mint_cfg_pk)
+        .new_freeze_authority(new_freeze_authority_pubkey)
+        .instruction();
+
+    let tx = Transaction::new_signed_with_payer(
+        &[ix],
+        Some(&tc.token.auth.pubkey()),
+        &[tc.token.auth.insecure_clone()],
+        tc.vm.latest_blockhash(),
+    );
+    let res = tc.vm.send_transaction(tx);
+    println!("res: {:?}", res);
+    assert!(res.is_ok());
+
+    let mint_cfg = tc.vm.get_account(&mint_cfg_pk).unwrap();
+    println!("mint_cfg: {:?}", mint_cfg);
+    assert!(mint_cfg.data.len() == 0);
+    assert!(mint_cfg.owner == Pubkey::default());
 }
