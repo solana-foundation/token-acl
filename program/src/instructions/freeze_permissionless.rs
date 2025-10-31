@@ -39,21 +39,27 @@ impl FreezePermissionless<'_> {
             return Err(TokenAclError::PermissionlessFreezeNotEnabled.into());
         }
 
+        if config.gating_program != *self.gating_program.key {
+            return Err(TokenAclError::InvalidGatingProgram.into());
+        }
+
         if is_idempotent {
             let ta_data = self.token_account.data.borrow();
             let ta = StateWithExtensions::<spl_token_2022::state::Account>::unpack(&ta_data)?;
-            if ta.base.state != AccountState::Initialized {
-                return Ok(());
-            }
+
 
             if ta.base.owner != *self.token_account_owner.key {
                 return Err(TokenAclError::InvalidTokenAccountOwner.into());
             }
-            // no need to enforce ta.mint == self.mint.key, freeze CPI will do this
-        }
 
-        if config.gating_program != *self.gating_program.key {
-            return Err(TokenAclError::InvalidGatingProgram.into());
+            if ta.base.state != AccountState::Initialized {
+                // freeze CPI enforces ta.base.mint == self.mint.key, but we're returning early
+                // so we need to check it to enforce same behaviour regardless of idempotency
+                if ta.base.mint != *self.mint.key {
+                    return Err(TokenAclError::InvalidTokenMint.into());
+                }
+                return Ok(());
+            }
         }
 
         let bump_seed = [self.flag_account_bump];
@@ -63,14 +69,15 @@ impl FreezePermissionless<'_> {
             &bump_seed,
         ];
 
-        let ix = solana_system_interface::instruction::create_account(
-            self.authority.key,
-            self.flag_account.key,
-            0,
-            1 as u64,
-            &crate::ID,
-        );
+        // allocate, assign and initialize flag account
+        let ix = solana_system_interface::instruction::allocate(self.flag_account.key, 1 as u64);
+        invoke_signed(
+            &ix,
+            &[self.authority.clone(), self.flag_account.clone()],
+            &[&seeds],
+        )?;
 
+        let ix = solana_system_interface::instruction::assign(self.flag_account.key, &crate::ID);
         invoke_signed(
             &ix,
             &[self.authority.clone(), self.flag_account.clone()],
@@ -88,8 +95,6 @@ impl FreezePermissionless<'_> {
             self.flag_account.clone(),
             self.remaining_accounts,
         )?;
-
-        self.flag_account.data.borrow_mut()[0] = 0;
 
         let bump_seed = [config.bump];
         let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
@@ -110,6 +115,13 @@ impl FreezePermissionless<'_> {
             ],
             &[&seeds],
         )?;
+
+        // clean up flag account
+        self.flag_account.data.borrow_mut()[0] = 0;
+        self.flag_account.realloc(0, false)?;
+        self.flag_account.assign(&Pubkey::default());
+        **self.authority.try_borrow_mut_lamports()? += self.flag_account.lamports();
+        **self.flag_account.try_borrow_mut_lamports()? = 0;
 
         Ok(())
     }
