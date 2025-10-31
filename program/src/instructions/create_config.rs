@@ -34,6 +34,25 @@ impl CreateConfig<'_> {
         let gating_program =
             Pubkey::try_from(remaining_data).map_err(|_| ProgramError::InvalidInstructionData)?;
 
+        let mint_data = self.mint.data.borrow_mut();
+        let mint = PodStateWithExtensions::<PodMint>::unpack(&mint_data)?;
+
+        // if no freeze authority, or DSA extension is not present,
+        // this is an invalid mint for this standard
+        // these can't also be changed or activated later for existing mints
+        mint.get_extension::<DefaultAccountState>()
+            .map_err(|_| Into::<ProgramError>::into(TokenAclError::InvalidTokenMint))?;
+
+        let freeze_authority = mint
+            .base
+            .freeze_authority
+            .ok_or(Into::<ProgramError>::into(TokenAclError::InvalidTokenMint))?;
+
+        if freeze_authority != *self.authority.key {
+            return Err(TokenAclError::InvalidAuthority.into());
+        }
+        drop(mint_data);
+
         let lamports = Rent::get()?.minimum_balance(MintConfig::LEN);
         let bump_seed = [self.config_bump];
         let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
@@ -63,34 +82,16 @@ impl CreateConfig<'_> {
         config.enable_permissionless_freeze = PodBool::from_bool(false);
         config.enable_permissionless_thaw = PodBool::from_bool(false);
 
-        let mint_data = self.mint.data.borrow_mut();
-        let mint = PodStateWithExtensions::<PodMint>::unpack(&mint_data)?;
-
-        // if no freeze authority, or DSA extension is not present,
-        // this is an invalid mint for this standard
-        // these can't also be changed or activated later for existing mints
-
-        mint.get_extension::<DefaultAccountState>()
-            .map_err(|_| Into::<ProgramError>::into(TokenAclError::InvalidTokenMint))?;
-
-        let freeze_authority = mint
-            .base
-            .freeze_authority
-            .ok_or(Into::<ProgramError>::into(TokenAclError::InvalidTokenMint))?;
-
-        drop(mint_data);
-        if freeze_authority == *self.authority.key {
-            // we can cpi to change freeze authority right away
-            let ix = spl_token_2022::instruction::set_authority(
-                self.token_program.key,
-                self.mint.key,
-                Some(self.mint_config.key),
-                AuthorityType::FreezeAccount,
-                self.authority.key,
-                &[],
-            )?;
-            invoke(&ix, &[self.mint.clone(), self.authority.clone()])?;
-        }
+        // finally, set the freeze authority over to the token-acl owned config account
+        let ix = spl_token_2022::instruction::set_authority(
+            self.token_program.key,
+            self.mint.key,
+            Some(self.mint_config.key),
+            AuthorityType::FreezeAccount,
+            self.authority.key,
+            &[],
+        )?;
+        invoke(&ix, &[self.mint.clone(), self.authority.clone()])?;
 
         Ok(())
     }
