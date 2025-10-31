@@ -1,7 +1,7 @@
 use solana_cpi::invoke_signed;
 use solana_program::{account_info::AccountInfo, pubkey::Pubkey};
 use solana_program_error::{ProgramError, ProgramResult};
-use spl_token_2022::instruction::AuthorityType;
+use spl_token_2022::{extension::PodStateWithExtensions, instruction::AuthorityType, pod::PodMint};
 
 use crate::{
     error::TokenAclError,
@@ -26,6 +26,13 @@ impl DeleteConfig<'_> {
         let new_freeze_authority =
             Pubkey::try_from(remaining_data).map_err(|_| ProgramError::InvalidInstructionData)?;
 
+        // only set the freeze authority if the mint_config is still the freeze authority
+        // this also ensures that the mint still exists and is initialized
+        let mint_data = self.mint.data.borrow_mut();
+        let mint = PodStateWithExtensions::<PodMint>::unpack(&mint_data);
+        let set_freeze_authority = mint.and_then(|mint| Ok(mint.base.freeze_authority.unwrap_or(Pubkey::default()) == *self.mint_config.key)).unwrap_or(false);
+        drop(mint_data);
+         
         let bump_seed = {
             let data = &mut self.mint_config.data.borrow_mut();
             let config = load_mint_config(data)?;
@@ -41,25 +48,28 @@ impl DeleteConfig<'_> {
             [config.bump]
         };
 
-        let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
+        if set_freeze_authority {
+            let seeds = [MintConfig::SEED_PREFIX, self.mint.key.as_ref(), &bump_seed];
 
-        let ix = spl_token_2022::instruction::set_authority(
-            self.token_program.key,
-            self.mint.key,
-            Some(&new_freeze_authority),
-            AuthorityType::FreezeAccount,
-            self.mint_config.key,
-            &[],
-        )?;
-        invoke_signed(
-            &ix,
-            &[self.mint.clone(), self.mint_config.clone()],
-            &[&seeds],
-        )?;
+            let ix = spl_token_2022::instruction::set_authority(
+                self.token_program.key,
+                self.mint.key,
+                Some(&new_freeze_authority),
+                AuthorityType::FreezeAccount,
+                self.mint_config.key,
+                &[],
+            )?;
+            invoke_signed(
+                &ix,
+                &[self.mint.clone(), self.mint_config.clone()],
+                &[&seeds],
+            )?;
+        }
 
         **self.receiver.try_borrow_mut_lamports()? += self.mint_config.lamports();
         **self.mint_config.try_borrow_mut_lamports()? = 0;
         self.mint_config.realloc(0, false)?;
+        self.mint_config.assign(&Pubkey::default());
 
         Ok(())
     }
