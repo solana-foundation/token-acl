@@ -153,6 +153,10 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for ThawPermissionless<'a> {
             &crate::ID,
         );
 
+        if mint_config.owner != &crate::ID {
+            return Err(TokenAclError::InvalidMintConfig.into());
+        }
+
         Ok(Self {
             authority,
             mint,
