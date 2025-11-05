@@ -119,8 +119,12 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for CreateConfig<'a> {
             return Err(TokenAclError::InvalidAuthority.into());
         }
 
-        let (_, config_bump) =
+        let (expected_mint_config_pk, config_bump) =
             Pubkey::find_program_address(&[MintConfig::SEED_PREFIX, mint.key.as_ref()], &crate::ID);
+
+        if *mint_config.key != expected_mint_config_pk {
+            return Err(TokenAclError::InvalidMintConfig.into());
+        }
 
         if !solana_system_interface::program::check_id(system_program.key) {
             return Err(TokenAclError::InvalidSystemProgram.into());

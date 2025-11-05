@@ -72,7 +72,7 @@ impl TestContext {
         Self { vm, token }
     }
 
-    fn create_token(vm: &mut LiteSVM) -> TokenContext {
+    pub fn create_token(vm: &mut LiteSVM) -> TokenContext {
         let auth = Keypair::new();
         let auth_pubkey = auth.pubkey();
 
