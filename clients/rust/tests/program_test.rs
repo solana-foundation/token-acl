@@ -9,7 +9,7 @@ use spl_associated_token_account_client::address::get_associated_token_address_w
 use spl_associated_token_account_client::instruction::create_associated_token_account;
 use spl_token_2022::extension::default_account_state::instruction::initialize_default_account_state;
 use spl_token_2022::extension::ExtensionType;
-use spl_token_2022::instruction::{initialize_mint_close_authority, initialize_mint2};
+use spl_token_2022::instruction::{initialize_mint2, initialize_mint_close_authority};
 use spl_token_2022::state::{AccountState, Mint};
 
 pub const AA_ID: Pubkey = Pubkey::from_str_const("Eba1ts11111111111111111111111111111111111112");
@@ -79,9 +79,11 @@ impl TestContext {
         let res = vm.airdrop(&auth_pubkey, 1_000_000_000_000);
         assert!(res.is_ok());
 
-        let mint_size =
-            ExtensionType::try_calculate_account_len::<Mint>(&[ExtensionType::DefaultAccountState, ExtensionType::MintCloseAuthority])
-                .unwrap();
+        let mint_size = ExtensionType::try_calculate_account_len::<Mint>(&[
+            ExtensionType::DefaultAccountState,
+            ExtensionType::MintCloseAuthority,
+        ])
+        .unwrap();
         let mint_kp = Keypair::new();
         let mint_pk = mint_kp.pubkey();
         let token_program_id = &spl_token_2022::ID;
@@ -99,8 +101,9 @@ impl TestContext {
             initialize_default_account_state(token_program_id, &mint_pk, &AccountState::Frozen)
                 .unwrap();
 
-        let ix3 = initialize_mint_close_authority(token_program_id, &mint_pk, Some(&auth_pubkey)).unwrap();
-        
+        let ix3 = initialize_mint_close_authority(token_program_id, &mint_pk, Some(&auth_pubkey))
+            .unwrap();
+
         let ix4 = initialize_mint2(
             token_program_id,
             &mint_pk,
@@ -109,8 +112,6 @@ impl TestContext {
             6,
         )
         .unwrap();
-
-
 
         let block_hash = vm.latest_blockhash();
         let tx = Transaction::new_signed_with_payer(
@@ -222,7 +223,8 @@ impl TestContext {
             &self.token.auth.pubkey(),
             &self.token.auth.pubkey(),
             &[],
-        ).unwrap();
+        )
+        .unwrap();
 
         let tx = Transaction::new_signed_with_payer(
             &[ix],

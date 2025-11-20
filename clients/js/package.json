@@ -1,6 +1,6 @@
 {
   "name": "@token-acl/sdk",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "",
   "sideEffects": false,
   "type": "module",
@@ -8,7 +8,7 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/index.d.ts", 
       "import": "./dist/index.js"
     }
   },
@@ -38,10 +38,6 @@
     "url": ""
   },
   "homepage": "",
-  "dependencies": {
-    "gill": "^0.10.2",
-    "@solana/kit": "2.3.0"
-  },
   "devDependencies": {
     "@types/jest": "^29.5.0",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
@@ -62,5 +58,8 @@
       }
     }
   },
-  "packageManager": "pnpm@9.1.0"
+  "packageManager": "pnpm@9.1.0",
+  "dependencies": {
+    "@solana/kit": "^5.0.0"
+  }
 }
