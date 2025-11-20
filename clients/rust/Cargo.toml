@@ -1,8 +1,7 @@
 [package]
 name = "token-acl-client"
 version = "0.1.0"
-description = "tbd"
-documentation = "tbd"
+description = "A rust library for the Token ACL program with generated client code."
 authors = { workspace = true }
 repository = { workspace = true }
 homepage = { workspace = true }
@@ -16,11 +15,13 @@ num-derive = "0.4"
 num-traits = "0.2"
 solana-account-info = { workspace = true }
 solana-cpi = { workspace = true }
+solana-account = { workspace = true }
 solana-decode-error = { workspace = true }
 solana-instruction = { workspace = true }
 solana-msg = { workspace = true }
 solana-program-error = { workspace = true }
 solana-pubkey = { workspace = true }
+solana-client = { workspace = true }
 solana-program-entrypoint = { workspace = true }
 spl-discriminator = { workspace = true }
 spl-program-error = { workspace = true }
@@ -31,17 +32,19 @@ thiserror = "2.0"
 borsh = "^0.10"
 token-acl-interface = { path = "../../interface" }
 solana-system-interface = { workspace = true }
+spl-token-client = { workspace = true }
+spl-token-metadata-interface = { workspace = true }
+spl-associated-token-account-client = { workspace = true }
+solana-program-option = { workspace = true }
+solana-sdk = { workspace = true }
 
 [dev-dependencies]
-litesvm = "0.6.1"
+litesvm = { workspace = true }
 solana-program-runtime = { workspace = true }
 solana-instruction = { workspace = true }
-solana-sdk = { workspace = true }
-spl-token-2022 = { workspace = true }
-spl-associated-token-account-client  = { workspace = true }
 tokio = { version = "^1.20", features = ["rt-multi-thread", "macros"] }
 solana-compute-budget-interface = "2.2.1"
-
+spl-token-2022 = { workspace = true }
 
 [lib]
 doctest = false

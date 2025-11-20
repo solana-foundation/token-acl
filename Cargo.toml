@@ -13,7 +13,7 @@ members = [
 
 [workspace.package]
 authors = ["TBD"]
-repository = "TBD"
+repository = "https://github.com/solana-foundation/token-acl"
 homepage = "TBD"
 license = "Apache-2.0"
 edition = "2021"
@@ -26,7 +26,7 @@ check-cfg = [
 ]
 
 [workspace.metadata.cli]
-solana = "2.2.0"
+solana = "2.2.1"
 
 
 [workspace.metadata.spellcheck]
@@ -38,20 +38,23 @@ tag-message = "Publish {{crate_name}} v{{version}}"
 consolidate-commits = false
 
 [workspace.dependencies]
-solana-account-info = "2.2.1"
+solana-account-info = "2.3.0"
+solana-account = "2.2.1"
 solana-cpi = "2.2.1"
-solana-decode-error = "2.2.1"
-solana-instruction = { version = "=2.2.1", features = ["std"] }
-solana-program-error = "2.2.1"
-solana-pubkey = { version = "2.2.1", features = ["curve25519", "borsh"] }
-solana-program = "2.2.1"
+solana-decode-error = "2.3.0"
+solana-instruction = { version = "=2.3.3", features = ["std"] }
+solana-program-error = "2.2.2"
+solana-pubkey = { version = "2.3.0", features = ["curve25519", "borsh"] }
+solana-program = "2.3.0"
+solana-program-option = "2.2.1"
 solana-rent = "2.2.1"
 solana-system-interface = "1.0.0"
-solana-sysvar = "2.2.1"
+solana-sysvar = "2.3.0"
 solana-msg = "2.2.1"
-solana-program-test = "2.2.1"
-solana-program-entrypoint = "2.2.1"
-solana-program-runtime = "2.2.1"
+solana-client = "2.3.13"
+solana-program-test = "2.3.13"
+solana-program-entrypoint = "2.3.0"
+solana-program-runtime = "2.3.13"
 solana-program-pack = "2.2.1"
 spl-discriminator = "0.4.0"
 spl-program-error = "0.7.0"
@@ -59,7 +62,10 @@ spl-tlv-account-resolution = "0.10.0"
 spl-type-length-value = "0.8.0"
 spl-pod = "0.5.1"
 spl-token-2022 = { version = "9.0.0", features = ["no-entrypoint"] }
-solana-sdk = "2.2.1"
+solana-sdk = "2.3.1"
 spl-associated-token-account-client = "2.0.0"
 token-acl-interface = { path = "interface/" }
 token-acl-client = { path = "clients/rust/" }
+spl-token-client = { version = "0.17.0" }
+spl-token-metadata-interface = { version = "0.7.0" }
+litesvm = "0.7.1"

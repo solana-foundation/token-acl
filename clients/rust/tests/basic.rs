@@ -1,5 +1,4 @@
 pub mod program_test;
-use solana_pubkey::Pubkey;
 use solana_sdk::{
     program_option::COption, signature::Keypair, signer::Signer, transaction::Transaction,
 };
@@ -8,6 +7,7 @@ use spl_token_2022::{
     state::{Account, AccountState, Mint},
     ID as TOKEN_PROGRAM_ID,
 };
+use token_acl_client::get_gating_program_from_mint_data;
 
 use crate::program_test::TestContext;
 
@@ -314,8 +314,18 @@ fn test_delete_config_after_close() {
     println!("res: {:?}", res);
     assert!(res.is_ok());
 
-    let mint_cfg = tc.vm.get_account(&mint_cfg_pk).unwrap();
+    let mint_cfg = tc.vm.get_account(&mint_cfg_pk);
     println!("mint_cfg: {:?}", mint_cfg);
-    assert!(mint_cfg.data.len() == 0);
-    assert!(mint_cfg.owner == Pubkey::default());
+    assert!(mint_cfg.is_none());
+}
+
+#[test]
+fn test_metadata() {
+    let mut tc = TestContext::new();
+    let _ = tc.setup_token_acl(&program_test::AA_ID);
+
+    let mint = tc.vm.get_account(&tc.token.mint).unwrap();
+
+    let gating_program = get_gating_program_from_mint_data(mint.data.as_ref()).unwrap();
+    assert_eq!(gating_program, program_test::AA_ID);
 }
