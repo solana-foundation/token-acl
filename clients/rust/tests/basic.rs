@@ -7,6 +7,7 @@ use spl_token_2022::{
     state::{Account, AccountState, Mint},
     ID as TOKEN_PROGRAM_ID,
 };
+use token_acl_client::get_gating_program_from_mint_data;
 
 use crate::program_test::TestContext;
 
@@ -279,4 +280,15 @@ fn test_delete_config() {
         mint.base.freeze_authority,
         COption::Some(new_freeze_authority_pubkey)
     );
+}
+
+#[test]
+fn test_metadata() {
+    let mut tc = TestContext::new();
+    let _ = tc.setup_token_acl(&program_test::AA_ID);
+
+    let mint = tc.vm.get_account(&tc.token.mint).unwrap();
+
+    let gating_program = get_gating_program_from_mint_data(mint.data.as_ref()).unwrap();
+    assert_eq!(gating_program, program_test::AA_ID);
 }

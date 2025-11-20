@@ -3,7 +3,9 @@ use solana_sdk::program_option::COption;
 use solana_sdk::program_pack::Pack;
 use spl_associated_token_account_client::address::get_associated_token_address_with_program_id;
 use spl_associated_token_account_client::instruction::create_associated_token_account;
-use spl_token_client::spl_token_2022::state::AccountState;
+use spl_token_client::spl_token_2022::{extension::{BaseStateWithExtensions, PodStateWithExtensions}, pod::PodMint, state::AccountState};
+use spl_token_metadata_interface::state::TokenMetadata;
+use token_acl_client::set_mint_tacl_metadata_ix;
 use {
     clap::{crate_description, crate_name, crate_version, Arg, ArgGroup, Command},
     solana_clap_v3_utils::{
@@ -41,17 +43,45 @@ async fn process_create_config(
     gating_program: Option<&Pubkey>,
 ) -> Result<Signature, Box<dyn Error>> {
     let config = token_acl_client::accounts::MintConfig::find_pda(mint).0;
-    let gating_program = gating_program.cloned().unwrap_or(Pubkey::default());
 
     let ix = token_acl_client::instructions::CreateConfigBuilder::new()
         .authority(payer.pubkey())
         .payer(payer.pubkey())
         .mint(*mint)
         .mint_config(config)
-        .gating_program(gating_program)
+        .gating_program(gating_program.cloned().unwrap_or(Pubkey::default()))
         .instruction();
 
-    let mut transaction = Transaction::new_unsigned(Message::new(&[ix], Some(&payer.pubkey())));
+    let mut instructions = vec![ix];
+
+    if let Some(gating_program) = gating_program {
+        let mint_data = rpc_client.get_account_data(&mint).await.map_err(|err| format!("error: unable to get mint data: {}", err))?;
+        let mint_unpacked = PodStateWithExtensions::<PodMint>::unpack(&mint_data).map_err(|err| format!("error: unable to unpack mint data: {}", err))?;
+        let mut metadata = mint_unpacked.get_variable_len_extension::<TokenMetadata>().map_err(|err| format!("error: unable to get metadata: {}", err))?;
+    
+        let initial_tlv_size = metadata.tlv_size_of()?;
+        metadata.set_key_value(token_acl_client::TOKEN_ACL_METADATA_KEY.to_string(), gating_program.to_string());
+        let new_tlv_size = metadata.tlv_size_of()?;
+    
+        if new_tlv_size > initial_tlv_size {
+            let diff = new_tlv_size - initial_tlv_size;
+            let rent = rpc_client.get_minimum_balance_for_rent_exemption(diff).await.map_err(|err| format!("error: unable to get rent: {}", err))?;
+            let transfer_ix = solana_system_interface::instruction::transfer(
+                &payer.pubkey(),
+                &mint,
+                rent
+            );
+            instructions.push(transfer_ix);
+        }
+
+        let set_metadata_ix = set_mint_tacl_metadata_ix(mint, &payer.pubkey(), gating_program);
+        instructions.push(set_metadata_ix);
+    }
+
+    let mut transaction = Transaction::new_unsigned(Message::new(
+        &instructions.as_slice(),
+        Some(&payer.pubkey()),
+    ));
 
     let blockhash = rpc_client
         .get_latest_blockhash()
@@ -155,7 +185,32 @@ async fn process_set_gating_program(
         .mint_config(config)
         .instruction();
 
-    let mut transaction = Transaction::new_unsigned(Message::new(&[ix], Some(&payer.pubkey())));
+    let set_metadata_ix = set_mint_tacl_metadata_ix(mint, &payer.pubkey(), new_gating_program);
+    
+    let mut instructions = vec![ix, set_metadata_ix];
+
+
+    let mint_data = rpc_client.get_account_data(&mint).await.map_err(|err| format!("error: unable to get mint data: {}", err))?;
+    let mint_unpacked = PodStateWithExtensions::<PodMint>::unpack(&mint_data).map_err(|err| format!("error: unable to unpack mint data: {}", err))?;
+    let mut metadata = mint_unpacked.get_variable_len_extension::<TokenMetadata>().map_err(|err| format!("error: unable to get metadata: {}", err))?;
+
+    let initial_tlv_size = metadata.tlv_size_of()?;
+    metadata.set_key_value(token_acl_client::TOKEN_ACL_METADATA_KEY.to_string(), new_gating_program.to_string());
+    let new_tlv_size = metadata.tlv_size_of()?;
+
+    if new_tlv_size > initial_tlv_size {
+        let diff = new_tlv_size - initial_tlv_size;
+        let rent = rpc_client.get_minimum_balance_for_rent_exemption(diff).await.map_err(|err| format!("error: unable to get rent: {}", err))?;
+        let transfer_ix = solana_system_interface::instruction::transfer(
+            &payer.pubkey(),
+            &mint,
+            rent
+        );
+        instructions.push(transfer_ix);
+    }
+
+    let mut transaction =
+        Transaction::new_unsigned(Message::new(instructions.as_slice(), Some(&payer.pubkey())));
 
     let blockhash = rpc_client
         .get_latest_blockhash()
@@ -517,6 +572,62 @@ async fn process_thaw_permissionless(
     Ok(signature)
 }
 
+async fn process_create_ata_and_thaw_permissionless(
+    rpc_client: &Arc<RpcClient>,
+    payer: &Arc<dyn Signer>,
+    mint: Pubkey,
+    token_account_owner_pk: Pubkey,
+) -> Result<Signature, Box<dyn Error>> {
+    let instructions = token_acl_client::create_ata_and_thaw_permissionless(
+        &rpc_client.clone(),
+        &payer.pubkey(),
+        &mint,
+        &token_account_owner_pk,
+        false,
+    )
+    .await
+    .map_err(|err| format!("error: create ata and thaw permissionless: {}", err))?;
+
+    let token_account_pk = get_associated_token_address_with_program_id(
+        &token_account_owner_pk,
+        &mint,
+        &spl_token_2022::ID,
+    );
+
+    println!("mint: {:?}", mint);
+    println!("token_account_pk: {:?}", token_account_pk);
+    println!("token_account_owner_pk: {:?}", token_account_owner_pk);
+
+    let mut transaction =
+        Transaction::new_unsigned(Message::new(&instructions, Some(&payer.pubkey())));
+
+    let blockhash = rpc_client
+        .get_latest_blockhash()
+        .await
+        .map_err(|err| format!("error: unable to get latest blockhash: {}", err))?;
+
+    transaction
+        .try_sign(&[payer], blockhash)
+        .map_err(|err| format!("error: failed to sign transaction: {}", err))?;
+
+    let signature = rpc_client
+        .send_and_confirm_transaction_with_spinner_and_config(
+            &transaction,
+            CommitmentConfig {
+                commitment: solana_sdk::commitment_config::CommitmentLevel::Confirmed,
+            },
+            RpcSendTransactionConfig {
+                skip_preflight: true,
+                ..Default::default()
+            },
+        )
+        //.send_and_confirm_transaction_with_spinner_and_config(&transaction, CommitmentConfig { commitment: solana_sdk::commitment_config::CommitmentLevel::Confirmed }, RpcSendTransactionConfig { skip_preflight: true, ..Default::default()})
+        .await
+        .map_err(|err| format!("error: send transaction: {}", err))?;
+
+    Ok(signature)
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let app_matches = Command::new(crate_name!())
@@ -747,6 +858,29 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .long("owner")
                         .required_unless_present("token_account")
                         .conflicts_with("token_account")
+                        .help("Specify the token account owner address"),
+                )
+        )
+        .subcommand(
+            Command::new("create-ata-and-thaw-permissionless")
+                .about("Creates an associated token account and thaws it")
+                .arg(
+                    Arg::new("mint_address")
+                        .value_name("MINT_ADDRESS")
+                        .value_parser(SignerSourceParserBuilder::default().allow_pubkey().build())
+                        .takes_value(true)
+                        .long("mint")
+                        .required(true)
+                        .display_order(1)
+                        .help("Specify the mint address"),
+                )
+                .arg(
+                    Arg::new("token_account_owner")
+                        .value_name("TOKEN_ACCOUNT_OWNER")
+                        .value_parser(SignerSourceParserBuilder::default().allow_pubkey().build())
+                        .takes_value(true)
+                        .long("owner")
+                        .required(true)
                         .help("Specify the token account owner address"),
                 )
         )
@@ -985,6 +1119,31 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 &config.payer,
                 mint_address,
                 token_account,
+                token_account_owner,
+            )
+            .await
+            .unwrap_or_else(|err| {
+                eprintln!("error: thaw-permissionless: {}", err);
+                exit(1);
+            });
+            println!("{}", response);
+        }
+        ("create-ata-and-thaw-permissionless", arg_matches) => {
+            let mint_address =
+                SignerSource::try_get_pubkey(arg_matches, "mint_address", &mut wallet_manager)
+                    .unwrap()
+                    .unwrap();
+            let token_account_owner = SignerSource::try_get_pubkey(
+                arg_matches,
+                "token_account_owner",
+                &mut wallet_manager,
+            )
+            .unwrap()
+            .unwrap();
+            let response = process_create_ata_and_thaw_permissionless(
+                &rpc_client,
+                &config.payer,
+                mint_address,
                 token_account_owner,
             )
             .await
