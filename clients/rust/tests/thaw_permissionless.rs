@@ -263,6 +263,12 @@ async fn test_create_ata_and_thaw_permissionless() {
     println!("res: {:?}", res);
     //should err because not idempotent
     assert!(res.is_err());
+    let err = res.err().unwrap();
+    assert_eq!(
+        err.err,
+        // token 2022 TokenError::InvalidState = 0xD
+        TransactionError::InstructionError(0x01, InstructionError::Custom(0xD))
+    );
 
     let ix2 = token_acl_client::create_thaw_permissionless_instruction_with_extra_metas(
         &user_pubkey,

@@ -39,21 +39,27 @@ impl FreezePermissionless<'_> {
             return Err(TokenAclError::PermissionlessFreezeNotEnabled.into());
         }
 
+        if config.gating_program != *self.gating_program.key {
+            return Err(TokenAclError::InvalidGatingProgram.into());
+        }
+
         if is_idempotent {
             let ta_data = self.token_account.data.borrow();
             let ta = StateWithExtensions::<spl_token_2022::state::Account>::unpack(&ta_data)?;
-            if ta.base.state != AccountState::Initialized {
-                return Ok(());
-            }
+
 
             if ta.base.owner != *self.token_account_owner.key {
                 return Err(TokenAclError::InvalidTokenAccountOwner.into());
             }
-            // no need to enforce ta.mint == self.mint.key, freeze CPI will do this
-        }
 
-        if config.gating_program != *self.gating_program.key {
-            return Err(TokenAclError::InvalidGatingProgram.into());
+            if ta.base.state != AccountState::Initialized {
+                // freeze CPI enforces ta.base.mint == self.mint.key, but we're returning early
+                // so we need to check it to enforce same behaviour regardless of idempotency
+                if ta.base.mint != *self.mint.key {
+                    return Err(TokenAclError::InvalidTokenMint.into());
+                }
+                return Ok(());
+            }
         }
 
         let bump_seed = [self.flag_account_bump];
@@ -147,6 +153,10 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for FreezePermissionless<'a> {
             &[FLAG_ACCOUNT_SEED_PREFIX, token_account.key.as_ref()],
             &crate::ID,
         );
+
+        if mint_config.owner != &crate::ID {
+            return Err(TokenAclError::InvalidMintConfig.into());
+        }
 
         Ok(Self {
             authority,

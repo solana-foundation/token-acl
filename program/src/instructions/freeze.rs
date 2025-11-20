@@ -70,6 +70,10 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for Freeze<'a> {
             return Err(TokenAclError::InvalidTokenProgram.into());
         }
 
+        if mint_config.owner != &crate::ID {
+            return Err(TokenAclError::InvalidMintConfig.into());
+        }
+
         Ok(Self {
             authority,
             mint,
