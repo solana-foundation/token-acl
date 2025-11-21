@@ -9,7 +9,6 @@ import {
   Rpc,
   MaybeAccount,
   address,
-  createNoopSigner,
   lamports,
   fetchEncodedAccount,
 } from '@solana/kit';
@@ -514,7 +513,7 @@ export async function createTokenAccountWithAcl(
   mint: Mint,
   mintAddress: Address,
   tokenAccountOwner: Address,
-  payer: Address,
+  payer: TransactionSigner,
 ): Promise<Instruction[]> {
 
   // Derive ATA for wallet address
@@ -528,7 +527,7 @@ export async function createTokenAccountWithAcl(
     owner: tokenAccountOwner,
     mint: mintAddress,
     ata: tokenAccountAddress,
-    payer: createNoopSigner(payer),
+    payer: payer,
     tokenProgram: TOKEN_2022_PROGRAM_ADDRESS
   });
 
@@ -554,7 +553,7 @@ export async function createThawPermissionlessInstructionFromMint(
   mintAddress: Address,
   tokenAccountOwner: Address,
   tokenAccountAddress: Address,
-  payer: Address,
+  payer: TransactionSigner,
 ): Promise<Instruction> {
 
   if (mint.extensions.__option === 'None') {
@@ -564,15 +563,15 @@ export async function createThawPermissionlessInstructionFromMint(
   if (!gateProgramAddress) {
     throw new Error('Mint is not a valid token mint');
   }
-  const flagAccount = await findFlagAccountPda({ tokenAccount: tokenAccountAddress }, { programAddress: gateProgramAddress });
+  const flagAccount = await findFlagAccountPda({ tokenAccount: tokenAccountAddress }, { programAddress: TOKEN_ACL_PROGRAM_ADDRESS });
   const thawExtraMetas = await findThawExtraMetasAccountPda(
     { mint: mintAddress },
     { programAddress: gateProgramAddress }
   );
-  const mintConfig = await findMintConfigPda({ mint: mintAddress }, { programAddress: gateProgramAddress });
+  const mintConfig = await findMintConfigPda({ mint: mintAddress }, { programAddress: TOKEN_ACL_PROGRAM_ADDRESS });
 
   const canThawPermissionlessInstruction = getCanThawOrFreezePermissionlessAccountMetas(
-    payer,
+    payer.address,
     tokenAccountAddress,
     mintAddress,
     tokenAccountOwner,
@@ -582,7 +581,7 @@ export async function createThawPermissionlessInstructionFromMint(
 
   const thawAccountInstruction = getThawPermissionlessInstruction(
     {
-      authority: createNoopSigner(payer),
+      authority: payer,
       tokenAccount: tokenAccountAddress,
       flagAccount: flagAccount[0],
       mint: mintAddress,
