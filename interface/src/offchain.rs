@@ -12,7 +12,6 @@ use {
         instruction::{can_thaw_permissionless, CanThawPermissionlessInstruction},
     },
     solana_instruction::{AccountMeta, Instruction},
-    solana_program_error::ProgramError,
     solana_pubkey::Pubkey,
     spl_tlv_account_resolution::state::ExtraAccountMetaList,
     std::future::Future,
@@ -29,7 +28,7 @@ pub async fn add_extra_account_metas_for_freeze<F, Fut>(
     token_account_owner: &Pubkey,
     flag_account_pubkey: &Pubkey,
     fetch_account_data_fn: F,
-) -> Result<(), AccountFetchError>
+) -> Result<(), ThawFreezeGateError>
 where
     F: Fn(Pubkey) -> Fut,
     Fut: Future<Output = AccountDataResult>,
@@ -70,7 +69,7 @@ pub async fn add_extra_account_metas_for_thaw<F, Fut>(
     token_account_owner: &Pubkey,
     flag_account_pubkey: &Pubkey,
     fetch_account_data_fn: F,
-) -> Result<(), AccountFetchError>
+) -> Result<(), ThawFreezeGateError>
 where
     F: Fn(Pubkey) -> Fut,
     Fut: Future<Output = AccountDataResult>,
@@ -113,7 +112,7 @@ async fn add_extra_account_metas_for_permissionless_ix<F, Fut, T, F2>(
     flag_account_pubkey: &Pubkey,
     fetch_account_data_fn: F,
     cpi_ix_builder_fn: F2,
-) -> Result<(), AccountFetchError>
+) -> Result<(), ThawFreezeGateError>
 where
     F: Fn(Pubkey) -> Fut,
     F2: Fn(&Pubkey, &Pubkey, &Pubkey, &Pubkey, &Pubkey, &Pubkey) -> Instruction,
@@ -122,8 +121,8 @@ where
 {
     //let validate_state_pubkey = get_thaw_extra_account_metas_address(mint_pubkey, program_id);
     let validate_state_data = fetch_account_data_fn(*extra_metas_pubkey)
-        .await?
-        .ok_or(ProgramError::InvalidAccountData)?;
+        .await.map_err(|_|ThawFreezeGateError::MissingExtraAccountMeta)?
+        .ok_or(ThawFreezeGateError::MissingExtraAccountMeta)?;
 
     // Check to make sure the provided keys are in the instruction
     if [
@@ -136,7 +135,7 @@ where
     .iter()
     .any(|&key| !instruction.accounts.iter().any(|meta| meta.pubkey == *key))
     {
-        Err(ThawFreezeGateError::IncorrectAccount)?;
+        Err(ThawFreezeGateError::MissingAccountMeta)?;
     }
 
     let mut cpi_ix = cpi_ix_builder_fn(
@@ -155,7 +154,8 @@ where
         &mut cpi_ix,fetch_account_data_fn,
         &validate_state_data,
     )
-    .await?;
+    .await
+    .map_err(Into::into)?;
 
     // Add only the extra accounts resolved from the validation state
     instruction

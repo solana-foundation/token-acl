@@ -29,7 +29,7 @@ impl CanThawFreezePermissionless<'_> {
             return Err(ProgramError::IncorrectProgramId);
         }
 
-        if self.flag_account.owner != &token_acl_client::programs::TOKEN_ACL_ID
+        if self.flag_account.owner != &token_acl_interface::TOKEN_ACL_ID
             && *self.flag_account.data.borrow() != [1u8]
         {
             return Err(ProgramError::InvalidAccountData);

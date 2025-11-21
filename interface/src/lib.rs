@@ -1,4 +1,4 @@
-use solana_pubkey::Pubkey;
+use solana_pubkey::{Pubkey, pubkey};
 
 pub mod error;
 pub mod instruction;
@@ -8,6 +8,8 @@ pub mod onchain;
 pub const FREEZE_EXTRA_ACCOUNT_METAS_SEED: &[u8] = b"freeze_extra_account_metas";
 pub const THAW_EXTRA_ACCOUNT_METAS_SEED: &[u8] = b"thaw_extra_account_metas";
 pub const FLAG_ACCOUNT_SEED: &[u8] = b"FLAG_ACCOUNT";
+
+pub const TOKEN_ACL_ID: Pubkey = pubkey!("TACLkU6CiCdkQN2MjoyDkVg2yAH9zkxiHDsiztQ52TP");
 
 pub fn collect_thaw_extra_account_metas(mint: &Pubkey) -> [&[u8]; 2] {
     [THAW_EXTRA_ACCOUNT_METAS_SEED, mint.as_ref()]
