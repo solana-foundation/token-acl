@@ -12,7 +12,6 @@ import {
   createNoopSigner,
   lamports,
   fetchEncodedAccount,
-  Account,
 } from '@solana/kit';
 import { findMintConfigPda } from './generated/pdas/mintConfig';
 import {
@@ -519,7 +518,7 @@ export async function createTokenAccountWithAcl(
 ): Promise<Instruction[]> {
 
   // Derive ATA for wallet address
-  const [tokenAccountAddress, bump] = await findAssociatedTokenPda({
+  const [tokenAccountAddress, _] = await findAssociatedTokenPda({
     mint: mintAddress,
     owner: tokenAccountOwner,
     tokenProgram: TOKEN_2022_PROGRAM_ADDRESS 
@@ -533,12 +532,37 @@ export async function createTokenAccountWithAcl(
     tokenProgram: TOKEN_2022_PROGRAM_ADDRESS
   });
 
+  const thawInstruction = await createThawPermissionlessInstructionFromMint(rpc, mint, mintAddress, tokenAccountOwner, tokenAccountAddress, payer); 
+
+  return [createAssociatedTokenAccountInstruction, thawInstruction];
+}
+
+/**
+ * Builds the instruction to thaw a token account permissionlessly from a token-acl mint.
+ * This method does not create the token account.
+ * @param rpc The RPC client.
+ * @param mint The mint to create the token account for.
+ * @param mintAddress The mint address.
+ * @param tokenAccountOwner The owner of the token account.
+ * @param tokenAccountAddress The address of the token account.
+ * @param payer The payer of the transaction.
+ * @returns The instructions to create the token account.
+ */
+export async function createThawPermissionlessInstructionFromMint(
+  rpc: Rpc<SolanaRpcApi>,
+  mint: Mint,
+  mintAddress: Address,
+  tokenAccountOwner: Address,
+  tokenAccountAddress: Address,
+  payer: Address,
+): Promise<Instruction> {
+
   if (mint.extensions.__option === 'None') {
-    return [createAssociatedTokenAccountInstruction];
+    throw new Error('Mint is not a valid token acl mint');
   }
   const gateProgramAddress = getTokenAclGateProgramFromMint(mint);
   if (!gateProgramAddress) {
-    return [createAssociatedTokenAccountInstruction];
+    throw new Error('Mint is not a valid token mint');
   }
   const flagAccount = await findFlagAccountPda({ tokenAccount: tokenAccountAddress }, { programAddress: gateProgramAddress });
   const thawExtraMetas = await findThawExtraMetasAccountPda(
@@ -605,10 +629,10 @@ export async function createTokenAccountWithAcl(
     gateProgramAddress
   );
 
-  const ix = {
+  const ix: Instruction = {
     ...thawAccountInstruction,
     accounts: [...thawAccountInstruction.accounts!, ...metas.slice(5)],
   };
 
-  return [createAssociatedTokenAccountInstruction, ix];
+  return ix;
 }

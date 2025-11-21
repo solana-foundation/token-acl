@@ -1,10 +1,9 @@
 import { getUpdateTokenMetadataFieldInstruction, TOKEN_2022_PROGRAM_ADDRESS } from "@solana-program/token-2022";
-import { Address, createNoopSigner, Instruction, Rpc, SolanaRpcApi } from "@solana/kit";
+import { Address, createNoopSigner, Instruction } from "@solana/kit";
 
 export const TOKEN_ACL_METADATA_KEY = 'token_acl';
 
 export function setTokenAclMetadata(
-  rpc: Rpc<SolanaRpcApi>,
   mint: Address,
   gateProgram: Address,
   metadataAuthority: Address,
