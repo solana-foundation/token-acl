@@ -531,7 +531,7 @@ export async function createTokenAccountWithAcl(
     tokenProgram: TOKEN_2022_PROGRAM_ADDRESS
   });
 
-  const thawInstruction = await createThawPermissionlessInstructionFromMint(rpc, mint, mintAddress, tokenAccountOwner, tokenAccountAddress, payer, false); 
+  const thawInstruction = await createThawPermissionlessInstructionFromMint(rpc, mint, mintAddress, tokenAccountOwner, tokenAccountAddress, payer, true); 
 
   return [createAssociatedTokenAccountInstruction, thawInstruction];
 }
