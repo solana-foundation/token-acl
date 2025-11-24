@@ -1,6 +1,6 @@
 {
   "name": "@token-acl/sdk",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "",
   "sideEffects": false,
   "module": "./dist/src/index.mjs",
