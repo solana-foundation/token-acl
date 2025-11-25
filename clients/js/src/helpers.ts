@@ -531,7 +531,7 @@ export async function createTokenAccountWithAcl(
     tokenProgram: TOKEN_2022_PROGRAM_ADDRESS
   });
 
-  const thawInstruction = await createThawPermissionlessInstructionFromMint(rpc, mint, mintAddress, tokenAccountOwner, tokenAccountAddress, payer); 
+  const thawInstruction = await createThawPermissionlessInstructionFromMint(rpc, mint, mintAddress, tokenAccountOwner, tokenAccountAddress, payer, true); 
 
   return [createAssociatedTokenAccountInstruction, thawInstruction];
 }
@@ -545,6 +545,7 @@ export async function createTokenAccountWithAcl(
  * @param tokenAccountOwner The owner of the token account.
  * @param tokenAccountAddress The address of the token account.
  * @param payer The payer of the transaction.
+ * @param idempotent Whether to use idempotent instruction variant.
  * @returns The instructions to create the token account.
  */
 export async function createThawPermissionlessInstructionFromMint(
@@ -554,6 +555,7 @@ export async function createThawPermissionlessInstructionFromMint(
   tokenAccountOwner: Address,
   tokenAccountAddress: Address,
   payer: TransactionSigner,
+  idempotent: boolean = false,
 ): Promise<Instruction> {
 
   if (mint.extensions.__option === 'None') {
@@ -579,7 +581,20 @@ export async function createThawPermissionlessInstructionFromMint(
     thawExtraMetas[0]
   );
 
-  const thawAccountInstruction = getThawPermissionlessInstruction(
+  const thawAccountInstruction = idempotent ? getThawPermissionlessIdempotentInstruction(
+    {
+      authority: payer,
+      tokenAccount: tokenAccountAddress,
+      flagAccount: flagAccount[0],
+      mint: mintAddress,
+      mintConfig: mintConfig[0],
+      tokenAccountOwner,
+      gatingProgram: gateProgramAddress,
+    },
+    {
+      programAddress: TOKEN_ACL_PROGRAM_ADDRESS,
+    }
+  ) : getThawPermissionlessInstruction(
     {
       authority: payer,
       tokenAccount: tokenAccountAddress,
