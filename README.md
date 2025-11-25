@@ -58,13 +58,19 @@ token-acl enable-permissionless-thaw <MINT_ADDRESS>
 
 ## Examples
 
+- `token-acl-gate`: Gate program that enables the creation of allow and/or block lists. 
+Full fledged implementation that allows combining multiple list checks and special handling for non-PDA (EoA) wallets.
+Implementation [here](https://github.com/solana-foundation/token-acl-gate).
+
+The [examples](examples) folder contains toy programs for testing purposes:
+
 - `always-allow`: Always permits thaw/freeze operations
 - `always-block`: Always blocks thaw/freeze operations  
 - `always-allow-with-deps`: Example with additional account dependencies
 
 ## Specification
 
-This implementation follows [SRFC37](srfc37.md) which defines:
+This implementation follows [sRFC37 - Token ACL](srfc37.md) which defines:
 
 - Token ACL program interface and account structures
 - Gate program interface with standardized discriminators
