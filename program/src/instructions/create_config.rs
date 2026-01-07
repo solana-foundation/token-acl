@@ -134,6 +134,10 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for CreateConfig<'a> {
             return Err(TokenAclError::InvalidTokenProgram.into());
         }
 
+        if !spl_token_2022::check_id(mint.owner) {
+            return Err(TokenAclError::InvalidTokenProgram.into());
+        }
+
         Ok(Self {
             payer,
             authority,
