@@ -36,6 +36,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Dependencies
+        uses: ./.github/workflows/actions/install-dependencies
+
       - name: Lint
         run: pnpm lint
 
