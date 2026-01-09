@@ -1,0 +1,65 @@
+name: Install Dependencies
+description: Sets up pnpm, Node.js, and installs workspace dependencies
+
+inputs:
+  version:
+    description: Node.js version to install
+    default: 'lts/*'
+    type: string
+  clippy:
+    description: Install Clippy if `true`. Defaults to `false`.
+    required: false
+  purge:
+    description: Purge unused directories if `true`. Defaults to `false`.
+    required: false
+  rustfmt:
+    description: Install Rustfmt if `true`. Defaults to `false`.
+    required: false
+  solana_version:
+    description: "Solana version to install (leave empty to skip)"
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.20.0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.version }}
+        cache: pnpm
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Install Rustfmt
+      if: ${{ inputs.rustfmt == 'true' }}
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ env.TOOLCHAIN_FORMAT }}
+        components: rustfmt
+
+    - name: Install Clippy
+      if: ${{ inputs.clippy == 'true' }}
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ env.TOOLCHAIN_LINT }}
+        components: clippy
+
+    - name: Setup Solana version environment variable
+      if: inputs.solana_version != ''
+      shell: bash
+      run: |
+        echo "SOLANA_VERSION=${{ inputs.solana_version }}" >> $GITHUB_ENV
+
+    - name: Install Solana
+      if: inputs.solana_version != ''
+      uses: solana-developers/github-actions/setup-all@v0.2.7
+      with:
+        solana_version: ${{ inputs.solana_version }}
