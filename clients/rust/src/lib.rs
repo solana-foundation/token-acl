@@ -169,9 +169,12 @@ pub async fn create_ata_and_thaw_permissionless(
     idempotent: bool,
 ) -> Result<Vec<Instruction>, AccountFetchError> {
     let fetch_account_data_fn = |pubkey: Pubkey| async move {
-        rpc.get_account_data(&pubkey).await.map(|data| Some(data.to_vec())).map_err(Into::<AccountFetchError>::into)
+        rpc.get_account_data(&pubkey)
+            .await
+            .map(|data| Some(data.to_vec()))
+            .map_err(Into::<AccountFetchError>::into)
     };
-    
+
     create_ata_and_thaw_permissionless_instructions(
         payer_pubkey,
         mint_pubkey,
@@ -234,40 +237,40 @@ where
     let mut data = vec![0u8; Account::LEN];
     Account::pack(acc, &mut data)?;
 
-    let mint_data = fetch_account_data_fn(*mint_pubkey).await?.ok_or(Into::<ProgramError>::into(TokenAclError::InvalidTokenMint))?;
+    let mint_data = fetch_account_data_fn(*mint_pubkey)
+        .await?
+        .ok_or(Into::<ProgramError>::into(TokenAclError::InvalidTokenMint))?;
 
     let mint_config_pubkey = crate::accounts::MintConfig::find_pda(mint_pubkey).0;
     let gating_program = get_gating_program_from_mint_data(&mint_data);
     let flag_account = crate::accounts::FlagAccount::find_pda(&token_account).0;
 
-
     if let Ok(gating_program) = gating_program {
-
-    let mut ix = if idempotent {
-        crate::instructions::ThawPermissionlessIdempotentBuilder::new()
-            .gating_program(gating_program)
-            .authority(*payer_pubkey)
-            .mint(*mint_pubkey)
-            .token_account(token_account)
-            .token_account_owner(*token_account_owner_pubkey)
-            .mint_config(mint_config_pubkey)
-            .token_program(*token_program_pubkey)
-            .flag_account(flag_account)
-            .system_program(solana_system_interface::program::ID)
-            .instruction()
-    } else {
-        crate::instructions::ThawPermissionlessBuilder::new()
-            .gating_program(gating_program)
-            .authority(*payer_pubkey)
-            .mint(*mint_pubkey)
-            .token_account(token_account)
-            .token_account_owner(*token_account_owner_pubkey)
-            .mint_config(mint_config_pubkey)
-            .token_program(*token_program_pubkey)
-            .flag_account(flag_account)
-            .system_program(solana_system_interface::program::ID)
-            .instruction()
-    };
+        let mut ix = if idempotent {
+            crate::instructions::ThawPermissionlessIdempotentBuilder::new()
+                .gating_program(gating_program)
+                .authority(*payer_pubkey)
+                .mint(*mint_pubkey)
+                .token_account(token_account)
+                .token_account_owner(*token_account_owner_pubkey)
+                .mint_config(mint_config_pubkey)
+                .token_program(*token_program_pubkey)
+                .flag_account(flag_account)
+                .system_program(solana_system_interface::program::ID)
+                .instruction()
+        } else {
+            crate::instructions::ThawPermissionlessBuilder::new()
+                .gating_program(gating_program)
+                .authority(*payer_pubkey)
+                .mint(*mint_pubkey)
+                .token_account(token_account)
+                .token_account_owner(*token_account_owner_pubkey)
+                .mint_config(mint_config_pubkey)
+                .token_program(*token_program_pubkey)
+                .flag_account(flag_account)
+                .system_program(solana_system_interface::program::ID)
+                .instruction()
+        };
 
         token_acl_interface::offchain::add_extra_account_metas_for_thaw(
             &mut ix,

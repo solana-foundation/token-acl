@@ -1,5 +1,10 @@
 pub mod program_test;
-use solana_sdk::{instruction::InstructionError, signature::Keypair, signer::Signer, transaction::{Transaction, TransactionError}};
+use solana_sdk::{
+    instruction::InstructionError,
+    signature::Keypair,
+    signer::Signer,
+    transaction::{Transaction, TransactionError},
+};
 use solana_system_interface::program::ID as SYSTEM_PROGRAM_ID;
 use spl_token_2022::ID as TOKEN_PROGRAM_ID;
 
@@ -79,7 +84,15 @@ fn test_create_mint_config_invalid_account() {
     assert!(res.is_err());
 
     let res_err = res.err().unwrap();
-    assert_eq!(res_err.err, TransactionError::InstructionError(0x00, InstructionError::Custom(token_acl_client::errors::TokenAclError::InvalidMintConfig as u32)));
+    assert_eq!(
+        res_err.err,
+        TransactionError::InstructionError(
+            0x00,
+            InstructionError::Custom(
+                token_acl_client::errors::TokenAclError::InvalidMintConfig as u32
+            )
+        )
+    );
 
     let acc = tc.vm.get_account(&mint_cfg_pk);
 
@@ -120,7 +133,15 @@ fn test_create_mint_config_invalid_non_pda() {
     assert!(res.is_err());
 
     let res_err = res.err().unwrap();
-    assert_eq!(res_err.err, TransactionError::InstructionError(0x00, InstructionError::Custom(token_acl_client::errors::TokenAclError::InvalidMintConfig as u32)));
+    assert_eq!(
+        res_err.err,
+        TransactionError::InstructionError(
+            0x00,
+            InstructionError::Custom(
+                token_acl_client::errors::TokenAclError::InvalidMintConfig as u32
+            )
+        )
+    );
 }
 
 #[test]
@@ -185,6 +206,13 @@ fn test_create_mint_config_with_existing_config() {
 
     let res_err = res.err().unwrap();
     // authority was already set to the mint config, so it fails with invalid authority
-    assert_eq!(res_err.err, TransactionError::InstructionError(0x00, InstructionError::Custom(token_acl_client::errors::TokenAclError::InvalidAuthority as u32)));
-
+    assert_eq!(
+        res_err.err,
+        TransactionError::InstructionError(
+            0x00,
+            InstructionError::Custom(
+                token_acl_client::errors::TokenAclError::InvalidAuthority as u32
+            )
+        )
+    );
 }
