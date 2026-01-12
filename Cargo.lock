@@ -813,29 +813,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cli"
-version = "0.1.0"
-dependencies = [
- "clap 3.2.25",
- "futures-util",
- "solana-clap-v3-utils",
- "solana-cli-config",
- "solana-client",
- "solana-logger",
- "solana-remote-wallet",
- "solana-sdk",
- "solana-system-interface",
- "spl-associated-token-account-client",
- "spl-tlv-account-resolution 0.10.0",
- "spl-token-client",
- "spl-token-metadata-interface",
- "spl-transfer-hook-interface 0.8.2",
- "token-acl-client",
- "token-acl-interface",
- "tokio",
-]
-
-[[package]]
 name = "combine"
 version = "3.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7289,6 +7266,29 @@ dependencies = [
  "spl-token-2022 9.0.0",
  "spl-type-length-value 0.8.0",
  "token-acl-interface",
+]
+
+[[package]]
+name = "token-acl-cli"
+version = "0.1.0"
+dependencies = [
+ "clap 3.2.25",
+ "futures-util",
+ "solana-clap-v3-utils",
+ "solana-cli-config",
+ "solana-client",
+ "solana-logger",
+ "solana-remote-wallet",
+ "solana-sdk",
+ "solana-system-interface",
+ "spl-associated-token-account-client",
+ "spl-tlv-account-resolution 0.10.0",
+ "spl-token-client",
+ "spl-token-metadata-interface",
+ "spl-transfer-hook-interface 0.8.2",
+ "token-acl-client",
+ "token-acl-interface",
+ "tokio",
 ]
 
 [[package]]
