@@ -28,7 +28,15 @@ import {
 } from './generated';
 import { resolveExtraMetas } from './tlv-account-resolution/state';
 
-import { AccountState, getCreateAssociatedTokenIdempotentInstruction, findAssociatedTokenPda, getMintDecoder, getTokenEncoder, Mint, TOKEN_2022_PROGRAM_ADDRESS } from "@solana-program/token-2022"
+import {
+  AccountState,
+  getCreateAssociatedTokenIdempotentInstruction,
+  findAssociatedTokenPda,
+  getMintDecoder,
+  getTokenEncoder,
+  Mint,
+  TOKEN_2022_PROGRAM_ADDRESS,
+} from '@solana-program/token-2022';
 
 /**
  * Creates an instruction to permissionlessly thaw a token account including all extra meta account dependencies.
@@ -37,7 +45,7 @@ import { AccountState, getCreateAssociatedTokenIdempotentInstruction, findAssoci
  * @param mint The mint of the token account.
  * @param tokenAccountOwner The owner of the token account.
  * @param programAddress The address of the program.
- * @param accountRetriever A function to retrieve the account data for a given address. 
+ * @param accountRetriever A function to retrieve the account data for a given address.
  *  If the token account is being created in the same transaction, the function should mock the expected account data.
  * @returns The instruction to thaw the token account.
  */
@@ -55,7 +63,10 @@ export async function createThawPermissionlessInstructionWithExtraMetas(
     throw new Error('Mint config account not found');
   }
   const mintConfigData = getMintConfigDecoder().decode(mintConfigAccount.data);
-  const flagAccount = await findFlagAccountPda({ tokenAccount }, { programAddress });
+  const flagAccount = await findFlagAccountPda(
+    { tokenAccount },
+    { programAddress }
+  );
 
   const thawExtraMetas = await findThawExtraMetasAccountPda(
     { mint },
@@ -65,14 +76,15 @@ export async function createThawPermissionlessInstructionWithExtraMetas(
   console.log(mintConfigData);
   console.log(thawExtraMetas[0]);
 
-  const canThawPermissionlessInstruction = getCanThawOrFreezePermissionlessAccountMetas(
-    authority.address,
-    tokenAccount,
-    mint,
-    tokenAccountOwner,
-    flagAccount[0],
-    thawExtraMetas[0]
-  );
+  const canThawPermissionlessInstruction =
+    getCanThawOrFreezePermissionlessAccountMetas(
+      authority.address,
+      tokenAccount,
+      mint,
+      tokenAccountOwner,
+      flagAccount[0],
+      thawExtraMetas[0]
+    );
 
   const thawAccountInstruction = getThawPermissionlessInstruction(
     {
@@ -111,7 +123,7 @@ export async function createThawPermissionlessInstructionWithExtraMetas(
  * @param mint The mint of the token account.
  * @param tokenAccountOwner The owner of the token account.
  * @param programAddress The address of the program.
- * @param accountRetriever A function to retrieve the account data for a given address. 
+ * @param accountRetriever A function to retrieve the account data for a given address.
  *  If the token account is being created in the same transaction, the function should mock the expected account data.
  * @returns The instruction to thaw the token account.
  */
@@ -129,7 +141,10 @@ export async function createThawPermissionlessIdempotentInstructionWithExtraMeta
     throw new Error('Mint config account not found');
   }
   const mintConfigData = getMintConfigDecoder().decode(mintConfigAccount.data);
-  const flagAccount = await findFlagAccountPda({ tokenAccount }, { programAddress });
+  const flagAccount = await findFlagAccountPda(
+    { tokenAccount },
+    { programAddress }
+  );
 
   const thawExtraMetas = await findThawExtraMetasAccountPda(
     { mint },
@@ -139,14 +154,15 @@ export async function createThawPermissionlessIdempotentInstructionWithExtraMeta
   console.log(mintConfigData);
   console.log(thawExtraMetas[0]);
 
-  const canThawPermissionlessInstruction = getCanThawOrFreezePermissionlessAccountMetas(
-    authority.address,
-    tokenAccount,
-    mint,
-    tokenAccountOwner,
-    flagAccount[0],
-    thawExtraMetas[0]
-  );
+  const canThawPermissionlessInstruction =
+    getCanThawOrFreezePermissionlessAccountMetas(
+      authority.address,
+      tokenAccount,
+      mint,
+      tokenAccountOwner,
+      flagAccount[0],
+      thawExtraMetas[0]
+    );
 
   const thawAccountInstruction = getThawPermissionlessIdempotentInstruction(
     {
@@ -203,7 +219,7 @@ function getCanThawOrFreezePermissionlessAccountMetas(
  * @param mint The mint of the token account.
  * @param tokenAccountOwner The owner of the token account.
  * @param programAddress The address of the program.
- * @param accountRetriever A function to retrieve the account data for a given address. 
+ * @param accountRetriever A function to retrieve the account data for a given address.
  *  If the token account is being created in the same transaction, the function should mock the expected account data.
  * @returns The instruction to freeze the token account.
  */
@@ -221,7 +237,10 @@ export async function createFreezePermissionlessInstructionWithExtraMetas(
     throw new Error('Mint config account not found');
   }
   const mintConfigData = getMintConfigDecoder().decode(mintConfigAccount.data);
-  const flagAccount = await findFlagAccountPda({ tokenAccount }, { programAddress });
+  const flagAccount = await findFlagAccountPda(
+    { tokenAccount },
+    { programAddress }
+  );
 
   const freezeExtraMetas = await findFreezeExtraMetasAccountPda(
     { mint },
@@ -238,14 +257,15 @@ export async function createFreezePermissionlessInstructionWithExtraMetas(
     gatingProgram: mintConfigData.gatingProgram,
   });
 
-  const canFreezePermissionlessInstruction = getCanThawOrFreezePermissionlessAccountMetas(
-    authority.address,
-    tokenAccount,
-    mint,
-    tokenAccountOwner,
-    flagAccount[0],
-    freezeExtraMetas[0]
-  );
+  const canFreezePermissionlessInstruction =
+    getCanThawOrFreezePermissionlessAccountMetas(
+      authority.address,
+      tokenAccount,
+      mint,
+      tokenAccountOwner,
+      flagAccount[0],
+      freezeExtraMetas[0]
+    );
 
   const metas = await resolveExtraMetas(
     accountRetriever,
@@ -269,7 +289,7 @@ export async function createFreezePermissionlessInstructionWithExtraMetas(
  * @param mint The mint of the token account.
  * @param tokenAccountOwner The owner of the token account.
  * @param programAddress The address of the program.
- * @param accountRetriever A function to retrieve the account data for a given address. 
+ * @param accountRetriever A function to retrieve the account data for a given address.
  *  If the token account is being created in the same transaction, the function should mock the expected account data.
  * @returns The instruction to freeze the token account.
  */
@@ -287,31 +307,37 @@ export async function createFreezePermissionlessIdempotentInstructionWithExtraMe
     throw new Error('Mint config account not found');
   }
   const mintConfigData = getMintConfigDecoder().decode(mintConfigAccount.data);
-  const flagAccount = await findFlagAccountPda({ tokenAccount }, { programAddress });
+  const flagAccount = await findFlagAccountPda(
+    { tokenAccount },
+    { programAddress }
+  );
 
   const freezeExtraMetas = await findFreezeExtraMetasAccountPda(
     { mint },
     { programAddress: mintConfigData.gatingProgram }
   );
 
-  const freezeAccountInstruction = getFreezePermissionlessIdempotentInstruction({
-    authority,
-    tokenAccount,
-    mint,
-    flagAccount: flagAccount[0],
-    mintConfig: mintConfigPda[0],
-    tokenAccountOwner,
-    gatingProgram: mintConfigData.gatingProgram,
-  });
-
-  const canFreezePermissionlessInstruction = getCanThawOrFreezePermissionlessAccountMetas(
-    authority.address,
-    tokenAccount,
-    mint,
-    tokenAccountOwner,
-    flagAccount[0],
-    freezeExtraMetas[0]
+  const freezeAccountInstruction = getFreezePermissionlessIdempotentInstruction(
+    {
+      authority,
+      tokenAccount,
+      mint,
+      flagAccount: flagAccount[0],
+      mintConfig: mintConfigPda[0],
+      tokenAccountOwner,
+      gatingProgram: mintConfigData.gatingProgram,
+    }
   );
+
+  const canFreezePermissionlessInstruction =
+    getCanThawOrFreezePermissionlessAccountMetas(
+      authority.address,
+      tokenAccount,
+      mint,
+      tokenAccountOwner,
+      flagAccount[0],
+      freezeExtraMetas[0]
+    );
 
   const metas = await resolveExtraMetas(
     accountRetriever,
@@ -328,7 +354,6 @@ export async function createFreezePermissionlessIdempotentInstructionWithExtraMe
   return ix;
 }
 
-
 /**
  * Validates that a mint is a valid Token ACL mint.
  * This method does extensive checks to ensure everything is properly configured.
@@ -340,17 +365,26 @@ export async function isValidTokenAclMint(
   rpc: Rpc<SolanaRpcApi>,
   mint: Address
 ) {
-  const mintAccount = await rpc.getAccountInfo(mint, { commitment: 'confirmed', encoding: 'base64' }).send();
+  const mintAccount = await rpc
+    .getAccountInfo(mint, { commitment: 'confirmed', encoding: 'base64' })
+    .send();
   if (mintAccount.value?.owner != TOKEN_2022_PROGRAM_ADDRESS) {
     return false;
   }
-  const mintData = getMintDecoder().decode(new Uint8Array(Buffer.from(mintAccount.value.data[0], 'base64')));
+  const mintData = getMintDecoder().decode(
+    new Uint8Array(Buffer.from(mintAccount.value.data[0], 'base64'))
+  );
 
   if (mintData.freezeAuthority.__option === 'None') {
     return false;
   }
 
-  const freezeAuthority = await rpc.getAccountInfo(mintData.freezeAuthority.value, { commitment: 'confirmed', encoding: 'base64' }).send();
+  const freezeAuthority = await rpc
+    .getAccountInfo(mintData.freezeAuthority.value, {
+      commitment: 'confirmed',
+      encoding: 'base64',
+    })
+    .send();
 
   if (freezeAuthority.value?.owner != TOKEN_ACL_PROGRAM_ADDRESS) {
     return false;
@@ -380,7 +414,8 @@ export async function isValidTokenAclMint(
  */
 export async function isTokenAclMint(
   rpc: Rpc<SolanaRpcApi>,
-  mint: Address): Promise<boolean> {
+  mint: Address
+): Promise<boolean> {
   const gateProgram = await getTokenAclGateProgram(rpc, mint);
   if (!gateProgram) {
     return false;
@@ -406,12 +441,16 @@ export async function isTokenAclMintFromMint(mint: Mint): Promise<boolean> {
  * @param mint The mint to get the gate program from.
  * @returns The Token ACL gate program, or undefined if the mint is not a Token ACL mint.
  */
-export function getTokenAclGateProgramFromMint(mint: Mint): Address | undefined {
+export function getTokenAclGateProgramFromMint(
+  mint: Mint
+): Address | undefined {
   if (mint.extensions.__option === 'None') {
     return undefined;
   }
   const extensions = mint.extensions.value;
-  const metadataExtension = extensions.find(extension => extension.__kind == 'TokenMetadata');
+  const metadataExtension = extensions.find(
+    (extension) => extension.__kind == 'TokenMetadata'
+  );
 
   if (!metadataExtension) {
     return undefined;
@@ -431,13 +470,17 @@ export function getTokenAclGateProgramFromMint(mint: Mint): Address | undefined 
  */
 export async function getTokenAclGateProgram(
   rpc: Rpc<SolanaRpcApi>,
-  mint: Address): Promise<Address | undefined> {
-
-  const mintAccount = await rpc.getAccountInfo(mint, { commitment: 'confirmed', encoding: 'base64' }).send();
+  mint: Address
+): Promise<Address | undefined> {
+  const mintAccount = await rpc
+    .getAccountInfo(mint, { commitment: 'confirmed', encoding: 'base64' })
+    .send();
   if (mintAccount.value?.owner != TOKEN_2022_PROGRAM_ADDRESS) {
     return undefined;
   }
-  const mintData = getMintDecoder().decode(new Uint8Array(Buffer.from(mintAccount.value.data[0], 'base64')));
+  const mintData = getMintDecoder().decode(
+    new Uint8Array(Buffer.from(mintAccount.value.data[0], 'base64'))
+  );
 
   return getTokenAclGateProgramFromMint(mintData);
 }
@@ -450,18 +493,37 @@ export async function getTokenAclGateProgram(
  */
 export async function getTokenAclMintConfig(
   rpc: Rpc<SolanaRpcApi>,
-  mint: Address): Promise<MaybeAccount<MintConfig, string>> {
-  const mintAccount = await fetchEncodedAccount(rpc, mint, { commitment: 'confirmed' });
+  mint: Address
+): Promise<MaybeAccount<MintConfig, string>> {
+  const mintAccount = await fetchEncodedAccount(rpc, mint, {
+    commitment: 'confirmed',
+  });
   if (!mintAccount.exists) {
-    return { exists: false, address: address('11111111111111111111111111111111') };
+    return {
+      exists: false,
+      address: address('11111111111111111111111111111111'),
+    };
   }
   const mintData = getMintDecoder().decode(mintAccount.data);
   if (mintData.freezeAuthority.__option === 'None') {
-    return { exists: false, address: address('11111111111111111111111111111111') };
+    return {
+      exists: false,
+      address: address('11111111111111111111111111111111'),
+    };
   }
-  const freezeAuthority = await fetchEncodedAccount(rpc, mintData.freezeAuthority.value, { commitment: 'confirmed' });
-  if (!freezeAuthority.exists || freezeAuthority.programAddress != TOKEN_ACL_PROGRAM_ADDRESS) {
-    return { exists: false, address: address('11111111111111111111111111111111') };
+  const freezeAuthority = await fetchEncodedAccount(
+    rpc,
+    mintData.freezeAuthority.value,
+    { commitment: 'confirmed' }
+  );
+  if (
+    !freezeAuthority.exists ||
+    freezeAuthority.programAddress != TOKEN_ACL_PROGRAM_ADDRESS
+  ) {
+    return {
+      exists: false,
+      address: address('11111111111111111111111111111111'),
+    };
   }
   return decodeMintConfig(freezeAuthority as MaybeEncodedAccount<string>);
 }
@@ -474,7 +536,8 @@ export async function getTokenAclMintConfig(
  */
 export async function usesPermissionlessThaw(
   rpc: Rpc<SolanaRpcApi>,
-  mint: Address): Promise<boolean> {
+  mint: Address
+): Promise<boolean> {
   const mintConfig = await getTokenAclMintConfig(rpc, mint);
   if (!mintConfig.exists) {
     return false;
@@ -490,7 +553,8 @@ export async function usesPermissionlessThaw(
  */
 export async function usesPermissionlessFreeze(
   rpc: Rpc<SolanaRpcApi>,
-  mint: Address): Promise<boolean> {
+  mint: Address
+): Promise<boolean> {
   const mintConfig = await getTokenAclMintConfig(rpc, mint);
   if (!mintConfig.exists) {
     return false;
@@ -513,25 +577,33 @@ export async function createTokenAccountWithAcl(
   mint: Mint,
   mintAddress: Address,
   tokenAccountOwner: Address,
-  payer: TransactionSigner,
+  payer: TransactionSigner
 ): Promise<Instruction[]> {
-
   // Derive ATA for wallet address
-  const [tokenAccountAddress, _] = await findAssociatedTokenPda({
+  const [tokenAccountAddress] = await findAssociatedTokenPda({
     mint: mintAddress,
     owner: tokenAccountOwner,
-    tokenProgram: TOKEN_2022_PROGRAM_ADDRESS 
+    tokenProgram: TOKEN_2022_PROGRAM_ADDRESS,
   });
 
-  const createAssociatedTokenAccountInstruction = getCreateAssociatedTokenIdempotentInstruction({
-    owner: tokenAccountOwner,
-    mint: mintAddress,
-    ata: tokenAccountAddress,
-    payer: payer,
-    tokenProgram: TOKEN_2022_PROGRAM_ADDRESS
-  });
+  const createAssociatedTokenAccountInstruction =
+    getCreateAssociatedTokenIdempotentInstruction({
+      owner: tokenAccountOwner,
+      mint: mintAddress,
+      ata: tokenAccountAddress,
+      payer: payer,
+      tokenProgram: TOKEN_2022_PROGRAM_ADDRESS,
+    });
 
-  const thawInstruction = await createThawPermissionlessInstructionFromMint(rpc, mint, mintAddress, tokenAccountOwner, tokenAccountAddress, payer, true); 
+  const thawInstruction = await createThawPermissionlessInstructionFromMint(
+    rpc,
+    mint,
+    mintAddress,
+    tokenAccountOwner,
+    tokenAccountAddress,
+    payer,
+    true
+  );
 
   return [createAssociatedTokenAccountInstruction, thawInstruction];
 }
@@ -555,9 +627,8 @@ export async function createThawPermissionlessInstructionFromMint(
   tokenAccountOwner: Address,
   tokenAccountAddress: Address,
   payer: TransactionSigner,
-  idempotent: boolean = false,
+  idempotent: boolean = false
 ): Promise<Instruction> {
-
   if (mint.extensions.__option === 'None') {
     throw new Error('Mint is not a valid token acl mint');
   }
@@ -565,49 +636,58 @@ export async function createThawPermissionlessInstructionFromMint(
   if (!gateProgramAddress) {
     throw new Error('Mint is not a valid token mint');
   }
-  const flagAccount = await findFlagAccountPda({ tokenAccount: tokenAccountAddress }, { programAddress: TOKEN_ACL_PROGRAM_ADDRESS });
+  const flagAccount = await findFlagAccountPda(
+    { tokenAccount: tokenAccountAddress },
+    { programAddress: TOKEN_ACL_PROGRAM_ADDRESS }
+  );
   const thawExtraMetas = await findThawExtraMetasAccountPda(
     { mint: mintAddress },
     { programAddress: gateProgramAddress }
   );
-  const mintConfig = await findMintConfigPda({ mint: mintAddress }, { programAddress: TOKEN_ACL_PROGRAM_ADDRESS });
-
-  const canThawPermissionlessInstruction = getCanThawOrFreezePermissionlessAccountMetas(
-    payer.address,
-    tokenAccountAddress,
-    mintAddress,
-    tokenAccountOwner,
-    flagAccount[0],
-    thawExtraMetas[0]
+  const mintConfig = await findMintConfigPda(
+    { mint: mintAddress },
+    { programAddress: TOKEN_ACL_PROGRAM_ADDRESS }
   );
 
-  const thawAccountInstruction = idempotent ? getThawPermissionlessIdempotentInstruction(
-    {
-      authority: payer,
-      tokenAccount: tokenAccountAddress,
-      flagAccount: flagAccount[0],
-      mint: mintAddress,
-      mintConfig: mintConfig[0],
+  const canThawPermissionlessInstruction =
+    getCanThawOrFreezePermissionlessAccountMetas(
+      payer.address,
+      tokenAccountAddress,
+      mintAddress,
       tokenAccountOwner,
-      gatingProgram: gateProgramAddress,
-    },
-    {
-      programAddress: TOKEN_ACL_PROGRAM_ADDRESS,
-    }
-  ) : getThawPermissionlessInstruction(
-    {
-      authority: payer,
-      tokenAccount: tokenAccountAddress,
-      flagAccount: flagAccount[0],
-      mint: mintAddress,
-      mintConfig: mintConfig[0],
-      tokenAccountOwner,
-      gatingProgram: gateProgramAddress,
-    },
-    {
-      programAddress: TOKEN_ACL_PROGRAM_ADDRESS,
-    }
-  );
+      flagAccount[0],
+      thawExtraMetas[0]
+    );
+
+  const thawAccountInstruction = idempotent
+    ? getThawPermissionlessIdempotentInstruction(
+        {
+          authority: payer,
+          tokenAccount: tokenAccountAddress,
+          flagAccount: flagAccount[0],
+          mint: mintAddress,
+          mintConfig: mintConfig[0],
+          tokenAccountOwner,
+          gatingProgram: gateProgramAddress,
+        },
+        {
+          programAddress: TOKEN_ACL_PROGRAM_ADDRESS,
+        }
+      )
+    : getThawPermissionlessInstruction(
+        {
+          authority: payer,
+          tokenAccount: tokenAccountAddress,
+          flagAccount: flagAccount[0],
+          mint: mintAddress,
+          mintConfig: mintConfig[0],
+          tokenAccountOwner,
+          gatingProgram: gateProgramAddress,
+        },
+        {
+          programAddress: TOKEN_ACL_PROGRAM_ADDRESS,
+        }
+      );
 
   const accountRetriever = async (address: Address) => {
     if (address === tokenAccountAddress) {
@@ -633,7 +713,7 @@ export async function createThawPermissionlessInstructionFromMint(
       };
     }
     return await fetchEncodedAccount(rpc, address);
-  }
+  };
 
   const metas = await resolveExtraMetas(
     accountRetriever,

@@ -1,7 +1,7 @@
 {
-  "name": "@token-acl/sdk",
-  "version": "0.2.7",
-  "description": "",
+  "name": "@solana/token-acl-sdk",
+  "version": "0.3.0",
+  "description": "A Javascript SDK for the Token ACL program",
   "sideEffects": false,
   "module": "./dist/src/index.mjs",
   "main": "./dist/src/index.js",
@@ -24,24 +24,31 @@
     "test": "ava",
     "lint": "eslint --ext js,ts,tsx src",
     "lint:fix": "eslint --fix --ext js,ts,tsx src",
-    "format": "prettier --check src test",
-    "format:fix": "prettier --write src test",
-    "prepublishOnly": "pnpm build"
+    "format": "prettier --check src",
+    "format:fix": "prettier --write src",
+    "prepublishOnly": "pnpm build",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "changeset publish",
+    "changeset:status": "changeset status",
+    "version-packages": "changeset version"
   },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/solana-foundation/token-acl"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/solana-foundation/token-acl/issues"
   },
   "homepage": "",
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.29.5",
     "@types/jest": "^29.5.0",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
     "@typescript-eslint/parser": "^8.34.0",
@@ -51,7 +58,10 @@
     "typescript": "^5.8.3",
     "rimraf": "^6.0.1",
     "tsup": "^8.1.2",
-    "@types/node": "^24"
+    "@types/node": "^24",
+    "globals": "^16.5.0",
+    "typescript-eslint": "^8.48.1",
+    "prettier": "^3.3.3"
   },
   "ava": {
     "nodeArguments": [
@@ -64,7 +74,7 @@
       }
     }
   },
-  "packageManager": "pnpm@9.1.0",
+  "packageManager": "pnpm@10.20.0",
   "dependencies": {
     "@solana/kit": "^5.0.0",
     "@solana-program/token-2022": "0.6.1"
