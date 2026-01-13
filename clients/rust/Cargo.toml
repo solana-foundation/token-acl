@@ -30,7 +30,7 @@ spl-type-length-value = { workspace = true }
 spl-pod = { workspace = true }
 thiserror = "2.0"
 borsh = "^0.10"
-token-acl-interface = { path = "../../interface" }
+token-acl-interface = { workspace = true }
 solana-system-interface = { workspace = true }
 spl-token-client = { workspace = true }
 spl-token-metadata-interface = { workspace = true }
