@@ -26,7 +26,7 @@ solana-program-error = { workspace = true }
 spl-discriminator = { workspace = true }
 spl-pod = { workspace = true }
 spl-tlv-account-resolution = { workspace = true }
-token-acl-interface = { version = "0.1.0", path = "../../interface" }
+token-acl-interface = { workspace = true }
 spl-type-length-value = { workspace = true }
 spl-associated-token-account-client = { workspace = true }
 bytemuck = { version = "1.21.0", features = ["derive"] }
