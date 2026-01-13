@@ -12,10 +12,8 @@ members = [
 
 
 [workspace.package]
-authors = ["TBD"]
 repository = "https://github.com/solana-foundation/token-acl"
-homepage = "TBD"
-license = "Apache-2.0"
+license = "MIT"
 edition = "2021"
 
 [workspace.lints.rust.unexpected_cfgs]
