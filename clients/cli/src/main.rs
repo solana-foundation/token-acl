@@ -3,7 +3,11 @@ use solana_sdk::program_option::COption;
 use solana_sdk::program_pack::Pack;
 use spl_associated_token_account_client::address::get_associated_token_address_with_program_id;
 use spl_associated_token_account_client::instruction::create_associated_token_account;
-use spl_token_client::spl_token_2022::{extension::{BaseStateWithExtensions, PodStateWithExtensions}, pod::PodMint, state::AccountState};
+use spl_token_client::spl_token_2022::{
+    extension::{BaseStateWithExtensions, PodStateWithExtensions},
+    pod::PodMint,
+    state::AccountState,
+};
 use spl_token_metadata_interface::state::TokenMetadata;
 use token_acl_client::set_mint_tacl_metadata_ix;
 use {
@@ -39,13 +43,19 @@ struct Config {
 async fn process_create_config(
     rpc_client: &Arc<RpcClient>,
     payer: &Arc<dyn Signer>,
+    freeze_authority: Option<(Box<dyn Signer>, Pubkey)>,
     mint: &Pubkey,
     gating_program: Option<&Pubkey>,
 ) -> Result<Signature, Box<dyn Error>> {
     let config = token_acl_client::accounts::MintConfig::find_pda(mint).0;
 
     let ix = token_acl_client::instructions::CreateConfigBuilder::new()
-        .authority(payer.pubkey())
+        .authority(
+            freeze_authority
+                .as_ref()
+                .map(|(_, pk)| *pk)
+                .unwrap_or(payer.pubkey()),
+        )
         .payer(payer.pubkey())
         .mint(*mint)
         .mint_config(config)
@@ -55,22 +65,32 @@ async fn process_create_config(
     let mut instructions = vec![ix];
 
     if let Some(gating_program) = gating_program {
-        let mint_data = rpc_client.get_account_data(&mint).await.map_err(|err| format!("error: unable to get mint data: {}", err))?;
-        let mint_unpacked = PodStateWithExtensions::<PodMint>::unpack(&mint_data).map_err(|err| format!("error: unable to unpack mint data: {}", err))?;
-        let mut metadata = mint_unpacked.get_variable_len_extension::<TokenMetadata>().map_err(|err| format!("error: unable to get metadata: {}", err))?;
-    
+        let mint_data = rpc_client
+            .get_account_data(&mint)
+            .await
+            .map_err(|err| format!("error: unable to get mint data: {}", err))?;
+        let mint_unpacked: PodStateWithExtensions<'_, PodMint> =
+            PodStateWithExtensions::<PodMint>::unpack(&mint_data)
+                .map_err(|err| format!("error: unable to unpack mint data: {}", err))?;
+        let mut metadata = mint_unpacked
+            .get_variable_len_extension::<TokenMetadata>()
+            .map_err(|err| format!("error: unable to get metadata: {}", err))?;
+
         let initial_tlv_size = metadata.tlv_size_of()?;
-        metadata.set_key_value(token_acl_client::TOKEN_ACL_METADATA_KEY.to_string(), gating_program.to_string());
+        metadata.set_key_value(
+            token_acl_client::TOKEN_ACL_METADATA_KEY.to_string(),
+            gating_program.to_string(),
+        );
         let new_tlv_size = metadata.tlv_size_of()?;
-    
+
         if new_tlv_size > initial_tlv_size {
             let diff = new_tlv_size - initial_tlv_size;
-            let rent = rpc_client.get_minimum_balance_for_rent_exemption(diff).await.map_err(|err| format!("error: unable to get rent: {}", err))?;
-            let transfer_ix = solana_system_interface::instruction::transfer(
-                &payer.pubkey(),
-                &mint,
-                rent
-            );
+            let rent = rpc_client
+                .get_minimum_balance_for_rent_exemption(diff)
+                .await
+                .map_err(|err| format!("error: unable to get rent: {}", err))?;
+            let transfer_ix =
+                solana_system_interface::instruction::transfer(&payer.pubkey(), &mint, rent);
             instructions.push(transfer_ix);
         }
 
@@ -88,9 +108,16 @@ async fn process_create_config(
         .await
         .map_err(|err| format!("error: unable to get latest blockhash: {}", err))?;
 
-    transaction
-        .try_sign(&[payer], blockhash)
-        .map_err(|err| format!("error: failed to sign transaction: {}", err))?;
+    if let Some((signer, _)) = freeze_authority {
+        let signer: Arc<dyn Signer> = Arc::new(signer);
+        transaction
+            .try_sign(&[payer, &signer], blockhash)
+            .map_err(|err| format!("error: failed to sign transaction: {}", err))?;
+    } else {
+        transaction
+            .try_sign(&[payer], blockhash)
+            .map_err(|err| format!("error: failed to sign transaction: {}", err))?;
+    };
 
     let signature = rpc_client
         .send_and_confirm_transaction_with_spinner(&transaction)
@@ -186,26 +213,34 @@ async fn process_set_gating_program(
         .instruction();
 
     let set_metadata_ix = set_mint_tacl_metadata_ix(mint, &payer.pubkey(), new_gating_program);
-    
+
     let mut instructions = vec![ix, set_metadata_ix];
 
-
-    let mint_data = rpc_client.get_account_data(&mint).await.map_err(|err| format!("error: unable to get mint data: {}", err))?;
-    let mint_unpacked = PodStateWithExtensions::<PodMint>::unpack(&mint_data).map_err(|err| format!("error: unable to unpack mint data: {}", err))?;
-    let mut metadata = mint_unpacked.get_variable_len_extension::<TokenMetadata>().map_err(|err| format!("error: unable to get metadata: {}", err))?;
+    let mint_data = rpc_client
+        .get_account_data(&mint)
+        .await
+        .map_err(|err| format!("error: unable to get mint data: {}", err))?;
+    let mint_unpacked = PodStateWithExtensions::<PodMint>::unpack(&mint_data)
+        .map_err(|err| format!("error: unable to unpack mint data: {}", err))?;
+    let mut metadata = mint_unpacked
+        .get_variable_len_extension::<TokenMetadata>()
+        .map_err(|err| format!("error: unable to get metadata: {}", err))?;
 
     let initial_tlv_size = metadata.tlv_size_of()?;
-    metadata.set_key_value(token_acl_client::TOKEN_ACL_METADATA_KEY.to_string(), new_gating_program.to_string());
+    metadata.set_key_value(
+        token_acl_client::TOKEN_ACL_METADATA_KEY.to_string(),
+        new_gating_program.to_string(),
+    );
     let new_tlv_size = metadata.tlv_size_of()?;
 
     if new_tlv_size > initial_tlv_size {
         let diff = new_tlv_size - initial_tlv_size;
-        let rent = rpc_client.get_minimum_balance_for_rent_exemption(diff).await.map_err(|err| format!("error: unable to get rent: {}", err))?;
-        let transfer_ix = solana_system_interface::instruction::transfer(
-            &payer.pubkey(),
-            &mint,
-            rent
-        );
+        let rent = rpc_client
+            .get_minimum_balance_for_rent_exemption(diff)
+            .await
+            .map_err(|err| format!("error: unable to get rent: {}", err))?;
+        let transfer_ix =
+            solana_system_interface::instruction::transfer(&payer.pubkey(), &mint, rent);
         instructions.push(transfer_ix);
     }
 
@@ -679,7 +714,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .subcommand(
             Command::new("create-config")
-                .about("Creates a new mint config")
+                .about("Creates a new mint config and transfers the freeze authority to the TokenACL program.")
                 .arg(
                     Arg::new("mint_address")
                         .value_name("MINT_ADDRESS")
@@ -999,9 +1034,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let gating_program =
                 SignerSource::try_get_pubkey(arg_matches, "gating_program", &mut wallet_manager)
                     .unwrap();
+            let freeze_authority =
+                SignerSource::try_get_signer(arg_matches, "freeze_authority", &mut wallet_manager)
+                    .unwrap();
             let response = process_create_config(
                 &rpc_client,
                 &config.payer,
+                freeze_authority,
                 &mint_address,
                 gating_program.as_ref(),
             )

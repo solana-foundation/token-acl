@@ -84,7 +84,7 @@ impl TestContext {
         let mint_size = ExtensionType::try_calculate_account_len::<Mint>(&[
             ExtensionType::DefaultAccountState,
             ExtensionType::MintCloseAuthority,
-            ExtensionType::MetadataPointer
+            ExtensionType::MetadataPointer,
         ])
         .unwrap();
         let mint_kp = Keypair::new();
@@ -104,22 +104,30 @@ impl TestContext {
             initialize_default_account_state(token_program_id, &mint_pk, &AccountState::Frozen)
                 .unwrap();
 
-            let ix3 = initialize(token_program_id, &mint_pk, Some(auth_pubkey), Some(mint_pk)).unwrap();
-            
-            let ix4 = initialize_mint_close_authority(token_program_id, &mint_pk, Some(&auth_pubkey))
+        let ix3 = initialize(token_program_id, &mint_pk, Some(auth_pubkey), Some(mint_pk)).unwrap();
+
+        let ix4 = initialize_mint_close_authority(token_program_id, &mint_pk, Some(&auth_pubkey))
             .unwrap();
 
-            let ix5 = initialize_mint2(
-                token_program_id,
-                &mint_pk,
-                &auth_pubkey,
-                Some(&auth_pubkey),
-                6,
-            )
-            .unwrap();
+        let ix5 = initialize_mint2(
+            token_program_id,
+            &mint_pk,
+            &auth_pubkey,
+            Some(&auth_pubkey),
+            6,
+        )
+        .unwrap();
 
-        let ix6 = spl_token_metadata_interface::instruction::initialize(token_program_id, &mint_pk, &auth_pubkey, &mint_pk, &auth_pubkey, "TEST TOKEN".to_string(), "TST".to_string(), "tst.com".to_string());
-
+        let ix6 = spl_token_metadata_interface::instruction::initialize(
+            token_program_id,
+            &mint_pk,
+            &auth_pubkey,
+            &mint_pk,
+            &auth_pubkey,
+            "TEST TOKEN".to_string(),
+            "TST".to_string(),
+            "tst.com".to_string(),
+        );
 
         let block_hash = vm.latest_blockhash();
         let tx = Transaction::new_signed_with_payer(
@@ -210,8 +218,9 @@ impl TestContext {
             .system_program(ID)
             .token_program(spl_token_2022::ID)
             .instruction();
-        
-        let set_metadata_ix = set_mint_tacl_metadata_ix(&self.token.mint, &self.token.auth.pubkey(), gating_program);
+
+        let set_metadata_ix =
+            set_mint_tacl_metadata_ix(&self.token.mint, &self.token.auth.pubkey(), gating_program);
 
         let tx = Transaction::new_signed_with_payer(
             &[ix, set_metadata_ix],
@@ -248,7 +257,8 @@ impl TestContext {
 
     pub fn setup_aa_gate_extra_metas(&mut self) {
         let setup_extra_metas_ix = self.get_setup_extra_metas_ix(&self.token.auth.pubkey(), &AA_ID);
-        let set_metadata_ix = set_mint_tacl_metadata_ix(&self.token.mint, &self.token.auth.pubkey(), &AA_ID);
+        let set_metadata_ix =
+            set_mint_tacl_metadata_ix(&self.token.mint, &self.token.auth.pubkey(), &AA_ID);
         let tx = Transaction::new_signed_with_payer(
             &[setup_extra_metas_ix, set_metadata_ix],
             Some(&self.token.auth.pubkey()),
@@ -261,7 +271,8 @@ impl TestContext {
 
     pub fn setup_ab_gate_extra_metas(&mut self) {
         let setup_extra_metas_ix = self.get_setup_extra_metas_ix(&self.token.auth.pubkey(), &AB_ID);
-        let set_metadata_ix = set_mint_tacl_metadata_ix(&self.token.mint, &self.token.auth.pubkey(), &AB_ID);
+        let set_metadata_ix =
+            set_mint_tacl_metadata_ix(&self.token.mint, &self.token.auth.pubkey(), &AB_ID);
         let tx = Transaction::new_signed_with_payer(
             &[setup_extra_metas_ix, set_metadata_ix],
             Some(&self.token.auth.pubkey()),
@@ -275,7 +286,8 @@ impl TestContext {
     pub fn setup_aa_wd_gate_extra_metas(&mut self) {
         let setup_extra_metas_ix =
             self.get_setup_extra_metas_ix(&self.token.auth.pubkey(), &AA_WD_ID);
-        let set_metadata_ix = set_mint_tacl_metadata_ix(&self.token.mint, &self.token.auth.pubkey(), &AA_WD_ID);
+        let set_metadata_ix =
+            set_mint_tacl_metadata_ix(&self.token.mint, &self.token.auth.pubkey(), &AA_WD_ID);
         let tx = Transaction::new_signed_with_payer(
             &[setup_extra_metas_ix, set_metadata_ix],
             Some(&self.token.auth.pubkey()),

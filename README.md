@@ -47,13 +47,13 @@ cargo install --path clients/cli
 
 ```bash
 # Create a mint configuration
-token-acl create-config <MINT_ADDRESS> --authority <AUTHORITY_KEYPAIR>
+token-acl-cli create-config <MINT_ADDRESS> --authority <AUTHORITY_KEYPAIR>
 
 # Set a gate program
-token-acl set-gating-program <MINT_ADDRESS> <GATE_PROGRAM_ID>
+token-acl-cli set-gating-program <MINT_ADDRESS> <GATE_PROGRAM_ID>
 
 # Enable permissionless thaw
-token-acl enable-permissionless-thaw <MINT_ADDRESS>
+token-acl-cli enable-permissionless-thaw <MINT_ADDRESS>
 ```
 
 ## Examples
@@ -87,7 +87,7 @@ cargo test
 cargo build-sbf --manifest-path program/Cargo.toml
 
 # Run integration tests
-cargo test --package token-acl --test integration
+cargo test --package token-acl-client
 ```
 
 ## License

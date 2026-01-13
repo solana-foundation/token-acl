@@ -1,5 +1,5 @@
 [package]
-name = "cli"
+name = "token-acl-cli"
 version = "0.1.0"
 edition = "2021"
 
@@ -23,5 +23,5 @@ spl-token-metadata-interface = { workspace = true }
 solana-system-interface = { workspace = true }
 
 [[bin]]
-name = "token-acl"
+name = "token-acl-cli"
 path = "src/main.rs"

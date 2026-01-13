@@ -2,7 +2,8 @@ use spl_discriminator::SplDiscriminate;
 pub use spl_tlv_account_resolution::state::{AccountDataResult, AccountFetchError};
 
 use crate::{
-    get_freeze_extra_account_metas_address, instruction::{can_freeze_permissionless, CanFreezePermissionlessInstruction}
+    get_freeze_extra_account_metas_address,
+    instruction::{can_freeze_permissionless, CanFreezePermissionlessInstruction},
 };
 
 use {
@@ -16,7 +17,6 @@ use {
     spl_tlv_account_resolution::state::ExtraAccountMetaList,
     std::future::Future,
 };
-
 
 #[allow(clippy::too_many_arguments)]
 pub async fn add_extra_account_metas_for_freeze<F, Fut>(
@@ -45,7 +45,12 @@ where
         &extra_metas_pubkey,
         &flag_account_pubkey,
         fetch_account_data_fn,
-        |program_id, signer_pubkey, token_account_pubkey, mint_pubkey, token_account_owner, flag_account_pubkey| {
+        |program_id,
+         signer_pubkey,
+         token_account_pubkey,
+         mint_pubkey,
+         token_account_owner,
+         flag_account_pubkey| {
             can_freeze_permissionless(
                 program_id,
                 signer_pubkey,
@@ -86,7 +91,12 @@ where
         &extra_metas_pubkey,
         &flag_account_pubkey,
         fetch_account_data_fn,
-        |program_id, signer_pubkey, token_account_pubkey, mint_pubkey, token_account_owner, flag_account_pubkey| {
+        |program_id,
+         signer_pubkey,
+         token_account_pubkey,
+         mint_pubkey,
+         token_account_owner,
+         flag_account_pubkey| {
             can_thaw_permissionless(
                 program_id,
                 signer_pubkey,
@@ -121,7 +131,8 @@ where
 {
     //let validate_state_pubkey = get_thaw_extra_account_metas_address(mint_pubkey, program_id);
     let validate_state_data = fetch_account_data_fn(*extra_metas_pubkey)
-        .await.map_err(|_|ThawFreezeGateError::MissingExtraAccountMeta)?
+        .await
+        .map_err(|_| ThawFreezeGateError::MissingExtraAccountMeta)?
         .ok_or(ThawFreezeGateError::MissingExtraAccountMeta)?;
 
     // Check to make sure the provided keys are in the instruction
@@ -151,7 +162,8 @@ where
         .push(AccountMeta::new_readonly(*extra_metas_pubkey, false));
 
     ExtraAccountMetaList::add_to_instruction::<T, _, _>(
-        &mut cpi_ix,fetch_account_data_fn,
+        &mut cpi_ix,
+        fetch_account_data_fn,
         &validate_state_data,
     )
     .await
