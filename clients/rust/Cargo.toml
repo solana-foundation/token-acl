@@ -2,9 +2,7 @@
 name = "token-acl-client"
 version = "0.1.0"
 description = "A rust library for the Token ACL program with generated client code."
-authors = { workspace = true }
 repository = { workspace = true }
-homepage = { workspace = true }
 license = { workspace = true }
 edition = { workspace = true }
 
