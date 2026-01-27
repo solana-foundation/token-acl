@@ -50,7 +50,3 @@ crate-type = ["cdylib", "lib"]
 
 [features]
 default = []
-serde = []
-fetch = []
-anchor = []
-anchor-idl-build = []

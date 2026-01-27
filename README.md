@@ -43,17 +43,55 @@ cargo build --release
 cargo install --path clients/cli
 ```
 
-### Basic Usage
+Installing the CLI from crates.io
 
 ```bash
-# Create a mint configuration
-token-acl-cli create-config <MINT_ADDRESS> --authority <AUTHORITY_KEYPAIR>
+cargo install token-acl-cli
+```
 
-# Set a gate program
-token-acl-cli set-gating-program <MINT_ADDRESS> <GATE_PROGRAM_ID>
+### CLI Usage
 
-# Enable permissionless thaw
-token-acl-cli enable-permissionless-thaw <MINT_ADDRESS>
+#### Configuration Commands
+
+```bash
+# Create a mint configuration (transfers freeze authority to TokenACL program)
+token-acl-cli create-config <MINT_ADDRESS> [--gating-program <GATING_PROGRAM>]
+
+# Delete a mint configuration
+token-acl-cli delete-config <MINT_ADDRESS> [--receiver <RECEIVER_ADDRESS>]
+
+# Set the authority of a mint config
+token-acl-cli set-authority <MINT_ADDRESS> --new-authority <NEW_AUTHORITY>
+
+# Set the gating program for a mint config
+token-acl-cli set-gating-program <MINT_ADDRESS> <NEW_GATING_PROGRAM>
+
+# Enable/disable permissionless instructions
+token-acl-cli set-instructions <MINT_ADDRESS> --enable-thaw --enable-freeze
+token-acl-cli set-instructions <MINT_ADDRESS> --disable-thaw --disable-freeze
+```
+
+#### Freeze/Thaw Commands
+
+```bash
+# Freeze a token account (requires freeze authority)
+token-acl-cli freeze <TOKEN_ACCOUNT>
+
+# Thaw a token account (requires freeze authority)
+token-acl-cli thaw <TOKEN_ACCOUNT>
+
+# Freeze a token account permissionlessly
+token-acl-cli freeze-permissionless --token-account <TOKEN_ACCOUNT>
+# OR
+token-acl-cli freeze-permissionless --mint <MINT_ADDRESS> --owner <TOKEN_ACCOUNT_OWNER>
+
+# Thaw a token account permissionlessly
+token-acl-cli thaw-permissionless --token-account <TOKEN_ACCOUNT>
+# OR
+token-acl-cli thaw-permissionless --mint <MINT_ADDRESS> --owner <TOKEN_ACCOUNT_OWNER>
+
+# Create an associated token account and thaw it permissionlessly
+token-acl-cli create-ata-and-thaw-permissionless --mint <MINT_ADDRESS> --owner <TOKEN_ACCOUNT_OWNER>
 ```
 
 ## Examples
