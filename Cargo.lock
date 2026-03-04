@@ -167,7 +167,7 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
 name = "always-allow-gate-program"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "solana-cpi",
  "solana-program",
@@ -182,7 +182,7 @@ dependencies = [
 
 [[package]]
 name = "always-allow-with-deps-gate-program"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "solana-cpi",
  "solana-program",
@@ -199,7 +199,7 @@ dependencies = [
 
 [[package]]
 name = "always-block-gate-program"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "solana-cpi",
  "solana-program",
@@ -6824,7 +6824,7 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "token-acl"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "bytemuck",
  "solana-cpi",
@@ -6841,7 +6841,7 @@ dependencies = [
 
 [[package]]
 name = "token-acl-cli"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "clap 3.2.25",
  "solana-clap-v3-utils",
@@ -6861,7 +6861,7 @@ dependencies = [
 
 [[package]]
 name = "token-acl-client"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "borsh",
  "litesvm",
@@ -6891,7 +6891,7 @@ dependencies = [
 
 [[package]]
 name = "token-acl-interface"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "num-traits",
  "solana-account-info",
