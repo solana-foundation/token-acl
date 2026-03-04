@@ -13,6 +13,26 @@ on:
         required: true
         default: true
         type: boolean
+      publish-token-acl:
+        description: 'Publish token-acl crate to crates.io'
+        required: true
+        default: true
+        type: boolean
+      publish-token-acl-interface:
+        description: 'Publish token-acl-interface crate to crates.io'
+        required: true
+        default: true
+        type: boolean
+      publish-token-acl-client:
+        description: 'Publish token-acl-client crate to crates.io'
+        required: true
+        default: true
+        type: boolean
+      publish-token-acl-cli:
+        description: 'Publish token-acl-cli crate to crates.io'
+        required: true
+        default: true
+        type: boolean
 
 concurrency:
   group: release-rust
@@ -77,7 +97,7 @@ jobs:
         id: auth
 
       - name: Publish token-acl-interface to crates.io
-        if: ${{ github.event.inputs.publish-to-crates-io == 'true' }}
+        if: ${{ github.event.inputs.publish-to-crates-io == 'true' && github.event.inputs.publish-token-acl-interface == 'true' }}
         run: |
           echo "📦 Publishing token-acl-interface@${{ steps.version.outputs.version }} to crates.io..."
           cargo publish -p token-acl-interface --locked
@@ -85,13 +105,13 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
 
       - name: Wait for token-acl-interface to be available on crates.io
-        if: ${{ github.event.inputs.publish-to-crates-io == 'true' }}
+        if: ${{ github.event.inputs.publish-to-crates-io == 'true' && github.event.inputs.publish-token-acl-interface == 'true' }}
         run: |
           echo "Waiting 30 seconds for crates.io to index token-acl-interface..."
           sleep 30
 
       - name: Publish token-acl to crates.io
-        if: ${{ github.event.inputs.publish-to-crates-io == 'true' }}
+        if: ${{ github.event.inputs.publish-to-crates-io == 'true' && github.event.inputs.publish-token-acl == 'true' }}
         run: |
           echo "📦 Publishing token-acl@${{ steps.version.outputs.version }} to crates.io..."
           cargo publish -p token-acl --locked
@@ -99,7 +119,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
 
       - name: Publish token-acl-client to crates.io
-        if: ${{ github.event.inputs.publish-to-crates-io == 'true' }}
+        if: ${{ github.event.inputs.publish-to-crates-io == 'true' && github.event.inputs.publish-token-acl-client == 'true' }}
         run: |
           echo "📦 Publishing token-acl-client@${{ steps.version.outputs.version }} to crates.io..."
           cargo publish -p token-acl-client --locked
@@ -107,13 +127,13 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
 
       - name: Wait for token-acl-client to be available on crates.io
-        if: ${{ github.event.inputs.publish-to-crates-io == 'true' }}
+        if: ${{ github.event.inputs.publish-to-crates-io == 'true' && github.event.inputs.publish-token-acl-client == 'true' }}
         run: |
           echo "Waiting 30 seconds for crates.io to index token-acl-client..."
           sleep 30
 
       - name: Publish token-acl-cli to crates.io
-        if: ${{ github.event.inputs.publish-to-crates-io == 'true' }}
+        if: ${{ github.event.inputs.publish-to-crates-io == 'true' && github.event.inputs.publish-token-acl-cli == 'true' }}
         run: |
           echo "📦 Publishing token-acl-cli@${{ steps.version.outputs.version }} to crates.io..."
           cargo publish -p token-acl-cli --locked
@@ -162,9 +182,15 @@ jobs:
           if [ "${{ github.event.inputs.publish-to-crates-io }}" == "true" ]; then
             echo "✅ Published to crates.io:" >> $GITHUB_STEP_SUMMARY
             echo "- https://crates.io/crates/token-acl-interface/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-            echo "- https://crates.io/crates/token-acl/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-            echo "- https://crates.io/crates/token-acl-client/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-            echo "- https://crates.io/crates/token-acl-cli/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ github.event.inputs.publish-token-acl }}" == "true" ]; then
+              echo "- https://crates.io/crates/token-acl/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [ "${{ github.event.inputs.publish-token-acl-client }}" == "true" ]; then
+              echo "- https://crates.io/crates/token-acl-client/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [ "${{ github.event.inputs.publish-token-acl-cli }}" == "true" ]; then
+              echo "- https://crates.io/crates/token-acl-cli/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+            fi
           else
             echo "⏭️ Skipped crates.io publish (dry run)" >> $GITHUB_STEP_SUMMARY
           fi
