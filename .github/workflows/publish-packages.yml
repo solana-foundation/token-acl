@@ -39,6 +39,10 @@ jobs:
       - name: Install Dependencies
         uses: ./.github/workflows/actions/install-dependencies
 
+      - name: Install TS dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
       - name: Lint
         run: pnpm lint
 
