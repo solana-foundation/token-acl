@@ -43,21 +43,23 @@ impl FreezePermissionless<'_> {
             return Err(TokenAclError::InvalidGatingProgram.into());
         }
 
-        if is_idempotent {
+        {
             let ta_data = self.token_account.data.borrow();
             let ta = StateWithExtensions::<spl_token_2022::state::Account>::unpack(&ta_data)?;
 
             if ta.base.owner != *self.token_account_owner.key {
                 return Err(TokenAclError::InvalidTokenAccountOwner.into());
             }
-
-            if ta.base.state != AccountState::Initialized {
-                // freeze CPI enforces ta.base.mint == self.mint.key, but we're returning early
-                // so we need to check it to enforce same behaviour regardless of idempotency
-                if ta.base.mint != *self.mint.key {
-                    return Err(TokenAclError::InvalidTokenMint.into());
+            
+            if is_idempotent {
+                if ta.base.state != AccountState::Initialized {
+                    // freeze CPI enforces ta.base.mint == self.mint.key, but we're returning early
+                    // so we need to check it to enforce same behaviour regardless of idempotency
+                    if ta.base.mint != *self.mint.key {
+                        return Err(TokenAclError::InvalidTokenMint.into());
+                    }
+                    return Ok(());
                 }
-                return Ok(());
             }
         }
 
