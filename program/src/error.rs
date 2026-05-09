@@ -11,7 +11,7 @@ pub enum TokenAclError {
     PermissionlessThawNotEnabled,
     PermissionlessFreezeNotEnabled,
     InvalidTokenAccountOwner,
-    InvalidFlagAccount
+    InvalidFlagAccount,
 }
 
 impl From<TokenAclError> for ProgramError {

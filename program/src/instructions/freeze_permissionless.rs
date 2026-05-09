@@ -50,7 +50,7 @@ impl FreezePermissionless<'_> {
             if ta.base.owner != *self.token_account_owner.key {
                 return Err(TokenAclError::InvalidTokenAccountOwner.into());
             }
-            
+
             if is_idempotent {
                 if ta.base.state != AccountState::Initialized {
                     // freeze CPI enforces ta.base.mint == self.mint.key, but we're returning early
