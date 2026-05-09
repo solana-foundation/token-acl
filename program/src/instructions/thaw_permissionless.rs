@@ -150,10 +150,14 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for ThawPermissionless<'a> {
             return Err(TokenAclError::InvalidSystemProgram.into());
         }
 
-        let (_, flag_account_bump) = Pubkey::find_program_address(
+        let (derived_flag_account, flag_account_bump) = Pubkey::find_program_address(
             &[FLAG_ACCOUNT_SEED_PREFIX, token_account.key.as_ref()],
             &crate::ID,
         );
+
+        if &derived_flag_account != flag_account.key {
+            return Err(TokenAclError::InvalidFlagAccount.into());
+        }
 
         if mint_config.owner != &crate::ID {
             return Err(TokenAclError::InvalidMintConfig.into());
