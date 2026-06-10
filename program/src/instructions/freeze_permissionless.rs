@@ -43,7 +43,7 @@ impl FreezePermissionless<'_> {
             return Err(TokenAclError::InvalidGatingProgram.into());
         }
 
-        if is_idempotent {
+        {
             let ta_data = self.token_account.data.borrow();
             let ta = StateWithExtensions::<spl_token_2022::state::Account>::unpack(&ta_data)?;
 
@@ -51,13 +51,15 @@ impl FreezePermissionless<'_> {
                 return Err(TokenAclError::InvalidTokenAccountOwner.into());
             }
 
-            if ta.base.state != AccountState::Initialized {
-                // freeze CPI enforces ta.base.mint == self.mint.key, but we're returning early
-                // so we need to check it to enforce same behaviour regardless of idempotency
-                if ta.base.mint != *self.mint.key {
-                    return Err(TokenAclError::InvalidTokenMint.into());
+            if is_idempotent {
+                if ta.base.state != AccountState::Initialized {
+                    // freeze CPI enforces ta.base.mint == self.mint.key, but we're returning early
+                    // so we need to check it to enforce same behaviour regardless of idempotency
+                    if ta.base.mint != *self.mint.key {
+                        return Err(TokenAclError::InvalidTokenMint.into());
+                    }
+                    return Ok(());
                 }
-                return Ok(());
             }
         }
 
@@ -148,10 +150,14 @@ impl<'a> TryFrom<&'a [AccountInfo<'a>]> for FreezePermissionless<'a> {
             return Err(TokenAclError::InvalidSystemProgram.into());
         }
 
-        let (_, flag_account_bump) = Pubkey::find_program_address(
+        let (derived_flag_account, flag_account_bump) = Pubkey::find_program_address(
             &[FLAG_ACCOUNT_SEED_PREFIX, token_account.key.as_ref()],
             &crate::ID,
         );
+
+        if &derived_flag_account != flag_account.key {
+            return Err(TokenAclError::InvalidFlagAccount.into());
+        }
 
         if mint_config.owner != &crate::ID {
             return Err(TokenAclError::InvalidMintConfig.into());

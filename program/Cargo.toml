@@ -27,6 +27,7 @@ bytemuck = { version = "1.21.0", features = ["derive"] }
 
 [lib]
 crate-type = ["cdylib", "lib"]
+name = "token_acl"
 
 [lints]
 workspace = true
