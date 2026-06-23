@@ -2,6 +2,8 @@
 
 A Solana program implementation of [SRFC37](srfc37.md) - a permissioned token standard that enables allow/block listing without compromising user experience or developer composability.
 
+**Program address:** `TACLkU6CiCdkQN2MjoyDkVg2yAH9zkxiHDsiztQ52TP` (Solana mainnet)
+
 ## Overview
 
 Token ACL provides a novel mechanism for permissioned tokens using Token22's Default Account State extension and a delegated freeze authority. This approach eliminates the UX friction of manual token account thawing while maintaining protocol composability.
