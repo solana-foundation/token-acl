@@ -15,7 +15,7 @@ members = [
 repository = "https://github.com/solana-foundation/token-acl"
 license = "MIT"
 edition = "2021"
-version = "0.2.2"
+version = "0.2.3"
 
 [workspace.lints.rust.unexpected_cfgs]
 level = "warn"
