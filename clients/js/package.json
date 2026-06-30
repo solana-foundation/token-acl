@@ -1,6 +1,6 @@
 {
   "name": "@solana/token-acl-sdk",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A Javascript SDK for the Token ACL program",
   "sideEffects": false,
   "module": "./dist/src/index.mjs",
@@ -77,7 +77,7 @@
   },
   "packageManager": "pnpm@10.20.0",
   "dependencies": {
-    "@solana/kit": "^5.0.0",
-    "@solana-program/token-2022": "0.6.1"
+    "@solana/kit": "^6.0.0",
+    "@solana-program/token-2022": "0.12.0"
   }
 }
