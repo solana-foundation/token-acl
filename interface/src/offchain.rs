@@ -166,8 +166,7 @@ where
         fetch_account_data_fn,
         &validate_state_data,
     )
-    .await
-    .map_err(Into::into)?;
+    .await?;
 
     // Add only the extra accounts resolved from the validation state
     instruction
