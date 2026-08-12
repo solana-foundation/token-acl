@@ -15,7 +15,7 @@ members = [
 repository = "https://github.com/solana-foundation/token-acl"
 license = "MIT"
 edition = "2021"
-version = "0.2.3"
+version = "0.3.0"
 
 [workspace.lints.rust.unexpected_cfgs]
 level = "warn"
@@ -25,7 +25,7 @@ check-cfg = [
 ]
 
 [workspace.metadata.cli]
-solana = "3.0.14"
+solana = "3.1.10"
 
 
 [workspace.metadata.spellcheck]
@@ -37,39 +37,39 @@ tag-message = "Publish {{crate_name}} v{{version}}"
 consolidate-commits = false
 
 [workspace.dependencies]
-solana-account-info = "3.1.0"
-solana-account = "3.1.0"
+solana-account-info = "3.1.1"
+solana-account = "3.2.0"
 solana-cpi = "3.1.0"
 solana-decode-error = "2.3.0"
 solana-instruction = { version = "3.1.0", features = ["std"] }
-solana-program-error = "3.0.0"
+solana-program-error = "3.0.1"
 solana-pubkey = { version = "4.0.0", features = ["curve25519", "borsh"] }
 solana-program = "3.0.0"
-solana-program-option = "3.0.0"
+solana-program-option = "3.1.0"
 solana-rent = "3.1.0"
 solana-system-interface = {version = "3.0.0", features = ["bincode"]} 
 solana-sysvar = "3.1.1"
-solana-msg = "3.0.0"
-solana-client = "3.1.8"
+solana-msg = "3.1.0"
+solana-client = "3.1.11"
 solana-program-test = "3.1.8"
 solana-program-entrypoint = "3.1.1"
 solana-program-runtime = "3.1.8"
-solana-program-pack = "3.0.0"
-spl-discriminator = "0.5.1"
+solana-program-pack = "3.1.0"
+spl-discriminator = "0.5.2"
 spl-program-error = "0.8.0"
 spl-tlv-account-resolution = "0.11.1"
-spl-type-length-value = "0.9.0"
-spl-pod = "0.7.1"
+spl-type-length-value = "0.9.1"
+spl-pod = "0.7.2"
 spl-token-2022 = { version = "10.0.0", features = ["no-entrypoint"] }
 solana-sdk = "3.0.0"
 spl-associated-token-account-interface = "2.0.0"
-token-acl-interface = { path = "interface/", version = "0.2.0" }
-token-acl-client = { path = "clients/rust/", version = "0.2.0" }
+token-acl-interface = { path = "interface/", version = "0.3.0" }
+token-acl-client = { path = "clients/rust/", version = "0.3.0" }
 spl-token-client = { version = "0.18.0" }
 spl-token-interface = { version = "2.0.0" }
-spl-token-2022-interface = { version = "2.0.0" }
+spl-token-2022-interface = { version = "2.1.0" }
 spl-token-metadata-interface = { version = "0.8.0" }
-litesvm = "0.9.0"
+litesvm = "0.11.0"
 thiserror = "2.0"
 num-traits = "0.2"
 num-derive = "0.4"
