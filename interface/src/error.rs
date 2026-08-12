@@ -28,19 +28,18 @@ impl std::fmt::Display for ThawFreezeGateError {
     }
 }
 
-impl Into<ThawFreezeGateError> for AccountResolutionError {
-    fn into(self) -> ThawFreezeGateError {
-        ThawFreezeGateError::ResolutionError(self)
+impl From<AccountResolutionError> for ThawFreezeGateError {
+    fn from(err: AccountResolutionError) -> Self {
+        Self::ResolutionError(err)
     }
 }
 
-impl Into<ThawFreezeGateError> for ProgramError {
-    fn into(self) -> ThawFreezeGateError {
-        match self {
-            ProgramError::Custom(code) => ThawFreezeGateError::ResolutionError(
-                AccountResolutionError::from_u32(code).unwrap(),
-            ),
-            _ => ThawFreezeGateError::ProgramError(self),
+impl From<ProgramError> for ThawFreezeGateError {
+    fn from(err: ProgramError) -> Self {
+        match err {
+            ProgramError::Custom(code) => AccountResolutionError::from_u32(code)
+                .map_or(Self::ProgramError(err), Self::ResolutionError),
+            _ => Self::ProgramError(err),
         }
     }
 }
