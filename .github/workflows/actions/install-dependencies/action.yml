@@ -60,6 +60,6 @@ runs:
 
     - name: Install Solana
       if: inputs.solana_version != ''
-      uses: solana-developers/github-actions/setup-all@v0.2.7
+      uses: solana-foundation/github-actions/setup-all@v0.2.7
       with:
         solana_version: ${{ inputs.solana_version }}

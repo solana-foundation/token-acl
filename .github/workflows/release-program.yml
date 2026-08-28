@@ -1,0 +1,210 @@
+name: Release Program
+
+# Deploys the token-acl program as a verified build, mirroring
+# solana-foundation/subscriptions' release workflow:
+#   - devnet: CI writes the buffer and upgrades the program directly with the
+#     deployer key, then uploads the IDL via program-metadata.
+#   - mainnet: CI builds and writes Squads-owned buffers, exports one combined
+#     Squads transaction (verify PDA + IDL metadata write + program upgrade),
+#     and a human imports it into the Squads transaction builder. The CI
+#     keypair is fee payer / buffer writer only and needs no Squads membership.
+#
+# Secrets (DEPLOYER_KEYPAIR, RPC_URL, SQUADS_VAULT, SQUADS_MULTISIG) come from
+# Doppler via OIDC.
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: Target network
+        type: choice
+        options: [devnet, mainnet]
+        required: true
+      priority-fee:
+        description: Priority fee (microlamports per CU)
+        type: string
+        default: '100000'
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: release-program-${{ inputs.network }}
+  cancel-in-progress: false
+
+env:
+  PROGRAM: token_acl
+  PROGRAM_ID: TACLkU6CiCdkQN2MjoyDkVg2yAH9zkxiHDsiztQ52TP
+  IDL_PATH: program/idl.json
+  REPO_URL: https://github.com/solana-foundation/token-acl
+
+jobs:
+  release:
+    name: Release token_acl (${{ inputs.network }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        uses: ./.github/workflows/actions/install-dependencies
+        with:
+          solana_version: "3.1.11"
+          rust-components: "rustfmt, clippy"
+          install-rust: true
+
+      - name: Install verifiable build deps
+        uses: solana-foundation/github-actions/setup-all@e2cd34eb09f996b48be7f6daeb8f455094dd6d53 # v0.2.10
+        with:
+          verify_version: 0.5.0
+
+      # Fetch secrets only after all toolchain setup (third-party actions and the
+      # remote Solana installer) has run, so deploy credentials are never present
+      # in the environment while untrusted setup code executes.
+      - name: Load deploy config from Doppler
+        uses: dopplerhq/secrets-fetch-action@451892f16195f9ac360e1a5bcbf0b5fd0e957534 # v2.0.0
+        with:
+          auth-method: oidc
+          doppler-identity-id: ${{ vars.DOPPLER_SERVICE_IDENTITY_ID }}
+          doppler-project: token-acl
+          doppler-config: ${{ inputs.network == 'mainnet' && 'prd' || 'stg' }}
+          inject-env-vars: true
+
+      - if: inputs.network == 'mainnet'
+        name: Validate Squads config
+        run: |
+          : "${SQUADS_VAULT:?Set SQUADS_VAULT in Doppler prd}"
+          : "${SQUADS_MULTISIG:?Set SQUADS_MULTISIG in Doppler prd}"
+
+      - name: Materialize deployer keypair
+        run: |
+          install -m 600 /dev/null /tmp/deployer.json
+          printf '%s' "$DEPLOYER_KEYPAIR" > /tmp/deployer.json
+
+      - name: Derive deployer pubkey
+        id: deployer
+        run: |
+          PUBKEY=$(solana-keygen pubkey /tmp/deployer.json)
+          echo "pubkey=$PUBKEY" >> "$GITHUB_OUTPUT"
+
+      - name: Configure Solana CLI
+        run: solana config set --url "$RPC_URL" > /dev/null
+
+      # The deployed buffer must contain the verified-build artifact so its
+      # hash matches what remote verifiers rebuild from this repo; a plain
+      # `cargo build-sbf` binary would fail verification.
+      - name: Run verifiable build
+        uses: solana-foundation/github-actions/build-verified@e2cd34eb09f996b48be7f6daeb8f455094dd6d53 # v0.2.10
+        with:
+          program: token_acl
+
+      # ============================================
+      # devnet: direct upgrade by deployer
+      # ============================================
+      - id: write-buffer
+        if: inputs.network == 'devnet'
+        name: Write program buffer (devnet)
+        uses: solana-foundation/github-actions/write-program-buffer@e6ed2eb93c55eca911dbc711fb08683b42926a28 # v0.2.15
+        with:
+          program: ${{ env.PROGRAM }}
+          program-id: ${{ env.PROGRAM_ID }}
+          rpc-url: ${{ env.RPC_URL }}
+          keypair: ${{ env.DEPLOYER_KEYPAIR }}
+          buffer-authority-address: ${{ steps.deployer.outputs.pubkey }}
+          priority-fee: ${{ inputs.priority-fee }}
+
+      - if: inputs.network == 'devnet'
+        name: Upgrade program (devnet)
+        uses: solana-foundation/github-actions/program-upgrade@e6ed2eb93c55eca911dbc711fb08683b42926a28 # v0.2.15
+        with:
+          program: ${{ env.PROGRAM }}
+          program-id: ${{ env.PROGRAM_ID }}
+          buffer: ${{ steps.write-buffer.outputs.buffer }}
+          rpc-url: ${{ env.RPC_URL }}
+          keypair: ${{ env.DEPLOYER_KEYPAIR }}
+
+      - if: inputs.network == 'devnet'
+        name: Upload IDL via program-metadata (devnet)
+        uses: solana-foundation/github-actions/metadata-upload@e6ed2eb93c55eca911dbc711fb08683b42926a28 # v0.2.15
+        with:
+          program-id: ${{ env.PROGRAM_ID }}
+          rpc-url: ${{ env.RPC_URL }}
+          keypair: ${{ env.DEPLOYER_KEYPAIR }}
+          idl-path: ${{ env.IDL_PATH }}
+          priority-fees: ${{ inputs.priority-fee }}
+
+      # ============================================
+      # mainnet: prepare Squads-owned buffers
+      # ============================================
+      - if: inputs.network == 'mainnet'
+        id: prepare-squads-release
+        name: Prepare Squads release buffers (mainnet)
+        uses: solana-foundation/github-actions/prepare-squads-release@e6ed2eb93c55eca911dbc711fb08683b42926a28 # v0.2.15
+        with:
+          program: ${{ env.PROGRAM }}
+          program-id: ${{ env.PROGRAM_ID }}
+          rpc-url: ${{ env.RPC_URL }}
+          keypair: ${{ env.DEPLOYER_KEYPAIR }}
+          squads-vault: ${{ env.SQUADS_VAULT }}
+          metadata-path: ${{ env.IDL_PATH }}
+          # pre-fund the metadata PDA from the CI payer so the combined Squads
+          # transaction needs no vault SystemProgram.transfer (which the Squads
+          # UI flags as a critical risk); squads-program-action v0.5.1+ then
+          # skips the transfer for already-funded accounts
+          prefund-metadata-account: 'true'
+          priority-fee: ${{ inputs.priority-fee }}
+
+      - if: inputs.network == 'mainnet'
+        id: export-verify-tx
+        name: Export verify PDA transaction (mainnet)
+        uses: solana-foundation/github-actions/verify-build@e6ed2eb93c55eca911dbc711fb08683b42926a28 # v0.2.15
+        with:
+          program: ${{ env.PROGRAM }}
+          program-id: ${{ env.PROGRAM_ID }}
+          rpc-url: ${{ env.RPC_URL }}
+          keypair: ${{ env.DEPLOYER_KEYPAIR }}
+          repo-url: ${{ env.REPO_URL }}
+          commit-hash: ${{ github.sha }}
+          network: mainnet
+          use-squads: 'true'
+          vault-address: ${{ env.SQUADS_VAULT }}
+
+      - if: inputs.network == 'mainnet'
+        id: export-squads-tx
+        name: Export combined Squads transaction (mainnet)
+        uses: solana-foundation/squads-program-action@572754d0b2e582bfc6bf2339f15d6dd2b9588246 # v0.5.1
+        with:
+          rpc: ${{ env.RPC_URL }}
+          program: ${{ env.PROGRAM_ID }}
+          buffer: ${{ steps.prepare-squads-release.outputs.buffer }}
+          metadata-buffer: ${{ steps.prepare-squads-release.outputs.metadata-buffer }}
+          multisig: ${{ env.SQUADS_MULTISIG }}
+          keypair: ${{ env.DEPLOYER_KEYPAIR }}
+          pda-tx: ${{ steps.export-verify-tx.outputs.pda_tx }}
+          export: 'true'
+
+      - name: Cleanup keypair
+        if: always()
+        run: rm -f /tmp/deployer.json
+
+      - name: Summary
+        run: |
+          echo "## Release: ${{ env.PROGRAM }} (${{ inputs.network }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Program: \`${{ env.PROGRAM_ID }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.network }}" = "mainnet" ]; then
+            echo "- Buffer: \`${{ steps['prepare-squads-release'].outputs.buffer }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- IDL buffer: \`${{ steps['prepare-squads-release'].outputs['metadata-buffer'] }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Buffer authority: \`${{ env.SQUADS_VAULT }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Combined transaction (base58, verify PDA + IDL metadata write + program upgrade in one):" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps['export-squads-tx'].outputs.tx }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "- **Action required**: import the combined transaction into the Squads transaction builder, then approve and execute" >> $GITHUB_STEP_SUMMARY
+            echo "- CI keypair role: fee payer and buffer writer only; it does not need Squads membership" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Buffer: \`${{ steps.write-buffer.outputs.buffer }}\`" >> $GITHUB_STEP_SUMMARY
+          fi
