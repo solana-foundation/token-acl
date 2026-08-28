@@ -851,9 +851,9 @@ dependencies = [
 
 [[package]]
 name = "bytemuck"
-version = "1.24.0"
+version = "1.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fbdf580320f38b612e485521afda1ee26d10cc9884efaaa750d383e13e3c5f4"
+checksum = "95832e849adfb21180ccb6826a99da14e5d266ae5c2e668e1602cf234f153797"
 dependencies = [
  "bytemuck_derive",
 ]
@@ -6207,17 +6207,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "solana-zero-copy"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd3183a7934dd7e6490ae86732616cd70361f5ab9401b9a375ab62f7fa17b112"
-dependencies = [
- "borsh",
- "bytemuck",
- "bytemuck_derive",
-]
-
-[[package]]
 name = "solana-zk-elgamal-proof-program"
 version = "3.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6413,6 +6402,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "spl-list-view"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ff25a803cee203606fc29a5cac537b9b78b5c4bee107579efc0a678a53c4e9f"
+dependencies = [
+ "bytemuck",
+ "solana-program-error",
+ "spl-pod",
+]
+
+[[package]]
 name = "spl-memo-interface"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6424,9 +6424,9 @@ dependencies = [
 
 [[package]]
 name = "spl-pod"
-version = "0.7.3"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f9c6e142cdf1e7e77f480053ec9f0ce989890768ddf91f619b50f39d1b456f5"
+checksum = "d6f3df240f67bea453d4bc5749761e45436d14b9457ed667e0300555d5c271f3"
 dependencies = [
  "borsh",
  "bytemuck",
@@ -6437,7 +6437,6 @@ dependencies = [
  "solana-program-error",
  "solana-program-option",
  "solana-pubkey 3.0.0",
- "solana-zero-copy",
  "solana-zk-sdk",
  "thiserror 2.0.20",
 ]
@@ -6471,9 +6470,9 @@ dependencies = [
 
 [[package]]
 name = "spl-tlv-account-resolution"
-version = "0.11.1"
+version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6927f613c9d7ce20835d3cefb602137cab2518e383a047c0eaa58054a60644c8"
+checksum = "6e6d30e733473322925a374c2603466a52c95077c574917bd02b788052d2f01d"
 dependencies = [
  "bytemuck",
  "num-derive",
@@ -6484,8 +6483,8 @@ dependencies = [
  "solana-program-error",
  "solana-pubkey 3.0.0",
  "spl-discriminator",
+ "spl-list-view",
  "spl-pod",
- "spl-program-error",
  "spl-type-length-value",
  "thiserror 2.0.20",
 ]

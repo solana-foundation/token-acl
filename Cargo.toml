@@ -57,9 +57,10 @@ solana-program-runtime = "3.1.8"
 solana-program-pack = "3.1.0"
 spl-discriminator = "0.5.2"
 spl-program-error = "0.8.0"
-spl-tlv-account-resolution = "0.11.1"
+spl-tlv-account-resolution = "0.11.2"
 spl-type-length-value = "0.9.1"
-spl-pod = "0.7.2"
+# spl-list-view 0.1.0 does not compile with spl-pod 0.7.3.
+spl-pod = "=0.7.2"
 spl-token-2022 = { version = "10.0.0", features = ["no-entrypoint"] }
 solana-sdk = "3.0.0"
 spl-associated-token-account-interface = "2.0.0"
