@@ -57,7 +57,7 @@ solana-program-runtime = "3.1.8"
 solana-program-pack = "3.1.0"
 spl-discriminator = "0.5.2"
 spl-program-error = "0.8.0"
-spl-tlv-account-resolution = "0.11.2"
+spl-tlv-account-resolution = "0.11.4"
 spl-type-length-value = "0.9.1"
 # spl-list-view 0.1.0 does not compile with spl-pod 0.7.3.
 spl-pod = "=0.7.2"
