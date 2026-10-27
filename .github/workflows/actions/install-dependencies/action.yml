@@ -43,7 +43,7 @@ runs:
     - name: Set Rust version
       shell: bash
       run: |
-        echo "RUST_VERSION=1.91.1" >> $GITHUB_ENV
+        echo "RUST_VERSION=1.97.1" >> $GITHUB_ENV
 
     - name: Setup Rust toolchain
       if: inputs.install-rust == 'true'

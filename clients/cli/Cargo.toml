@@ -7,12 +7,12 @@ license = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-clap = { version = "3", features = ["cargo"] }
-solana-clap-v3-utils = "3.0.14"
-solana-cli-config = "3.0.14"
+clap = { version = "3", default-features = false, features = ["std", "cargo", "suggestions"] }
+solana-clap-v3-utils = { version = "4.3.2", features = ["agave-unstable-api"] }
+solana-cli-config = "4.3.2"
 solana-client = { workspace = true }
 solana-logger = "3.0.0"
-solana-remote-wallet = "3.0.14"
+solana-remote-wallet = { version = "4.3.2", features = ["agave-unstable-api"] }
 solana-sdk = { workspace = true }
 tokio = { version = "1", features = ["full"] }
 token-acl-client = { workspace = true, features = ["fetch"] }
