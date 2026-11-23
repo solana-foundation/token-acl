@@ -39,6 +39,57 @@ struct Config {
     verbose: bool,
 }
 
+/// Parses a hex string (optionally `0x`-prefixed) into bytes.
+fn parse_hex_data(input: &str) -> Result<Vec<u8>, String> {
+    let hex = input
+        .strip_prefix("0x")
+        .or_else(|| input.strip_prefix("0X"))
+        .unwrap_or(input);
+    hex.as_bytes()
+        .chunks(2)
+        .enumerate()
+        .map(|(i, pair)| {
+            std::str::from_utf8(pair)
+                .ok()
+                .filter(|pair| pair.len() == 2)
+                .and_then(|pair| u8::from_str_radix(pair, 16).ok())
+                .ok_or_else(|| format!("invalid hex data at byte {}", i))
+        })
+        .collect()
+}
+
+/// Reads the optional gate payload from `--data` (hex) or `--data-file` (raw bytes).
+fn gate_data_from_matches(arg_matches: &clap::ArgMatches) -> Result<Vec<u8>, Box<dyn Error>> {
+    if let Some(hex) = arg_matches.value_of("data") {
+        return Ok(parse_hex_data(hex)?);
+    }
+    if let Some(path) = arg_matches.value_of("data_file") {
+        return Ok(std::fs::read(path)
+            .map_err(|err| format!("unable to read data file {}: {}", path, err))?);
+    }
+    Ok(Vec::new())
+}
+
+fn data_args() -> [Arg<'static>; 2] {
+    [
+        Arg::new("data")
+            .value_name("HEX")
+            .takes_value(true)
+            .long("data")
+            .conflicts_with("data_file")
+            .help(
+                "Optional payload (hex) forwarded verbatim to the gating program after its \
+                 8-byte discriminator, e.g. a proof. Defaults to empty.",
+            ),
+        Arg::new("data_file")
+            .value_name("PATH")
+            .takes_value(true)
+            .long("data-file")
+            .conflicts_with("data")
+            .help("Like --data, but reads the raw payload bytes from a file."),
+    ]
+}
+
 async fn process_create_config(
     rpc_client: &Arc<RpcClient>,
     payer: &Arc<dyn Signer>,
@@ -341,6 +392,7 @@ async fn process_freeze_permissionless(
     mint: Option<Pubkey>,
     token_account_pk: Option<Pubkey>,
     token_account_owner_pk: Option<Pubkey>,
+    gate_data: &[u8],
 ) -> Result<Signature, Box<dyn Error>> {
     let mut instructions = Vec::new();
 
@@ -403,7 +455,7 @@ async fn process_freeze_permissionless(
     println!("token_account_pk: {:?}", token_account_pk);
     println!("token_account_owner_pk: {:?}", token_account_owner_pk);
 
-    let ix = token_acl_client::create_freeze_permissionless_instruction_with_extra_metas(
+    let ix = token_acl_client::create_freeze_permissionless_instruction_with_extra_metas_and_data(
         &payer.pubkey(),
         &token_account_pk,
         &mint,
@@ -411,6 +463,7 @@ async fn process_freeze_permissionless(
         &spl_token_2022_interface::ID,
         &token_account_owner_pk,
         false,
+        gate_data,
         |pubkey| {
             let data = ata_data.clone();
             async move {
@@ -490,6 +543,7 @@ async fn process_thaw_permissionless(
     mint: Option<Pubkey>,
     token_account_pk: Option<Pubkey>,
     token_account_owner_pk: Option<Pubkey>,
+    gate_data: &[u8],
 ) -> Result<Signature, Box<dyn Error>> {
     let mut instructions = Vec::new();
 
@@ -552,7 +606,7 @@ async fn process_thaw_permissionless(
 
     let config = token_acl_client::accounts::MintConfig::find_pda(&mint).0;
 
-    let ix = token_acl_client::create_thaw_permissionless_instruction_with_extra_metas(
+    let ix = token_acl_client::create_thaw_permissionless_instruction_with_extra_metas_and_data(
         &payer.pubkey(),
         &token_account_pk,
         &mint,
@@ -560,6 +614,7 @@ async fn process_thaw_permissionless(
         &spl_token_2022_interface::ID,
         &token_account_owner_pk,
         false,
+        gate_data,
         |pubkey| {
             let data = ata_data.clone();
             async move {
@@ -611,13 +666,15 @@ async fn process_create_ata_and_thaw_permissionless(
     payer: &Arc<dyn Signer>,
     mint: Pubkey,
     token_account_owner_pk: Pubkey,
+    gate_data: &[u8],
 ) -> Result<Signature, Box<dyn Error>> {
-    let instructions = token_acl_client::create_ata_and_thaw_permissionless(
+    let instructions = token_acl_client::create_ata_and_thaw_permissionless_with_data(
         &rpc_client.clone(),
         &payer.pubkey(),
         &mint,
         &token_account_owner_pk,
         false,
+        gate_data,
     )
     .await
     .map_err(|err| format!("error: create ata and thaw permissionless: {}", err))?;
@@ -904,6 +961,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .conflicts_with("token_account")
                         .help("Specify the token account owner address"),
                 )
+                .args(data_args())
         )
         .subcommand(
             Command::new("create-ata-and-thaw-permissionless")
@@ -927,6 +985,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .required(true)
                         .help("Specify the token account owner address"),
                 )
+                .args(data_args())
         )
         .subcommand(
             Command::new("freeze-permissionless")
@@ -963,6 +1022,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     .conflicts_with("token_account")
                     .help("Specify the token account owner address. Requires the mint address to be specified."),
             )
+            .args(data_args())
         )
         .subcommand(
             Command::new("freeze")
@@ -1162,12 +1222,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 &mut wallet_manager,
             )
             .unwrap();
+            let gate_data = gate_data_from_matches(arg_matches).unwrap_or_else(|err| {
+                eprintln!("error: thaw-permissionless: {}", err);
+                exit(1);
+            });
             let response = process_thaw_permissionless(
                 &rpc_client,
                 &config.payer,
                 mint_address,
                 token_account,
                 token_account_owner,
+                &gate_data,
             )
             .await
             .unwrap_or_else(|err| {
@@ -1188,11 +1253,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
             )
             .unwrap()
             .unwrap();
+            let gate_data = gate_data_from_matches(arg_matches).unwrap_or_else(|err| {
+                eprintln!("error: create-ata-and-thaw-permissionless: {}", err);
+                exit(1);
+            });
             let response = process_create_ata_and_thaw_permissionless(
                 &rpc_client,
                 &config.payer,
                 mint_address,
                 token_account_owner,
+                &gate_data,
             )
             .await
             .unwrap_or_else(|err| {
@@ -1214,12 +1284,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 &mut wallet_manager,
             )
             .unwrap();
+            let gate_data = gate_data_from_matches(arg_matches).unwrap_or_else(|err| {
+                eprintln!("error: freeze-permissionless: {}", err);
+                exit(1);
+            });
             let response = process_freeze_permissionless(
                 &rpc_client,
                 &config.payer,
                 mint_address,
                 token_account,
                 token_account_owner,
+                &gate_data,
             )
             .await
             .unwrap_or_else(|err| {
@@ -1258,4 +1333,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
     };
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_hex_data;
+
+    #[test]
+    fn parses_hex_gate_data() {
+        assert_eq!(parse_hex_data("").unwrap(), Vec::<u8>::new());
+        assert_eq!(parse_hex_data("0x00ff10").unwrap(), vec![0x00, 0xff, 0x10]);
+        assert_eq!(parse_hex_data("ABcd").unwrap(), vec![0xab, 0xcd]);
+        assert!(parse_hex_data("abc").is_err());
+        assert!(parse_hex_data("zz").is_err());
+    }
 }

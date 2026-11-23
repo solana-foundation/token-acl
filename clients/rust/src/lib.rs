@@ -1,9 +1,11 @@
 mod generated;
 mod metadata;
+mod permissionless_data;
 use std::future::Future;
 
 pub use generated::*;
 pub use metadata::*;
+pub use permissionless_data::*;
 
 #[cfg(feature = "fetch")]
 use solana_client::nonblocking;
@@ -37,6 +39,40 @@ where
     F: Fn(Pubkey) -> Fut,
     Fut: Future<Output = AccountDataResult>,
 {
+    create_thaw_permissionless_instruction_with_extra_metas_and_data(
+        signer_pubkey,
+        token_account_pubkey,
+        mint_pubkey,
+        mint_config_pubkey,
+        token_program_pubkey,
+        token_account_owner_pubkey,
+        idempotent,
+        &[],
+        fetch_account_data_fn,
+    )
+    .await
+}
+
+/// Like [`create_thaw_permissionless_instruction_with_extra_metas`], but
+/// appends `data` to the Token ACL instruction (forwarded verbatim to the
+/// gating program) and resolves the gate's extra account metas against the
+/// gate instruction containing that payload.
+#[allow(clippy::too_many_arguments)]
+pub async fn create_thaw_permissionless_instruction_with_extra_metas_and_data<F, Fut>(
+    signer_pubkey: &Pubkey,
+    token_account_pubkey: &Pubkey,
+    mint_pubkey: &Pubkey,
+    mint_config_pubkey: &Pubkey,
+    token_program_pubkey: &Pubkey,
+    token_account_owner_pubkey: &Pubkey,
+    idempotent: bool,
+    data: &[u8],
+    fetch_account_data_fn: F,
+) -> Result<Instruction, AccountFetchError>
+where
+    F: Fn(Pubkey) -> Fut,
+    Fut: Future<Output = AccountDataResult>,
+{
     let mint_config = fetch_account_data_fn(*mint_config_pubkey)
         .await?
         .and_then(|data| crate::accounts::MintConfig::from_bytes(&data).ok())
@@ -59,7 +95,7 @@ where
             .token_program(*token_program_pubkey)
             .flag_account(flag_account)
             .system_program(solana_system_interface::program::ID)
-            .instruction()
+            .instruction_with_data(data)
     } else {
         crate::instructions::ThawPermissionlessBuilder::new()
             .gating_program(mint_config.gating_program)
@@ -71,11 +107,11 @@ where
             .token_program(*token_program_pubkey)
             .flag_account(flag_account)
             .system_program(solana_system_interface::program::ID)
-            .instruction()
+            .instruction_with_data(data)
     };
 
     if mint_config.gating_program != Pubkey::default() {
-        token_acl_interface::offchain::add_extra_account_metas_for_thaw(
+        token_acl_interface::offchain::add_extra_account_metas_for_thaw_with_data(
             &mut ix,
             &mint_config.gating_program,
             signer_pubkey,
@@ -83,6 +119,7 @@ where
             mint_pubkey,
             token_account_owner_pubkey,
             &flag_account,
+            data,
             fetch_account_data_fn,
         )
         .await?;
@@ -100,6 +137,40 @@ pub async fn create_freeze_permissionless_instruction_with_extra_metas<F, Fut>(
     token_program_pubkey: &Pubkey,
     token_account_owner_pubkey: &Pubkey,
     idempotent: bool,
+    fetch_account_data_fn: F,
+) -> Result<Instruction, AccountFetchError>
+where
+    F: Fn(Pubkey) -> Fut,
+    Fut: Future<Output = AccountDataResult>,
+{
+    create_freeze_permissionless_instruction_with_extra_metas_and_data(
+        signer_pubkey,
+        token_account_pubkey,
+        mint_pubkey,
+        mint_config_pubkey,
+        token_program_pubkey,
+        token_account_owner_pubkey,
+        idempotent,
+        &[],
+        fetch_account_data_fn,
+    )
+    .await
+}
+
+/// Like [`create_freeze_permissionless_instruction_with_extra_metas`], but
+/// appends `data` to the Token ACL instruction (forwarded verbatim to the
+/// gating program) and resolves the gate's extra account metas against the
+/// gate instruction containing that payload.
+#[allow(clippy::too_many_arguments)]
+pub async fn create_freeze_permissionless_instruction_with_extra_metas_and_data<F, Fut>(
+    signer_pubkey: &Pubkey,
+    token_account_pubkey: &Pubkey,
+    mint_pubkey: &Pubkey,
+    mint_config_pubkey: &Pubkey,
+    token_program_pubkey: &Pubkey,
+    token_account_owner_pubkey: &Pubkey,
+    idempotent: bool,
+    data: &[u8],
     fetch_account_data_fn: F,
 ) -> Result<Instruction, AccountFetchError>
 where
@@ -128,7 +199,7 @@ where
             .token_program(*token_program_pubkey)
             .system_program(solana_system_interface::program::ID)
             .flag_account(flag_account)
-            .instruction()
+            .instruction_with_data(data)
     } else {
         crate::instructions::FreezePermissionlessBuilder::new()
             .gating_program(mint_config.gating_program)
@@ -140,11 +211,11 @@ where
             .token_program(*token_program_pubkey)
             .system_program(solana_system_interface::program::ID)
             .flag_account(flag_account)
-            .instruction()
+            .instruction_with_data(data)
     };
 
     if mint_config.gating_program != Pubkey::default() {
-        token_acl_interface::offchain::add_extra_account_metas_for_freeze(
+        token_acl_interface::offchain::add_extra_account_metas_for_freeze_with_data(
             &mut ix,
             &mint_config.gating_program,
             signer_pubkey,
@@ -152,6 +223,7 @@ where
             mint_pubkey,
             token_account_owner_pubkey,
             &flag_account,
+            data,
             fetch_account_data_fn,
         )
         .await?;
@@ -168,6 +240,27 @@ pub async fn create_ata_and_thaw_permissionless(
     token_account_owner_pubkey: &Pubkey,
     idempotent: bool,
 ) -> Result<Vec<Instruction>, AccountFetchError> {
+    create_ata_and_thaw_permissionless_with_data(
+        rpc,
+        payer_pubkey,
+        mint_pubkey,
+        token_account_owner_pubkey,
+        idempotent,
+        &[],
+    )
+    .await
+}
+
+/// Like [`create_ata_and_thaw_permissionless`], forwarding `data` to the gating program.
+#[cfg(feature = "fetch")]
+pub async fn create_ata_and_thaw_permissionless_with_data(
+    rpc: &nonblocking::rpc_client::RpcClient,
+    payer_pubkey: &Pubkey,
+    mint_pubkey: &Pubkey,
+    token_account_owner_pubkey: &Pubkey,
+    idempotent: bool,
+    data: &[u8],
+) -> Result<Vec<Instruction>, AccountFetchError> {
     let fetch_account_data_fn = |pubkey: Pubkey| async move {
         rpc.get_account_data(&pubkey)
             .await
@@ -175,12 +268,13 @@ pub async fn create_ata_and_thaw_permissionless(
             .map_err(Into::<AccountFetchError>::into)
     };
 
-    create_ata_and_thaw_permissionless_instructions(
+    create_ata_and_thaw_permissionless_instructions_with_data(
         payer_pubkey,
         mint_pubkey,
         &SPL_TOKEN_2022_ID,
         token_account_owner_pubkey,
         idempotent,
+        data,
         &fetch_account_data_fn,
     )
     .await
@@ -193,6 +287,34 @@ pub async fn create_ata_and_thaw_permissionless_instructions<F, Fut>(
     token_program_pubkey: &Pubkey,
     token_account_owner_pubkey: &Pubkey,
     idempotent: bool,
+    fetch_account_data_fn: &F,
+) -> Result<Vec<Instruction>, AccountFetchError>
+where
+    F: Fn(Pubkey) -> Fut,
+    Fut: Future<Output = AccountDataResult>,
+{
+    create_ata_and_thaw_permissionless_instructions_with_data(
+        payer_pubkey,
+        mint_pubkey,
+        token_program_pubkey,
+        token_account_owner_pubkey,
+        idempotent,
+        &[],
+        fetch_account_data_fn,
+    )
+    .await
+}
+
+/// Like [`create_ata_and_thaw_permissionless_instructions`], forwarding `data`
+/// to the gating program and resolving extra metas against it.
+#[allow(clippy::too_many_arguments)]
+pub async fn create_ata_and_thaw_permissionless_instructions_with_data<F, Fut>(
+    payer_pubkey: &Pubkey,
+    mint_pubkey: &Pubkey,
+    token_program_pubkey: &Pubkey,
+    token_account_owner_pubkey: &Pubkey,
+    idempotent: bool,
+    data: &[u8],
     fetch_account_data_fn: &F,
 ) -> Result<Vec<Instruction>, AccountFetchError>
 where
@@ -234,8 +356,8 @@ where
         close_authority: COption::None,
     };
 
-    let mut data = vec![0u8; Account::LEN];
-    Account::pack(acc, &mut data)?;
+    let mut mock_token_account_data = vec![0u8; Account::LEN];
+    Account::pack(acc, &mut mock_token_account_data)?;
 
     let mint_data = fetch_account_data_fn(*mint_pubkey)
         .await?
@@ -257,7 +379,7 @@ where
                 .token_program(*token_program_pubkey)
                 .flag_account(flag_account)
                 .system_program(solana_system_interface::program::ID)
-                .instruction()
+                .instruction_with_data(data)
         } else {
             crate::instructions::ThawPermissionlessBuilder::new()
                 .gating_program(gating_program)
@@ -269,10 +391,10 @@ where
                 .token_program(*token_program_pubkey)
                 .flag_account(flag_account)
                 .system_program(solana_system_interface::program::ID)
-                .instruction()
+                .instruction_with_data(data)
         };
 
-        token_acl_interface::offchain::add_extra_account_metas_for_thaw(
+        token_acl_interface::offchain::add_extra_account_metas_for_thaw_with_data(
             &mut ix,
             &gating_program,
             payer_pubkey,
@@ -280,11 +402,12 @@ where
             mint_pubkey,
             token_account_owner_pubkey,
             &flag_account,
+            data,
             |pubkey| {
-                let data = data.clone();
+                let mock_token_account_data = mock_token_account_data.clone();
                 async move {
                     if pubkey == token_account {
-                        return Ok(Some(data));
+                        return Ok(Some(mock_token_account_data));
                     }
                     let data = fetch_account_data_fn(pubkey).await.unwrap_or(None);
                     Ok(data)

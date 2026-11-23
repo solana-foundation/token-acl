@@ -782,6 +782,20 @@
                     "kind": "numberValueNode",
                     "number": 6
                     }
+                },
+                {
+                    "kind": "instructionArgumentNode",
+                    "name": "data",
+                    "defaultValueStrategy": "optional",
+                    "docs": ["Optional caller-supplied payload, forwarded verbatim to the gating program's can-thaw-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty."],
+                    "type": {
+                        "kind": "bytesTypeNode"
+                    },
+                    "defaultValue": {
+                        "kind": "bytesValueNode",
+                        "encoding": "base16",
+                        "data": ""
+                    }
                 }
             ],
             "discriminators": [
@@ -927,6 +941,20 @@
                     "defaultValue": {
                     "kind": "numberValueNode",
                     "number": 7
+                    }
+                },
+                {
+                    "kind": "instructionArgumentNode",
+                    "name": "data",
+                    "defaultValueStrategy": "optional",
+                    "docs": ["Optional caller-supplied payload, forwarded verbatim to the gating program's can-freeze-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty."],
+                    "type": {
+                        "kind": "bytesTypeNode"
+                    },
+                    "defaultValue": {
+                        "kind": "bytesValueNode",
+                        "encoding": "base16",
+                        "data": ""
                     }
                 }
             ],
@@ -1074,6 +1102,20 @@
                     "kind": "numberValueNode",
                     "number": 9
                     }
+                },
+                {
+                    "kind": "instructionArgumentNode",
+                    "name": "data",
+                    "defaultValueStrategy": "optional",
+                    "docs": ["Optional caller-supplied payload, forwarded verbatim to the gating program's can-thaw-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty."],
+                    "type": {
+                        "kind": "bytesTypeNode"
+                    },
+                    "defaultValue": {
+                        "kind": "bytesValueNode",
+                        "encoding": "base16",
+                        "data": ""
+                    }
                 }
             ],
             "discriminators": [
@@ -1218,6 +1260,20 @@
                     "defaultValue": {
                     "kind": "numberValueNode",
                     "number": 10
+                    }
+                },
+                {
+                    "kind": "instructionArgumentNode",
+                    "name": "data",
+                    "defaultValueStrategy": "optional",
+                    "docs": ["Optional caller-supplied payload, forwarded verbatim to the gating program's can-freeze-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty."],
+                    "type": {
+                        "kind": "bytesTypeNode"
+                    },
+                    "defaultValue": {
+                        "kind": "bytesValueNode",
+                        "encoding": "base16",
+                        "data": ""
                     }
                 }
             ],

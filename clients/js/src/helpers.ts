@@ -28,6 +28,27 @@ import {
 } from './generated';
 import { resolveExtraMetas } from './tlv-account-resolution/state';
 
+/** sRFC37 `can-thaw-permissionless` discriminator: sha256("efficient-allow-block-list-standard:can-thaw-permissionless")[..8]. */
+export const CAN_THAW_PERMISSIONLESS_DISCRIMINATOR = new Uint8Array([
+  8, 175, 169, 129, 137, 74, 61, 241,
+]);
+/** sRFC37 `can-freeze-permissionless` discriminator: sha256("efficient-allow-block-list-standard:can-freeze-permissionless")[..8]. */
+export const CAN_FREEZE_PERMISSIONLESS_DISCRIMINATOR = new Uint8Array([
+  214, 141, 109, 75, 248, 1, 45, 29,
+]);
+
+/**
+ * Builds the instruction data Token ACL passes to the gating program: the sRFC37
+ * 8-byte discriminator followed by the caller supplied payload. Extra account metas
+ * (e.g. `Seed::InstructionData`) are resolved against these bytes, exactly as on-chain.
+ */
+export function getGateInstructionData(
+  discriminator: Uint8Array,
+  data: Uint8Array = new Uint8Array()
+): Buffer {
+  return Buffer.concat([Buffer.from(discriminator), Buffer.from(data)]);
+}
+
 import {
   AccountState,
   getCreateAssociatedTokenIdempotentInstruction,
@@ -47,6 +68,8 @@ import {
  * @param programAddress The address of the program.
  * @param accountRetriever A function to retrieve the account data for a given address.
  *  If the token account is being created in the same transaction, the function should mock the expected account data.
+ * @param data Optional payload forwarded verbatim to the gating program after its 8-byte discriminator
+ *  (untrusted caller input, e.g. a proof). Extra metas are resolved against it. Defaults to empty.
  * @returns The instruction to thaw the token account.
  */
 export async function createThawPermissionlessInstructionWithExtraMetas(
@@ -55,7 +78,8 @@ export async function createThawPermissionlessInstructionWithExtraMetas(
   mint: Address,
   tokenAccountOwner: Address,
   programAddress: Address,
-  accountRetriever: (address: Address) => Promise<MaybeEncodedAccount<string>>
+  accountRetriever: (address: Address) => Promise<MaybeEncodedAccount<string>>,
+  data: Uint8Array = new Uint8Array()
 ): Promise<Instruction> {
   const mintConfigPda = await findMintConfigPda({ mint }, { programAddress });
   const mintConfigAccount = await accountRetriever(mintConfigPda[0]);
@@ -95,6 +119,7 @@ export async function createThawPermissionlessInstructionWithExtraMetas(
       mintConfig: mintConfigPda[0],
       tokenAccountOwner,
       gatingProgram: mintConfigData.gatingProgram,
+      data,
     },
     {
       programAddress,
@@ -105,7 +130,7 @@ export async function createThawPermissionlessInstructionWithExtraMetas(
     accountRetriever,
     thawExtraMetas[0],
     canThawPermissionlessInstruction,
-    Buffer.from(thawAccountInstruction.data),
+    getGateInstructionData(CAN_THAW_PERMISSIONLESS_DISCRIMINATOR, data),
     mintConfigData.gatingProgram
   );
 
@@ -125,6 +150,8 @@ export async function createThawPermissionlessInstructionWithExtraMetas(
  * @param programAddress The address of the program.
  * @param accountRetriever A function to retrieve the account data for a given address.
  *  If the token account is being created in the same transaction, the function should mock the expected account data.
+ * @param data Optional payload forwarded verbatim to the gating program after its 8-byte discriminator
+ *  (untrusted caller input, e.g. a proof). Extra metas are resolved against it. Defaults to empty.
  * @returns The instruction to thaw the token account.
  */
 export async function createThawPermissionlessIdempotentInstructionWithExtraMetas(
@@ -133,7 +160,8 @@ export async function createThawPermissionlessIdempotentInstructionWithExtraMeta
   mint: Address,
   tokenAccountOwner: Address,
   programAddress: Address,
-  accountRetriever: (address: Address) => Promise<MaybeEncodedAccount<string>>
+  accountRetriever: (address: Address) => Promise<MaybeEncodedAccount<string>>,
+  data: Uint8Array = new Uint8Array()
 ): Promise<Instruction> {
   const mintConfigPda = await findMintConfigPda({ mint }, { programAddress });
   const mintConfigAccount = await accountRetriever(mintConfigPda[0]);
@@ -173,6 +201,7 @@ export async function createThawPermissionlessIdempotentInstructionWithExtraMeta
       mintConfig: mintConfigPda[0],
       tokenAccountOwner,
       gatingProgram: mintConfigData.gatingProgram,
+      data,
     },
     {
       programAddress,
@@ -183,7 +212,7 @@ export async function createThawPermissionlessIdempotentInstructionWithExtraMeta
     accountRetriever,
     thawExtraMetas[0],
     canThawPermissionlessInstruction,
-    Buffer.from(thawAccountInstruction.data),
+    getGateInstructionData(CAN_THAW_PERMISSIONLESS_DISCRIMINATOR, data),
     mintConfigData.gatingProgram
   );
 
@@ -221,6 +250,8 @@ function getCanThawOrFreezePermissionlessAccountMetas(
  * @param programAddress The address of the program.
  * @param accountRetriever A function to retrieve the account data for a given address.
  *  If the token account is being created in the same transaction, the function should mock the expected account data.
+ * @param data Optional payload forwarded verbatim to the gating program after its 8-byte discriminator
+ *  (untrusted caller input, e.g. a proof). Extra metas are resolved against it. Defaults to empty.
  * @returns The instruction to freeze the token account.
  */
 export async function createFreezePermissionlessInstructionWithExtraMetas(
@@ -229,7 +260,8 @@ export async function createFreezePermissionlessInstructionWithExtraMetas(
   mint: Address,
   tokenAccountOwner: Address,
   programAddress: Address,
-  accountRetriever: (address: Address) => Promise<MaybeEncodedAccount<string>>
+  accountRetriever: (address: Address) => Promise<MaybeEncodedAccount<string>>,
+  data: Uint8Array = new Uint8Array()
 ): Promise<Instruction> {
   const mintConfigPda = await findMintConfigPda({ mint });
   const mintConfigAccount = await accountRetriever(mintConfigPda[0]);
@@ -255,6 +287,7 @@ export async function createFreezePermissionlessInstructionWithExtraMetas(
     mintConfig: mintConfigPda[0],
     tokenAccountOwner,
     gatingProgram: mintConfigData.gatingProgram,
+    data,
   });
 
   const canFreezePermissionlessInstruction =
@@ -271,7 +304,7 @@ export async function createFreezePermissionlessInstructionWithExtraMetas(
     accountRetriever,
     freezeExtraMetas[0],
     canFreezePermissionlessInstruction,
-    Buffer.from(freezeAccountInstruction.data),
+    getGateInstructionData(CAN_FREEZE_PERMISSIONLESS_DISCRIMINATOR, data),
     mintConfigData.gatingProgram
   );
 
@@ -291,6 +324,8 @@ export async function createFreezePermissionlessInstructionWithExtraMetas(
  * @param programAddress The address of the program.
  * @param accountRetriever A function to retrieve the account data for a given address.
  *  If the token account is being created in the same transaction, the function should mock the expected account data.
+ * @param data Optional payload forwarded verbatim to the gating program after its 8-byte discriminator
+ *  (untrusted caller input, e.g. a proof). Extra metas are resolved against it. Defaults to empty.
  * @returns The instruction to freeze the token account.
  */
 export async function createFreezePermissionlessIdempotentInstructionWithExtraMetas(
@@ -299,7 +334,8 @@ export async function createFreezePermissionlessIdempotentInstructionWithExtraMe
   mint: Address,
   tokenAccountOwner: Address,
   programAddress: Address,
-  accountRetriever: (address: Address) => Promise<MaybeEncodedAccount<string>>
+  accountRetriever: (address: Address) => Promise<MaybeEncodedAccount<string>>,
+  data: Uint8Array = new Uint8Array()
 ): Promise<Instruction> {
   const mintConfigPda = await findMintConfigPda({ mint });
   const mintConfigAccount = await accountRetriever(mintConfigPda[0]);
@@ -326,6 +362,7 @@ export async function createFreezePermissionlessIdempotentInstructionWithExtraMe
       mintConfig: mintConfigPda[0],
       tokenAccountOwner,
       gatingProgram: mintConfigData.gatingProgram,
+      data,
     }
   );
 
@@ -343,7 +380,7 @@ export async function createFreezePermissionlessIdempotentInstructionWithExtraMe
     accountRetriever,
     freezeExtraMetas[0],
     canFreezePermissionlessInstruction,
-    Buffer.from(freezeAccountInstruction.data),
+    getGateInstructionData(CAN_FREEZE_PERMISSIONLESS_DISCRIMINATOR, data),
     mintConfigData.gatingProgram
   );
 
@@ -570,6 +607,7 @@ export async function usesPermissionlessFreeze(
  * @param mintAddress The mint address.
  * @param tokenAccountOwner The owner of the token account.
  * @param payer The payer of the transaction.
+ * @param data Optional payload forwarded verbatim to the gating program (see `createThawPermissionlessInstructionFromMint`).
  * @returns The instructions to create the token account.
  */
 export async function createTokenAccountWithAcl(
@@ -577,7 +615,8 @@ export async function createTokenAccountWithAcl(
   mint: Mint,
   mintAddress: Address,
   tokenAccountOwner: Address,
-  payer: TransactionSigner
+  payer: TransactionSigner,
+  data: Uint8Array = new Uint8Array()
 ): Promise<Instruction[]> {
   // Derive ATA for wallet address
   const [tokenAccountAddress] = await findAssociatedTokenPda({
@@ -602,7 +641,8 @@ export async function createTokenAccountWithAcl(
     tokenAccountOwner,
     tokenAccountAddress,
     payer,
-    true
+    true,
+    data
   );
 
   return [createAssociatedTokenAccountInstruction, thawInstruction];
@@ -618,6 +658,8 @@ export async function createTokenAccountWithAcl(
  * @param tokenAccountAddress The address of the token account.
  * @param payer The payer of the transaction.
  * @param idempotent Whether to use idempotent instruction variant.
+ * @param data Optional payload forwarded verbatim to the gating program after its 8-byte discriminator
+ *  (untrusted caller input, e.g. a proof). Extra metas are resolved against it. Defaults to empty.
  * @returns The instructions to create the token account.
  */
 export async function createThawPermissionlessInstructionFromMint(
@@ -627,7 +669,8 @@ export async function createThawPermissionlessInstructionFromMint(
   tokenAccountOwner: Address,
   tokenAccountAddress: Address,
   payer: TransactionSigner,
-  idempotent: boolean = false
+  idempotent: boolean = false,
+  data: Uint8Array = new Uint8Array()
 ): Promise<Instruction> {
   if (mint.extensions.__option === 'None') {
     throw new Error('Mint is not a valid token acl mint');
@@ -669,6 +712,7 @@ export async function createThawPermissionlessInstructionFromMint(
           mintConfig: mintConfig[0],
           tokenAccountOwner,
           gatingProgram: gateProgramAddress,
+          data,
         },
         {
           programAddress: TOKEN_ACL_PROGRAM_ADDRESS,
@@ -683,6 +727,7 @@ export async function createThawPermissionlessInstructionFromMint(
           mintConfig: mintConfig[0],
           tokenAccountOwner,
           gatingProgram: gateProgramAddress,
+          data,
         },
         {
           programAddress: TOKEN_ACL_PROGRAM_ADDRESS,
@@ -719,7 +764,7 @@ export async function createThawPermissionlessInstructionFromMint(
     accountRetriever,
     thawExtraMetas[0],
     canThawPermissionlessInstruction,
-    Buffer.from(thawAccountInstruction.data),
+    getGateInstructionData(CAN_THAW_PERMISSIONLESS_DISCRIMINATOR, data),
     gateProgramAddress
   );
 

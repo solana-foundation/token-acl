@@ -8,6 +8,8 @@
 
 import {
   combineCodec,
+  getBytesDecoder,
+  getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
   getU8Decoder,
@@ -16,9 +18,9 @@ import {
   type AccountMeta,
   type AccountSignerMeta,
   type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
+  type Codec,
+  type Decoder,
+  type Encoder,
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
@@ -96,25 +98,37 @@ export type FreezePermissionlessIdempotentInstruction<
 
 export type FreezePermissionlessIdempotentInstructionData = {
   discriminator: number;
+  /** Optional caller-supplied payload, forwarded verbatim to the gating program's can-freeze-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty. */
+  data: ReadonlyUint8Array;
 };
 
-export type FreezePermissionlessIdempotentInstructionDataArgs = {};
+export type FreezePermissionlessIdempotentInstructionDataArgs = {
+  /** Optional caller-supplied payload, forwarded verbatim to the gating program's can-freeze-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty. */
+  data?: ReadonlyUint8Array;
+};
 
-export function getFreezePermissionlessIdempotentInstructionDataEncoder(): FixedSizeEncoder<FreezePermissionlessIdempotentInstructionDataArgs> {
+export function getFreezePermissionlessIdempotentInstructionDataEncoder(): Encoder<FreezePermissionlessIdempotentInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([["discriminator", getU8Encoder()]]),
+    getStructEncoder([
+      ["discriminator", getU8Encoder()],
+      ["data", getBytesEncoder()],
+    ]),
     (value) => ({
       ...value,
       discriminator: FREEZE_PERMISSIONLESS_IDEMPOTENT_DISCRIMINATOR,
+      data: value.data ?? new Uint8Array([]),
     }),
   );
 }
 
-export function getFreezePermissionlessIdempotentInstructionDataDecoder(): FixedSizeDecoder<FreezePermissionlessIdempotentInstructionData> {
-  return getStructDecoder([["discriminator", getU8Decoder()]]);
+export function getFreezePermissionlessIdempotentInstructionDataDecoder(): Decoder<FreezePermissionlessIdempotentInstructionData> {
+  return getStructDecoder([
+    ["discriminator", getU8Decoder()],
+    ["data", getBytesDecoder()],
+  ]);
 }
 
-export function getFreezePermissionlessIdempotentInstructionDataCodec(): FixedSizeCodec<
+export function getFreezePermissionlessIdempotentInstructionDataCodec(): Codec<
   FreezePermissionlessIdempotentInstructionDataArgs,
   FreezePermissionlessIdempotentInstructionData
 > {
@@ -144,6 +158,7 @@ export type FreezePermissionlessIdempotentAsyncInput<
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   gatingProgram: Address<TAccountGatingProgram>;
+  data?: FreezePermissionlessIdempotentInstructionDataArgs["data"];
 };
 
 export async function getFreezePermissionlessIdempotentInstructionAsync<
@@ -207,6 +222,9 @@ export async function getFreezePermissionlessIdempotentInstructionAsync<
     ResolvedAccount
   >;
 
+  // Original args.
+  const args = { ...input };
+
   // Resolve default values.
   if (!accounts.flagAccount.value) {
     accounts.flagAccount.value = await findFlagAccountPda({
@@ -240,7 +258,9 @@ export async function getFreezePermissionlessIdempotentInstructionAsync<
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.gatingProgram),
     ],
-    data: getFreezePermissionlessIdempotentInstructionDataEncoder().encode({}),
+    data: getFreezePermissionlessIdempotentInstructionDataEncoder().encode(
+      args as FreezePermissionlessIdempotentInstructionDataArgs,
+    ),
     programAddress,
   } as FreezePermissionlessIdempotentInstruction<
     TProgramAddress,
@@ -276,6 +296,7 @@ export type FreezePermissionlessIdempotentInput<
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   gatingProgram: Address<TAccountGatingProgram>;
+  data?: FreezePermissionlessIdempotentInstructionDataArgs["data"];
 };
 
 export function getFreezePermissionlessIdempotentInstruction<
@@ -337,6 +358,9 @@ export function getFreezePermissionlessIdempotentInstruction<
     ResolvedAccount
   >;
 
+  // Original args.
+  const args = { ...input };
+
   // Resolve default values.
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =
@@ -360,7 +384,9 @@ export function getFreezePermissionlessIdempotentInstruction<
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.gatingProgram),
     ],
-    data: getFreezePermissionlessIdempotentInstructionDataEncoder().encode({}),
+    data: getFreezePermissionlessIdempotentInstructionDataEncoder().encode(
+      args as FreezePermissionlessIdempotentInstructionDataArgs,
+    ),
     programAddress,
   } as FreezePermissionlessIdempotentInstruction<
     TProgramAddress,
