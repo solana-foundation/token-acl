@@ -1,0 +1,32 @@
+[package]
+name = "require-data-gate-program"
+version = { workspace = true }
+description = "Example sRFC37 gate that requires a caller-supplied payload forwarded by Token ACL"
+repository = { workspace = true }
+license = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+no-entrypoint = []
+test-sbf = []
+
+[dependencies]
+solana-program = { workspace = true }
+solana-rent = { workspace = true }
+solana-cpi = { workspace = true }
+solana-system-interface = { workspace = true }
+solana-sysvar = { workspace = true }
+solana-program-error = { workspace = true }
+spl-discriminator = { workspace = true }
+spl-tlv-account-resolution = { workspace = true }
+token-acl-interface = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]

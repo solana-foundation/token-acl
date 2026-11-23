@@ -22,6 +22,7 @@ use token_acl_client::set_mint_tacl_metadata_ix;
 pub const AA_ID: Pubkey = Pubkey::from_str_const("Eba1ts11111111111111111111111111111111111112");
 pub const AB_ID: Pubkey = Pubkey::from_str_const("Eba1ts11111111111111111111111111111111111113");
 pub const AA_WD_ID: Pubkey = Pubkey::from_str_const("Eba1ts11111111111111111111111111111111111114");
+pub const RD_ID: Pubkey = Pubkey::from_str_const("Eba1ts11111111111111111111111111111111111115");
 
 pub struct TestContext {
     pub vm: LiteSVM,
@@ -67,6 +68,12 @@ impl TestContext {
         let res = vm.add_program_from_file(
             AA_WD_ID,
             current_dir.join("tests/fixtures/always_allow_with_deps_gate_program.so"),
+        );
+        assert!(res.is_ok());
+
+        let res = vm.add_program_from_file(
+            RD_ID,
+            current_dir.join("tests/fixtures/require_data_gate_program.so"),
         );
         assert!(res.is_ok());
 
@@ -286,6 +293,21 @@ impl TestContext {
         );
         let res = self.vm.send_transaction(tx);
         assert!(res.is_ok());
+    }
+
+    pub fn setup_gate_extra_metas(&mut self, gating_program: &Pubkey) {
+        let setup_extra_metas_ix =
+            self.get_setup_extra_metas_ix(&self.token.auth.pubkey(), gating_program);
+        let set_metadata_ix =
+            set_mint_tacl_metadata_ix(&self.token.mint, &self.token.auth.pubkey(), gating_program);
+        let tx = Transaction::new_signed_with_payer(
+            &[setup_extra_metas_ix, set_metadata_ix],
+            Some(&self.token.auth.pubkey()),
+            &[self.token.auth.insecure_clone()],
+            self.vm.latest_blockhash(),
+        );
+        let res = self.vm.send_transaction(tx);
+        assert!(res.is_ok(), "{:?}", res);
     }
 
     pub fn setup_aa_wd_gate_extra_metas(&mut self) {

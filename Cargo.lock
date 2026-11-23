@@ -3525,6 +3525,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
 
 [[package]]
+name = "require-data-gate-program"
+version = "0.3.1"
+dependencies = [
+ "solana-cpi",
+ "solana-program",
+ "solana-program-error",
+ "solana-rent 3.1.0",
+ "solana-system-interface 3.0.0",
+ "solana-sysvar",
+ "spl-discriminator",
+ "spl-tlv-account-resolution",
+ "token-acl-interface",
+]
+
+[[package]]
 name = "reqwest"
 version = "0.12.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7118,6 +7133,7 @@ dependencies = [
  "solana-sdk",
  "solana-system-interface 3.0.0",
  "spl-associated-token-account-interface",
+ "spl-discriminator",
  "spl-tlv-account-resolution",
  "spl-token-2022-interface",
  "spl-token-metadata-interface",

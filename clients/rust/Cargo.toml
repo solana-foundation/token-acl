@@ -34,6 +34,7 @@ solana-instruction = { workspace = true }
 tokio = { version = "^1.20", features = ["rt-multi-thread", "macros"] }
 solana-compute-budget-interface = "3.0.0"
 solana-sdk = { workspace = true }
+spl-discriminator = { workspace = true }
 
 [lib]
 doctest = false
