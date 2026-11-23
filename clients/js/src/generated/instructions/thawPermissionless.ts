@@ -8,6 +8,8 @@
 
 import {
   combineCodec,
+  getBytesDecoder,
+  getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
   getU8Decoder,
@@ -16,9 +18,9 @@ import {
   type AccountMeta,
   type AccountSignerMeta,
   type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
+  type Codec,
+  type Decoder,
+  type Encoder,
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
@@ -94,22 +96,39 @@ export type ThawPermissionlessInstruction<
     ]
   >;
 
-export type ThawPermissionlessInstructionData = { discriminator: number };
+export type ThawPermissionlessInstructionData = {
+  discriminator: number;
+  /** Optional caller-supplied payload, forwarded verbatim to the gating program's can-thaw-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty. */
+  data: ReadonlyUint8Array;
+};
 
-export type ThawPermissionlessInstructionDataArgs = {};
+export type ThawPermissionlessInstructionDataArgs = {
+  /** Optional caller-supplied payload, forwarded verbatim to the gating program's can-thaw-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty. */
+  data?: ReadonlyUint8Array;
+};
 
-export function getThawPermissionlessInstructionDataEncoder(): FixedSizeEncoder<ThawPermissionlessInstructionDataArgs> {
+export function getThawPermissionlessInstructionDataEncoder(): Encoder<ThawPermissionlessInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([["discriminator", getU8Encoder()]]),
-    (value) => ({ ...value, discriminator: THAW_PERMISSIONLESS_DISCRIMINATOR }),
+    getStructEncoder([
+      ["discriminator", getU8Encoder()],
+      ["data", getBytesEncoder()],
+    ]),
+    (value) => ({
+      ...value,
+      discriminator: THAW_PERMISSIONLESS_DISCRIMINATOR,
+      data: value.data ?? new Uint8Array([]),
+    }),
   );
 }
 
-export function getThawPermissionlessInstructionDataDecoder(): FixedSizeDecoder<ThawPermissionlessInstructionData> {
-  return getStructDecoder([["discriminator", getU8Decoder()]]);
+export function getThawPermissionlessInstructionDataDecoder(): Decoder<ThawPermissionlessInstructionData> {
+  return getStructDecoder([
+    ["discriminator", getU8Decoder()],
+    ["data", getBytesDecoder()],
+  ]);
 }
 
-export function getThawPermissionlessInstructionDataCodec(): FixedSizeCodec<
+export function getThawPermissionlessInstructionDataCodec(): Codec<
   ThawPermissionlessInstructionDataArgs,
   ThawPermissionlessInstructionData
 > {
@@ -139,6 +158,7 @@ export type ThawPermissionlessAsyncInput<
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   gatingProgram: Address<TAccountGatingProgram>;
+  data?: ThawPermissionlessInstructionDataArgs["data"];
 };
 
 export async function getThawPermissionlessInstructionAsync<
@@ -202,6 +222,9 @@ export async function getThawPermissionlessInstructionAsync<
     ResolvedAccount
   >;
 
+  // Original args.
+  const args = { ...input };
+
   // Resolve default values.
   if (!accounts.flagAccount.value) {
     accounts.flagAccount.value = await findFlagAccountPda({
@@ -235,7 +258,9 @@ export async function getThawPermissionlessInstructionAsync<
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.gatingProgram),
     ],
-    data: getThawPermissionlessInstructionDataEncoder().encode({}),
+    data: getThawPermissionlessInstructionDataEncoder().encode(
+      args as ThawPermissionlessInstructionDataArgs,
+    ),
     programAddress,
   } as ThawPermissionlessInstruction<
     TProgramAddress,
@@ -271,6 +296,7 @@ export type ThawPermissionlessInput<
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   gatingProgram: Address<TAccountGatingProgram>;
+  data?: ThawPermissionlessInstructionDataArgs["data"];
 };
 
 export function getThawPermissionlessInstruction<
@@ -332,6 +358,9 @@ export function getThawPermissionlessInstruction<
     ResolvedAccount
   >;
 
+  // Original args.
+  const args = { ...input };
+
   // Resolve default values.
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =
@@ -355,7 +384,9 @@ export function getThawPermissionlessInstruction<
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.gatingProgram),
     ],
-    data: getThawPermissionlessInstructionDataEncoder().encode({}),
+    data: getThawPermissionlessInstructionDataEncoder().encode(
+      args as ThawPermissionlessInstructionDataArgs,
+    ),
     programAddress,
   } as ThawPermissionlessInstruction<
     TProgramAddress,

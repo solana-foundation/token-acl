@@ -8,6 +8,8 @@
 
 import {
   combineCodec,
+  getBytesDecoder,
+  getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
   getU8Decoder,
@@ -16,9 +18,9 @@ import {
   type AccountMeta,
   type AccountSignerMeta,
   type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
+  type Codec,
+  type Decoder,
+  type Encoder,
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
@@ -96,25 +98,37 @@ export type ThawPermissionlessIdempotentInstruction<
 
 export type ThawPermissionlessIdempotentInstructionData = {
   discriminator: number;
+  /** Optional caller-supplied payload, forwarded verbatim to the gating program's can-thaw-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty. */
+  data: ReadonlyUint8Array;
 };
 
-export type ThawPermissionlessIdempotentInstructionDataArgs = {};
+export type ThawPermissionlessIdempotentInstructionDataArgs = {
+  /** Optional caller-supplied payload, forwarded verbatim to the gating program's can-thaw-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty. */
+  data?: ReadonlyUint8Array;
+};
 
-export function getThawPermissionlessIdempotentInstructionDataEncoder(): FixedSizeEncoder<ThawPermissionlessIdempotentInstructionDataArgs> {
+export function getThawPermissionlessIdempotentInstructionDataEncoder(): Encoder<ThawPermissionlessIdempotentInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([["discriminator", getU8Encoder()]]),
+    getStructEncoder([
+      ["discriminator", getU8Encoder()],
+      ["data", getBytesEncoder()],
+    ]),
     (value) => ({
       ...value,
       discriminator: THAW_PERMISSIONLESS_IDEMPOTENT_DISCRIMINATOR,
+      data: value.data ?? new Uint8Array([]),
     }),
   );
 }
 
-export function getThawPermissionlessIdempotentInstructionDataDecoder(): FixedSizeDecoder<ThawPermissionlessIdempotentInstructionData> {
-  return getStructDecoder([["discriminator", getU8Decoder()]]);
+export function getThawPermissionlessIdempotentInstructionDataDecoder(): Decoder<ThawPermissionlessIdempotentInstructionData> {
+  return getStructDecoder([
+    ["discriminator", getU8Decoder()],
+    ["data", getBytesDecoder()],
+  ]);
 }
 
-export function getThawPermissionlessIdempotentInstructionDataCodec(): FixedSizeCodec<
+export function getThawPermissionlessIdempotentInstructionDataCodec(): Codec<
   ThawPermissionlessIdempotentInstructionDataArgs,
   ThawPermissionlessIdempotentInstructionData
 > {
@@ -144,6 +158,7 @@ export type ThawPermissionlessIdempotentAsyncInput<
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   gatingProgram: Address<TAccountGatingProgram>;
+  data?: ThawPermissionlessIdempotentInstructionDataArgs["data"];
 };
 
 export async function getThawPermissionlessIdempotentInstructionAsync<
@@ -207,6 +222,9 @@ export async function getThawPermissionlessIdempotentInstructionAsync<
     ResolvedAccount
   >;
 
+  // Original args.
+  const args = { ...input };
+
   // Resolve default values.
   if (!accounts.flagAccount.value) {
     accounts.flagAccount.value = await findFlagAccountPda({
@@ -240,7 +258,9 @@ export async function getThawPermissionlessIdempotentInstructionAsync<
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.gatingProgram),
     ],
-    data: getThawPermissionlessIdempotentInstructionDataEncoder().encode({}),
+    data: getThawPermissionlessIdempotentInstructionDataEncoder().encode(
+      args as ThawPermissionlessIdempotentInstructionDataArgs,
+    ),
     programAddress,
   } as ThawPermissionlessIdempotentInstruction<
     TProgramAddress,
@@ -276,6 +296,7 @@ export type ThawPermissionlessIdempotentInput<
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   gatingProgram: Address<TAccountGatingProgram>;
+  data?: ThawPermissionlessIdempotentInstructionDataArgs["data"];
 };
 
 export function getThawPermissionlessIdempotentInstruction<
@@ -337,6 +358,9 @@ export function getThawPermissionlessIdempotentInstruction<
     ResolvedAccount
   >;
 
+  // Original args.
+  const args = { ...input };
+
   // Resolve default values.
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =
@@ -360,7 +384,9 @@ export function getThawPermissionlessIdempotentInstruction<
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.gatingProgram),
     ],
-    data: getThawPermissionlessIdempotentInstructionDataEncoder().encode({}),
+    data: getThawPermissionlessIdempotentInstructionDataEncoder().encode(
+      args as ThawPermissionlessIdempotentInstructionDataArgs,
+    ),
     programAddress,
   } as ThawPermissionlessIdempotentInstruction<
     TProgramAddress,

@@ -8,6 +8,8 @@
 
 import {
   combineCodec,
+  getBytesDecoder,
+  getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
   getU8Decoder,
@@ -16,9 +18,9 @@ import {
   type AccountMeta,
   type AccountSignerMeta,
   type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
+  type Codec,
+  type Decoder,
+  type Encoder,
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
@@ -94,25 +96,39 @@ export type FreezePermissionlessInstruction<
     ]
   >;
 
-export type FreezePermissionlessInstructionData = { discriminator: number };
+export type FreezePermissionlessInstructionData = {
+  discriminator: number;
+  /** Optional caller-supplied payload, forwarded verbatim to the gating program's can-freeze-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty. */
+  data: ReadonlyUint8Array;
+};
 
-export type FreezePermissionlessInstructionDataArgs = {};
+export type FreezePermissionlessInstructionDataArgs = {
+  /** Optional caller-supplied payload, forwarded verbatim to the gating program's can-freeze-permissionless instruction after its 8-byte discriminator. Token ACL never interprets it. Defaults to empty. */
+  data?: ReadonlyUint8Array;
+};
 
-export function getFreezePermissionlessInstructionDataEncoder(): FixedSizeEncoder<FreezePermissionlessInstructionDataArgs> {
+export function getFreezePermissionlessInstructionDataEncoder(): Encoder<FreezePermissionlessInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([["discriminator", getU8Encoder()]]),
+    getStructEncoder([
+      ["discriminator", getU8Encoder()],
+      ["data", getBytesEncoder()],
+    ]),
     (value) => ({
       ...value,
       discriminator: FREEZE_PERMISSIONLESS_DISCRIMINATOR,
+      data: value.data ?? new Uint8Array([]),
     }),
   );
 }
 
-export function getFreezePermissionlessInstructionDataDecoder(): FixedSizeDecoder<FreezePermissionlessInstructionData> {
-  return getStructDecoder([["discriminator", getU8Decoder()]]);
+export function getFreezePermissionlessInstructionDataDecoder(): Decoder<FreezePermissionlessInstructionData> {
+  return getStructDecoder([
+    ["discriminator", getU8Decoder()],
+    ["data", getBytesDecoder()],
+  ]);
 }
 
-export function getFreezePermissionlessInstructionDataCodec(): FixedSizeCodec<
+export function getFreezePermissionlessInstructionDataCodec(): Codec<
   FreezePermissionlessInstructionDataArgs,
   FreezePermissionlessInstructionData
 > {
@@ -142,6 +158,7 @@ export type FreezePermissionlessAsyncInput<
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   gatingProgram: Address<TAccountGatingProgram>;
+  data?: FreezePermissionlessInstructionDataArgs["data"];
 };
 
 export async function getFreezePermissionlessInstructionAsync<
@@ -205,6 +222,9 @@ export async function getFreezePermissionlessInstructionAsync<
     ResolvedAccount
   >;
 
+  // Original args.
+  const args = { ...input };
+
   // Resolve default values.
   if (!accounts.flagAccount.value) {
     accounts.flagAccount.value = await findFlagAccountPda({
@@ -238,7 +258,9 @@ export async function getFreezePermissionlessInstructionAsync<
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.gatingProgram),
     ],
-    data: getFreezePermissionlessInstructionDataEncoder().encode({}),
+    data: getFreezePermissionlessInstructionDataEncoder().encode(
+      args as FreezePermissionlessInstructionDataArgs,
+    ),
     programAddress,
   } as FreezePermissionlessInstruction<
     TProgramAddress,
@@ -274,6 +296,7 @@ export type FreezePermissionlessInput<
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   gatingProgram: Address<TAccountGatingProgram>;
+  data?: FreezePermissionlessInstructionDataArgs["data"];
 };
 
 export function getFreezePermissionlessInstruction<
@@ -335,6 +358,9 @@ export function getFreezePermissionlessInstruction<
     ResolvedAccount
   >;
 
+  // Original args.
+  const args = { ...input };
+
   // Resolve default values.
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =
@@ -358,7 +384,9 @@ export function getFreezePermissionlessInstruction<
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.gatingProgram),
     ],
-    data: getFreezePermissionlessInstructionDataEncoder().encode({}),
+    data: getFreezePermissionlessInstructionDataEncoder().encode(
+      args as FreezePermissionlessInstructionDataArgs,
+    ),
     programAddress,
   } as FreezePermissionlessInstruction<
     TProgramAddress,

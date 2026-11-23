@@ -3,7 +3,7 @@ use solana_program::account_info::AccountInfo;
 use solana_program_error::{ProgramError, ProgramResult};
 use solana_pubkey::Pubkey;
 use spl_token_2022::{extension::StateWithExtensions, state::AccountState};
-use token_acl_interface::onchain::invoke_can_thaw_permissionless;
+use token_acl_interface::onchain::invoke_can_thaw_permissionless_with_data;
 
 use crate::{
     error::TokenAclError,
@@ -27,7 +27,11 @@ pub struct ThawPermissionless<'a> {
 impl ThawPermissionless<'_> {
     pub const DISCRIMINATOR: u8 = 6;
 
-    pub fn process(&self, is_idempotent: bool) -> ProgramResult {
+    /// `gate_data` is everything after Token ACL's 1-byte instruction discriminator.
+    /// It is forwarded verbatim to the gating program, appended after the
+    /// sRFC37 8-byte discriminator, and never interpreted by Token ACL. An
+    /// empty `gate_data` produces the same CPI as before payload forwarding existed.
+    pub fn process(&self, is_idempotent: bool, gate_data: &[u8]) -> ProgramResult {
         let data = &self.mint_config.data.borrow();
         let config = load_mint_config(data)?;
 
@@ -87,7 +91,7 @@ impl ThawPermissionless<'_> {
 
         self.flag_account.data.borrow_mut()[0] = 1;
 
-        invoke_can_thaw_permissionless(
+        invoke_can_thaw_permissionless_with_data(
             self.gating_program.key,
             self.authority.clone(),
             self.token_account.clone(),
@@ -95,6 +99,7 @@ impl ThawPermissionless<'_> {
             self.token_account_owner.clone(),
             self.flag_account.clone(),
             self.remaining_accounts,
+            gate_data,
         )?;
 
         let bump_seed = [config.bump];
