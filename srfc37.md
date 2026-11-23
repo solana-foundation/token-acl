@@ -106,15 +106,19 @@ Structure:
 
 - thaw_permissionless
     - Calls the gating instruction to decide whether or not the caller should be able to thaw a token account permissionless
+    - Instruction data: `[6] ++ data`, where the optional `data` is forwarded to the gating program (see [Forwarded instruction data](#forwarded-instruction-data))
 
 - freeze_permissionless
     - Calls the gating instruction to decide whether or not the caller should be able to freeze a token account permissionless
+    - Instruction data: `[7] ++ data`, where the optional `data` is forwarded to the gating program
 
 - thaw_permissionless_idempotent
     - Idempotent version of thaw_permissionless. Will return success early if token account state is set to `Initialized`.
+    - Instruction data: `[9] ++ data`. `data` is forwarded exactly like thaw_permissionless; on the early return path the gating program is not called and `data` is ignored.
 
 - freeze_permissionless_idempotent
     - Idempotent version of freeze_permissionlesss. Will return success early if token account state is set to `Frozen`.
+    - Instruction data: `[10] ++ data`. `data` is forwarded exactly like freeze_permissionless; on the early return path the gating program is not called and `data` is ignored.
 
 ### Interface
 
@@ -124,7 +128,7 @@ The interface needs two methods, both with optional implementations (should retu
     - Discriminator_hash_input: “efficient-allow-block-list-standard:can-thaw-permissionless”
     - Discriminator: [u8; 8] = [8, 175, 169, 129, 137, 74, 61, 241]
     - Extra Accounts Metas seeds: [b”thaw-extra-account-metas”, mint_address]
-    - Remaining instruction data: [  ]
+    - Remaining instruction data: the caller-supplied `data` forwarded by the Token ACL (empty by default, see below)
     - Accounts: [caller, token account, mint, token account owner, flag account, extra-account-metas]
     - Remaining accounts: accounts as defined in extra account metas PDA
 
@@ -132,10 +136,25 @@ The interface needs two methods, both with optional implementations (should retu
     - Discriminator_hash_input: “efficient-allow-block-list-standard:can-freeze-permissionless"
     - Discriminator: [u8; 8] = [214, 141, 109, 75, 248, 1, 45, 29]
     - Extra Account Metas seeds: [b”freeze-extra-account-metas”, mint_address]
-    - Remaining instruction data: [  ]
+    - Remaining instruction data: the caller-supplied `data` forwarded by the Token ACL (empty by default, see below)
     - Accounts: [caller, token account, mint, token account owner, flag account, extra-account-metas]
     - Remaining accounts: accounts as defined in extra account metas PDA
 
+
+#### Forwarded instruction data
+
+All bytes that follow the 1-byte Token ACL discriminator of `thaw_permissionless`, `thaw_permissionless_idempotent`, `freeze_permissionless` and `freeze_permissionless_idempotent` are forwarded verbatim to the gating program, appended after the 8-byte interface discriminator:
+
+```
+Token ACL instruction data:  [token_acl_discriminator: u8] ++ data
+Gate CPI instruction data:   [interface_discriminator: [u8; 8]] ++ data
+```
+
+- The Token ACL never parses, validates or modifies `data`. Its meaning is defined entirely by the gating program (for example a zero-knowledge proof, a signature or a nonce).
+- `data` is untrusted, caller-controlled input. Anyone can call the permissionless instructions with arbitrary bytes, so gating programs must validate it fully, must not assume any particular length, and should reject payloads they do not expect. Gating programs that do not use `data` may ignore it.
+- Empty `data` produces exactly the same CPI as before this behaviour was specified (only the 8-byte discriminator), so existing gating programs and callers are unaffected.
+- Extra account metas are resolved against the gate CPI instruction data, i.e. `discriminator ++ data`. A `Seed::InstructionData { index, length }` seed therefore reads `data[index - 8..index - 8 + length]`. Off-chain clients must resolve extra metas against the same bytes; the interface crate (`*_with_data` helpers) and the SDKs do this.
+- Size: `data` is bounded by the transaction size limit (1232 bytes), not by the Token ACL. With a typical legacy transaction carrying ~10 accounts this leaves roughly 700-800 bytes for `data`, less if more extra accounts or instructions are included; address lookup tables increase the headroom. The CPI instruction data limit (10 KiB) is not the binding constraint.
 
 In order for gate programs to have assurances as to whether they're being called under the right circunstances, a Flag Account is created for the duration of the `can-thaw-permissionless` and `can-freeze-permissionless` operations. This account is created with 0 lamports and a single byte of data which is set to 1. Programs that require some level of bookkeeping should check that the flag account fulfills 2 constraints:
  - Is owned by the Token ACL program
@@ -221,6 +240,8 @@ A protocol would need direct support if there are token transfers on the same in
 The Token ACL solves the largest security concern in this system - the ability for a 3rd party to insert malicious instructions in unsuspecting users transactions. Standardizing a way for wallets/contracts/client software to introduce a new instruction to thaw token accounts right after creation is a sure way to enable bad actors.
 
 The Token ACL solves this by de-escalating the permissions and acting as a proxy into the actual custom code that decides whether or not to act on the permissionless thaw and freeze operations.
+
+Instruction data forwarded to the Gate Program is untrusted input chosen by the caller. The Token ACL passes it through without interpretation and does not change the accounts, permissions or Flag Account semantics of the CPI; it is the Gate Program's responsibility to validate it.
 
 # Implementations
 

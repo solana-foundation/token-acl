@@ -20,6 +20,7 @@ Token ACL provides a novel mechanism for permissioned tokens using Token22's Def
 - **Managed Freeze Authority**: Token ACL manages the mint freeze authority 
 - **Permissionless Thaw/Freeze**: Users can thaw/freeze token accounts without issuer intervention
 - **Gate Program Interface**: Standardized interface for custom allow/block list logic
+- **Payload Forwarding**: Optional caller data (e.g. a zero-knowledge proof) is forwarded to the gate program
 - **Composability**: Works with existing protocols without requiring specialized UIs
 - **Security**: De-escalated permissions prevent malicious instruction injection
 
@@ -107,6 +108,18 @@ The [examples](examples) folder contains toy programs for testing purposes:
 - `always-allow`: Always permits thaw/freeze operations
 - `always-block`: Always blocks thaw/freeze operations  
 - `always-allow-with-deps`: Example with additional account dependencies
+- `require-data`: Only allows thaw/freeze when the forwarded payload matches an expected value; declares an extra account derived from the payload (`Seed::InstructionData`)
+
+## Forwarding data to the gate program
+
+The permissionless thaw/freeze instructions (`thaw_permissionless`, `thaw_permissionless_idempotent`, `freeze_permissionless`, `freeze_permissionless_idempotent`) accept optional trailing instruction data. Every byte after the Token ACL's 1-byte discriminator is forwarded verbatim to the gating program, appended after its 8-byte sRFC37 discriminator. The Token ACL never interprets it; gate programs must treat it as untrusted caller input. Empty data (the default) produces the same CPI as before, so existing gates keep working unchanged. The payload is limited only by the transaction size (1232 bytes total). See [Forwarded instruction data](srfc37.md#forwarded-instruction-data).
+
+- Rust interface: `can_{thaw,freeze}_permissionless_with_data`, `onchain::invoke_can_{thaw,freeze}_permissionless_with_data`, `offchain::add_extra_account_metas_for_{thaw,freeze}_with_data`
+- Rust client: `create_{thaw,freeze}_permissionless_instruction_with_extra_metas_and_data`, `create_ata_and_thaw_permissionless_instructions_with_data`, and `instruction_with_data(&data)` on the permissionless builders
+- JS client: optional `data` argument on the generated permissionless instructions and a trailing optional `data` parameter on the `create*PermissionlessInstruction*` helpers
+- CLI: `--data <HEX>` or `--data-file <PATH>` on `thaw-permissionless`, `freeze-permissionless` and `create-ata-and-thaw-permissionless`
+
+Extra account metas are resolved against the gate instruction including the payload, so `Seed::InstructionData` seeds can reference it (offset 8 is the first payload byte).
 
 ## Specification
 
